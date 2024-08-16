@@ -11,12 +11,21 @@ import {
 } from 'react-native';
 import React, { useState } from 'react';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Language } from '@/components/Language';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
 
 const Page = () => {
+  const { i18n, t } = useTranslation();
+  const changeLanguage = async (lang: string) => {
+    await AsyncStorage.setItem('language', lang);
+    i18n.changeLanguage(lang);
+  };
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { onLogin } = useAuth();
@@ -26,12 +35,7 @@ const Page = () => {
   };
 
   return (
-    <View
-      // style={{
-      // justifyContent: 'center',
-      // }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         // style={{ justifyContent: 'center' }}
@@ -71,7 +75,19 @@ const Page = () => {
               ¿Olvidaste tu contraseña?
             </Text>
             <TouchableOpacity onPress={onSignInPress} style={styles.button}>
-              <Text style={styles.buttonText}>Iniciar sesión</Text>
+              <Text style={styles.buttonText}>{t('loginView.login')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => changeLanguage('en-US')}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>EN</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => changeLanguage('es-ES')}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText}>ES</Text>
             </TouchableOpacity>
             <View style={styles.registerContainer}>
               <Text style={styles.registerText}>
