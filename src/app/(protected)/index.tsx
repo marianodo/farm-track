@@ -3,11 +3,12 @@ import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 export default function HomeScreen() {
   const { authState, onLogout } = useAuth();
   const router = useRouter();
-
+  const { t } = useTranslation();
   const onLogoutPressed = () => {
     onLogout!();
   };
@@ -17,7 +18,7 @@ export default function HomeScreen() {
       <Text>Home</Text>
       <Text>Role: {authState?.role}</Text>
       <Pressable>
-        <Text>aaaa</Text>
+        <Text>{t('language')}</Text>
       </Pressable>
       <Button
         style={{}}
@@ -33,7 +34,6 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    // flexDirection: 'row',
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',

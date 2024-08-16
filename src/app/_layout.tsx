@@ -1,4 +1,5 @@
 import 'react-native-reanimated';
+import '@/i18n';
 
 import * as SplashScreen from 'expo-splash-screen';
 
@@ -15,14 +16,18 @@ import {
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useSegments } from 'expo-router';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
+import { useTranslation } from 'react-i18next';
 
 SplashScreen.preventAutoHideAsync();
 
 const StackLayout = () => {
+  const { i18n } = useTranslation();
+  const currentLanguage = i18n.language;
   const [loaded, error] = useFonts({
     'Pro-Regular': require('../../assets/fonts/Sf-Pro-Regular.otf'),
     'Pro-Bold': require('../../assets/fonts/Sf-Pro-Bold.otf'),
@@ -36,6 +41,13 @@ const StackLayout = () => {
   const { authState } = useAuth();
 
   useEffect(() => {
+    const loadLanguage = async () => {
+      const savedLanguage = await AsyncStorage.getItem('language');
+      if (savedLanguage) {
+        i18n.changeLanguage(savedLanguage);
+      }
+    };
+    loadLanguage();
     console.log('authState', authState);
     const inAuthGroup = segments[0] === '(protected)';
     if (!authState?.authenticated && inAuthGroup) {
@@ -43,7 +55,7 @@ const StackLayout = () => {
     } else if (authState?.authenticated === true) {
       router.replace('/(protected)');
     }
-  }, [authState, router, segments]);
+  }, [authState, router, segments, i18n]);
 
   useEffect(() => {
     if (loaded || error) {
