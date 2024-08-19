@@ -14,14 +14,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.farmproject"
+      "bundleIdentifier": "com.anonymous.farmproject",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.farmproject"
+      "package": "com.anonymous.farmproject",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro",
@@ -42,6 +46,9 @@
         "projectId": "683963ba-26c0-43fe-a449-8522761f6f88"
       }
     },
-    "owner": "farm-project"
+    "owner": "farm-project",
+    "updates": {
+      "url": "https://u.expo.dev/683963ba-26c0-43fe-a449-8522761f6f88"
+    }
   }
 }
