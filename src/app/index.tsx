@@ -1,29 +1,43 @@
+import * as Localization from 'expo-localization';
+
 import {
   Dimensions,
   Image,
-  KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import { rMS, rS, rV } from '@/styles/responsive';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Language } from '@/components/Language';
+import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
 
 const Page = () => {
+  const [securePassword, setSecurePassword] = useState(true);
+  const [language, setLanguage] = useState(
+    Localization.getLocales()[0].languageTag
+  );
   const { i18n, t } = useTranslation();
   const changeLanguage = async (lang: string) => {
     await AsyncStorage.setItem('language', lang);
     i18n.changeLanguage(lang);
+    setLanguage(lang);
+  };
+  const scrollRef = useRef<KeyboardAwareScrollView>(null);
+
+  const scrollToInput = (reactNode: any) => {
+    if (reactNode) {
+      scrollRef.current?.scrollToFocusedInput(reactNode);
+    }
   };
 
   const [username, setUsername] = useState('');
@@ -35,13 +49,19 @@ const Page = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        // style={{ justifyContent: 'center' }}
-      >
-        <KeyboardAwareScrollView>
-          <View style={styles.headerContainer}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      keyboardShouldPersistTaps="handled"
+      ref={scrollRef}
+      contentInsetAdjustmentBehavior="always"
+      scrollEnabled={true}
+      enableAutomaticScroll={Platform.OS === 'ios'}
+      extraHeight={rV(140)}
+      extraScrollHeight={rV(140)}
+    >
+      <View style={styles.scrollViewContent}>
+        <View style={styles.headerContainer}>
+          <View style={styles.headerSubContainer}>
             <Image
               source={require('../../assets/images/login-bg-image.png')}
               style={styles.backgroundImage}
@@ -51,172 +71,248 @@ const Page = () => {
               style={styles.logo}
             />
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Bienvenido</Text>
-              <Text style={styles.subtitle}>a FarmTrack</Text>
-              <Text style={styles.headerText}>Inicia sesión en tu cuenta</Text>
+              <Text style={styles.title}>{t('loginView.title')}</Text>
+              <Text style={styles.title}>{t('loginView.title2')}</Text>
+              <Text style={styles.subtitle}>{t('loginView.subtitle')}</Text>
             </View>
           </View>
-          <View style={styles.formContainer}>
-            <TextInput
-              autoCapitalize="none"
-              placeholder="Correo electrónico"
-              value={username}
-              onChangeText={setUsername}
-              style={styles.inputField}
-            />
-            <TextInput
-              placeholder="Contraseña"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              style={styles.inputField}
-            />
-            <Text style={styles.forgotPasswordText}>
-              ¿Olvidaste tu contraseña?
-            </Text>
-            <TouchableOpacity onPress={onSignInPress} style={styles.button}>
-              <Text style={styles.buttonText}>{t('loginView.login')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => changeLanguage('en-US')}
-              style={styles.button}
-            >
-              <Text style={styles.buttonText}>EN</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            placeholder={t('loginView.emailPlaceHolder')}
+            value={username}
+            onChangeText={setUsername}
+            style={styles.inputField}
+            mode="outlined"
+            autoCapitalize="none"
+            activeOutlineColor="transparent"
+            textColor="#486732"
+            cursorColor="#486732"
+            placeholderTextColor="#486732"
+            outlineColor="#F1F1F1"
+            onFocus={(event) => {
+              scrollToInput(event.target);
+            }}
+            left={
+              <TextInput.Icon
+                icon="email"
+                color="#486732"
+                style={{
+                  alignSelf: 'center',
+                  alignContent: 'center',
+                  alignItems: 'center',
+                }}
+              />
+            }
+          />
+          <TextInput
+            placeholder={t('loginView.passwordPlaceHolder')}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={securePassword}
+            style={styles.inputField}
+            mode="outlined"
+            autoCapitalize="none"
+            activeOutlineColor="transparent"
+            textColor="#486732"
+            cursorColor="#486732"
+            underlineColor="#fff"
+            placeholderTextColor="#486732"
+            outlineColor="#F1F1F1"
+            onFocus={(event) => {
+              scrollToInput(event.target);
+            }}
+            left={<TextInput.Icon icon="lock" color="#486732" />}
+            right={
+              <TextInput.Icon
+                onPress={() => setSecurePassword(!securePassword)}
+                icon={securePassword ? 'eye' : 'eye-off'}
+                color="#486732"
+              />
+            }
+          />
+          <Text style={styles.forgotPasswordText}>
+            {t('loginView.forgotPasswordPlaceHolder')}
+          </Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+            <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
+          </TouchableOpacity>
+          <View style={styles.flagsContainer}>
+            <Pressable
               onPress={() => changeLanguage('es-ES')}
-              style={styles.button}
+              style={({ pressed }) => ({
+                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
+              })}
             >
-              <Text style={styles.buttonText}>ES</Text>
-            </TouchableOpacity>
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>
-                ¿Aun no tienes una cuenta?
-              </Text>
-              <Text style={styles.registerLink}>Registrarse</Text>
-            </View>
+              <Image
+                source={require('../../assets/flags/es_spain.png')}
+                style={{ height: rS(36), width: rS(36) }}
+              />
+            </Pressable>
+            <Pressable
+              onPress={() => changeLanguage('en-US')}
+              style={({ pressed }) => ({
+                opacity: pressed || language === 'en-US' ? 1 : 0.5,
+              })}
+            >
+              <Image
+                source={require('../../assets/flags/united_kingdom.png')}
+                style={{ height: rS(36), width: rS(36) }}
+              />
+            </Pressable>
           </View>
-        </KeyboardAwareScrollView>
-      </KeyboardAvoidingView>
-    </View>
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>
+              {t('loginView.noAccountText')}
+            </Text>
+            <Text style={styles.registerLink}>{t('loginView.signUpText')}</Text>
+          </View>
+        </View>
+      </View>
+    </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    // flex: 1,
+    height: height,
     backgroundColor: '#fff',
-    height: '100%',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
   },
   headerContainer: {
-    // backgroundColor: 'blue',
+    height: rS(272),
+    width: '100%',
+    position: 'relative',
+    marginBottom: rMS(30),
     alignItems: 'center',
-    height: height * 0.4, // Altura ajustada para adaptarse a diferentes tamaños de pantalla
+    justifyContent: 'flex-start',
+  },
+  headerSubContainer: {
+    height: rS(300),
+    width: width,
+    top: rS(-70),
+    paddingBottom: rV(25),
   },
   backgroundImage: {
-    // backgroundColor: 'red',
+    resizeMode: 'center',
     width: '100%',
-    height: 273, // Altura ajustada para adaptarse a diferentes tamaños de pantalla
-    position: 'relative',
+    height: '100%',
   },
   logo: {
     position: 'absolute',
-    width: 80, // Ancho relativo al ancho de la pantalla
-    height: 80, // Altura relativa a la altura de la pantalla
-    marginTop: height * 0.15, // Margen superior relativo a la altura de la pantalla
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -rMS(50) }, { translateY: -rMS(-1) }],
+    alignSelf: 'center',
+    width: rMS(80),
+    height: rMS(79.9),
   },
   titleContainer: {
-    // backgroundColor: 'green',
+    top: '84.6%',
     position: 'absolute',
-    width: width * 0.5, // Ancho relativo al ancho de la pantalla
-    height: height * 0.1, // Altura relativa a la altura de la pantalla
-    marginTop: height * 0.238,
+    width: '100%',
   },
   title: {
     fontFamily: 'Pro-Regular',
     fontWeight: '700',
-    fontSize: height * 0.04, // Tamaño de fuente relativo al ancho de la pantalla
+    fontSize: rMS(32),
     textAlign: 'center',
-    lineHeight: height * 0.05, // Altura de línea relativa a la altura de la pantalla
-    marginTop: height * 0.04, // Margen superior relativo a la altura de la pantalla
+    lineHeight: rMS(37),
     color: '#486732',
   },
   subtitle: {
-    fontSize: 34, // Tamaño de fuente relativo al ancho de la pantalla
-    textAlign: 'center',
-    lineHeight: height * 0.05, // Altura de línea relativa a la altura de la pantalla
     fontFamily: 'Pro-Regular',
-    fontWeight: '700',
+    fontSize: rMS(15),
+    textAlign: 'center',
+    lineHeight: rMS(38),
+    fontWeight: '400',
     color: '#486732',
   },
+  inputContainer: {
+    height: rV(146),
+    marginBottom: rMS(30),
+  },
   formContainer: {
-    marginTop: height * 0.06, // Margen superior relativo a la altura de la pantalla
-    paddingBottom: height * 0.01,
+    flex: 1,
+    justifyContent: 'space-between',
   },
   headerText: {
     color: '#96A59A',
     fontFamily: 'Pro-Regular',
-    fontSize: 16, // Tamaño de fuente relativo al ancho de la pantalla
-    marginTop: height * 0.01, // Margen superior relativo a la altura de la pantalla
-    marginBottom: height * 0.04, // Margen inferior relativo a la altura de la pantalla
+    fontSize: 16,
+    marginTop: height * 0.01,
+    marginBottom: height * 0.04,
     textAlign: 'center',
     fontWeight: '400',
   },
   inputField: {
     alignSelf: 'center',
-    marginVertical: height * 0.01, // Margen vertical relativo a la altura de la pantalla
-    width: width * 0.9, // Ancho relativo al ancho de la pantalla
-    height: height * 0.06, // Altura relativa a la altura de la pantalla
+    marginVertical: height * 0.01,
+    width: width * 0.9,
+    height: height * 0.07,
     borderWidth: 1,
-    fontSize: width * 0.04, // Tamaño de fuente relativo al ancho de la pantalla
+    fontSize: width * 0.04,
     fontFamily: 'Pro-Regular',
     color: '#486732',
     borderColor: '#F1F1F1',
     backgroundColor: '#F1F1F1',
     borderRadius: 12,
-    padding: 10,
   },
   forgotPasswordText: {
     color: '#486732',
     fontFamily: 'Pro-Regular',
-    fontSize: width * 0.035, // Tamaño de fuente relativo al ancho de la pantalla
-    marginEnd: width * 0.1, // Margen final relativo al ancho de la pantalla
-    marginTop: height * 0.01, // Margen superior relativo a la altura de la pantalla
-    marginBottom: height * 0.04, // Margen inferior relativo a la altura de la pantalla
+    fontSize: width * 0.035,
+    marginEnd: width * 0.1,
+    marginTop: height * 0.01,
+    marginBottom: height * 0.04,
     textAlign: 'right',
     fontWeight: '700',
   },
   button: {
     alignSelf: 'center',
     justifyContent: 'center',
-    marginTop: height * 0.01, // Margen superior relativo a la altura de la pantalla
-    marginBottom: height * 0.03, // Margen inferior relativo a la altura de la pantalla
+    marginTop: height * 0.01,
+    marginBottom: height * 0.03,
     alignItems: 'center',
     backgroundColor: '#486732',
-    width: width * 0.9, // Ancho relativo al ancho de la pantalla
-    height: height * 0.06, // Altura relativa a la altura de la pantalla
+    width: width * 0.9,
+    height: height * 0.06,
     borderRadius: 12,
   },
   buttonText: {
     color: '#fff',
     fontWeight: '700',
   },
+  flagsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignSelf: 'center',
+    gap: rS(10),
+  },
   registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignSelf: 'center',
     gap: 10,
+    paddingBottom: rV(30),
   },
   registerText: {
     color: '#486732',
     fontFamily: 'Pro-Regular',
-    fontSize: width * 0.04, // Tamaño de fuente relativo al ancho de la pantalla
+    fontSize: width * 0.04,
     fontWeight: '400',
   },
   registerLink: {
     color: '#486732',
     fontFamily: 'Pro-Regular',
-    fontSize: width * 0.04, // Tamaño de fuente relativo al ancho de la pantalla
+    fontSize: width * 0.04,
     fontWeight: '700',
   },
 });

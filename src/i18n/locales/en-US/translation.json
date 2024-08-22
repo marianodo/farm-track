@@ -1,6 +1,14 @@
 {
     "language": "Language",
     "loginView": {
-        "login": "Login" 
+        "title": "Welcome",
+        "title2": "a FarmTrack",
+        "subtitle": "Sign in to your account",
+        "emailPlaceHolder": "Email",
+        "passwordPlaceHolder": "Password",
+        "forgotPasswordPlaceHolder": "¿Forgot your password?",
+        "loginText": "Login",
+        "noAccountText": "¿Don't you have an account yet?",
+        "signUpText": "Sign up"
     }
 }
