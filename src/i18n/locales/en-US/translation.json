@@ -2,7 +2,7 @@
     "language": "Language",
     "loginView": {
         "title": "Welcome",
-        "title2": "a FarmTrack",
+        "title2": "to FarmTrack",
         "subtitle": "Sign in to your account",
         "emailPlaceHolder": "Email",
         "passwordPlaceHolder": "Password",
