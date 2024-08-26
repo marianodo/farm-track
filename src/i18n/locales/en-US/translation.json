@@ -1,6 +1,34 @@
 {
     "language": "Language",
     "loginView": {
-        "login": "Login" 
+        "title": "Welcome",
+        "title2": "to FarmTrack",
+        "subtitle": "Sign in to your account",
+        "emailPlaceHolder": "Email",
+        "passwordPlaceHolder": "Password",
+        "forgotPasswordPlaceHolder": "¿Forgot your password?",
+        "loginText": "Login",
+        "noAccountText": "¿Don't you have an account yet?",
+        "signUpText": "Sign up"
+    },
+    "registerView": {
+        "title": "Register",
+        "subtitle": "Create your new account",
+        "namePlaceHolder": "Full name",
+        "emailPlaceHolder": "Email",
+        "passwordPlaceHolder": "Password",
+        "confirmPasswordPlaceHolder": "Confirm Password",
+        "signUpText": "Sign up",
+        "alreadyHaveAccountText": "¿Already have an account?",
+        "loginText": "Login"
+    },
+    "recoveryPasswordView": {
+        "title": "Reset your",
+        "title2": "password",
+        "subtitle": "Choose a new password for your account",
+        "newPasswordPlaceHolder": "New password",
+        "ConfirmNewPasswordPlaceHolder": "Confirm password",
+        "ChangePasswordText": "Change password",
+        "BackToStartText": "Back to start"
     }
 }

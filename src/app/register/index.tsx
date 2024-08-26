@@ -3,6 +3,7 @@ import * as Localization from 'expo-localization';
 import {
   Dimensions,
   Image,
+  ImageBackground,
   Platform,
   Pressable,
   StyleSheet,
@@ -11,28 +12,20 @@ import {
   View,
 } from 'react-native';
 import React, { useRef, useState } from 'react';
-import { rMS, rS, rV } from '@/styles/responsive';
+import { rMS, rMV, rS, rV } from '@/styles/responsive';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
 
-const Page = () => {
+const RegisterView = () => {
   const [securePassword, setSecurePassword] = useState(true);
-  const [language, setLanguage] = useState(
-    Localization.getLocales()[0].languageTag
-  );
-  const { i18n, t } = useTranslation();
-  const changeLanguage = async (lang: string) => {
-    await AsyncStorage.setItem('language', lang);
-    i18n.changeLanguage(lang);
-    setLanguage(lang);
-  };
+  const { t } = useTranslation();
+
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
 
   const scrollToInput = (reactNode: any) => {
@@ -43,10 +36,9 @@ const Page = () => {
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { onLogin } = useAuth();
 
   const onSignInPress = async () => {
-    onLogin!(username, password);
+    alert('Ok');
   };
 
   return (
@@ -62,26 +54,19 @@ const Page = () => {
     >
       <View style={styles.scrollViewContent}>
         <View style={styles.headerContainer}>
-          <View style={styles.headerSubContainer}>
-            <Image
-              source={require('../../assets/images/login-bg-image.png')}
-              style={styles.backgroundImage}
-            />
-            <Image
-              source={require('../../assets/images/logo-farm.png')}
-              style={styles.logo}
-            />
-            <View style={styles.titleContainer}>
-              <Text style={styles.title}>{t('loginView.title')}</Text>
-              <Text style={styles.title}>{t('loginView.title2')}</Text>
-              <Text style={styles.subtitle}>{t('loginView.subtitle')}</Text>
-            </View>
+          <Image
+            source={require('../../../assets/images/logo-farm.png')}
+            style={styles.logo}
+          />
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{t('registerView.title')}</Text>
+            <Text style={styles.subtitle}>{t('registerView.subtitle')}</Text>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput
-            placeholder={t('loginView.emailPlaceHolder')}
+            placeholder={t('registerView.namePlaceHolder')}
             value={username}
             onChangeText={setUsername}
             style={styles.inputField}
@@ -97,7 +82,7 @@ const Page = () => {
             }}
             left={
               <TextInput.Icon
-                icon="email"
+                icon="account"
                 color="#486732"
                 style={{
                   alignSelf: 'center',
@@ -108,7 +93,33 @@ const Page = () => {
             }
           />
           <TextInput
-            placeholder={t('loginView.passwordPlaceHolder')}
+            placeholder={t('registerView.emailPlaceHolder')}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={securePassword}
+            style={styles.inputField}
+            mode="outlined"
+            autoCapitalize="none"
+            activeOutlineColor="transparent"
+            textColor="#486732"
+            cursorColor="#486732"
+            underlineColor="#fff"
+            placeholderTextColor="#486732"
+            outlineColor="#F1F1F1"
+            onFocus={(event) => {
+              scrollToInput(event.target);
+            }}
+            left={<TextInput.Icon icon="email" color="#486732" />}
+            right={
+              <TextInput.Icon
+                onPress={() => setSecurePassword(!securePassword)}
+                icon={securePassword ? 'eye' : 'eye-off'}
+                color="#486732"
+              />
+            }
+          />
+          <TextInput
+            placeholder={t('registerView.passwordPlaceHolder')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={securePassword}
@@ -133,59 +144,67 @@ const Page = () => {
               />
             }
           />
-          <Pressable
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.5 : 1,
-            })}
-          >
-            <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
-              {t('loginView.forgotPasswordPlaceHolder')}
-            </Link>
-          </Pressable>
+          <TextInput
+            placeholder={t('registerView.confirmPasswordPlaceHolder')}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={securePassword}
+            style={styles.inputField}
+            mode="outlined"
+            autoCapitalize="none"
+            activeOutlineColor="transparent"
+            textColor="#486732"
+            cursorColor="#486732"
+            underlineColor="#fff"
+            placeholderTextColor="#486732"
+            outlineColor="#F1F1F1"
+            onFocus={(event) => {
+              scrollToInput(event.target);
+            }}
+            left={<TextInput.Icon icon="lock" color="#486732" />}
+            right={
+              <TextInput.Icon
+                onPress={() => setSecurePassword(!securePassword)}
+                icon={securePassword ? 'eye' : 'eye-off'}
+                color="#486732"
+              />
+            }
+          />
         </View>
 
         <View style={styles.formContainer}>
           <TouchableOpacity onPress={onSignInPress} style={styles.button}>
-            <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
+            <Text style={styles.buttonText}>
+              {t('registerView.signUpText')}
+            </Text>
           </TouchableOpacity>
-          <View style={styles.flagsContainer}>
-            <Pressable
-              onPress={() => changeLanguage('es-ES')}
-              style={({ pressed }) => ({
-                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
-              })}
-            >
-              <Image
-                source={require('../../assets/flags/es_spain.png')}
-                style={{ height: rS(36), width: rS(36) }}
-              />
-            </Pressable>
-            <Pressable
-              onPress={() => changeLanguage('en-US')}
-              style={({ pressed }) => ({
-                opacity: pressed || language === 'en-US' ? 1 : 0.5,
-              })}
-            >
-              <Image
-                source={require('../../assets/flags/united_kingdom.png')}
-                style={{ height: rS(36), width: rS(36) }}
-              />
-            </Pressable>
-          </View>
+
           <View style={styles.registerContainer}>
             <Text style={styles.registerText}>
-              {t('loginView.noAccountText')}
+              {t('registerView.alreadyHaveAccountText')}
             </Text>
             <Pressable
               style={({ pressed }) => ({
                 opacity: pressed ? 0.5 : 1,
               })}
             >
-              <Link href="/register" style={styles.registerLink}>
-                {t('loginView.signUpText')}
+              <Link href="/" style={styles.registerLink}>
+                {t('registerView.loginText')}
               </Link>
             </Pressable>
           </View>
+          <ImageBackground
+            source={require('../../../assets/images/register-bg-image.jpg')}
+            resizeMode="cover"
+            style={{
+              position: 'absolute',
+              width: '100%',
+              height: '100%',
+              right: 0,
+              top: 10,
+              zIndex: -1,
+            }}
+          />
         </View>
       </View>
     </KeyboardAwareScrollView>
@@ -194,7 +213,6 @@ const Page = () => {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     height: height,
     backgroundColor: '#fff',
   },
@@ -202,36 +220,26 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerContainer: {
-    height: rS(272),
+    display: 'flex',
+    height: rV(215),
     width: '100%',
-    position: 'relative',
-    marginBottom: rMS(30),
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    gap: rMV(20),
   },
-  headerSubContainer: {
-    height: rS(300),
-    width: width,
-    top: rS(-70),
-    paddingBottom: rV(25),
-  },
+
   backgroundImage: {
     resizeMode: 'center',
     width: '100%',
     height: '100%',
   },
   logo: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -rMS(50) }, { translateY: -rMS(-1) }],
+    marginTop: rMV(30),
     alignSelf: 'center',
     width: rMS(80),
     height: rMS(79.9),
   },
   titleContainer: {
-    top: '84.6%',
-    position: 'absolute',
+    display: 'flex',
     width: '100%',
   },
   title: {
@@ -246,15 +254,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Pro-Regular',
     fontSize: rMS(15),
     textAlign: 'center',
-    lineHeight: rMS(38),
+    lineHeight: rMS(28),
     fontWeight: '400',
     color: '#96A59A',
   },
   inputContainer: {
-    height: rV(146),
-    marginBottom: rMS(30),
+    height: rV(254),
+    marginTop: rMV(6),
   },
   formContainer: {
+    position: 'relative',
+    zIndex: 1,
+    marginTop: rMV(2),
     flex: 1,
     justifyContent: 'space-between',
   },
@@ -332,4 +343,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Page;
+export default RegisterView;

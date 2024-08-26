@@ -1,6 +1,34 @@
 {
     "language": "Lenguaje",
     "loginView": {
-        "login": "Iniciar Sesión" 
+        "title": "Bienvenido",
+        "title2": "a FarmTrack",
+        "subtitle": "Inicia sesión en tu cuenta",
+        "emailPlaceHolder": "Correo electrónico",
+        "passwordPlaceHolder": "Contraseña",
+        "forgotPasswordPlaceHolder": "¿Olvidaste tu contraseña?",
+        "loginText": "Iniciar sesión",
+        "noAccountText": "¿Aun no tienes una cuenta?",
+        "signUpText": "Registrarse"
+    },
+    "registerView": {
+        "title": "Registro",
+        "subtitle": "Crear tu nueva cuenta",
+        "namePlaceHolder": "Nombre completo",
+        "emailPlaceHolder": "Correo electrónico",
+        "passwordPlaceHolder": "Contraseña",
+        "confirmPasswordPlaceHolder": "Confirmar contraseña",
+        "signUpText": "Registrarse",
+        "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
+        "loginText": "Iniciar sesión"
+    },
+    "recoveryPasswordView": {
+        "title": "Restablece tu",
+        "title2": "contraseña",
+        "subtitle": "Elige una nueva contraseña para tu cuenta",
+        "newPasswordPlaceHolder": "Nueva contraseña",
+        "ConfirmNewPasswordPlaceHolder": "Confirmar contraseña",
+        "ChangePasswordText": "Cambiar contraseña",
+        "BackToStartText": "Volver al Inicio"
     }
 }

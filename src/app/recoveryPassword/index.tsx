@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
 
 const { width, height } = Dimensions.get('window');
@@ -46,7 +46,7 @@ const Page = () => {
   const { onLogin } = useAuth();
 
   const onSignInPress = async () => {
-    onLogin!(username, password);
+    alert('ok');
   };
 
   return (
@@ -64,51 +64,30 @@ const Page = () => {
         <View style={styles.headerContainer}>
           <View style={styles.headerSubContainer}>
             <Image
-              source={require('../../assets/images/login-bg-image.png')}
+              source={require('../../../assets/images/login-bg-image.png')}
               style={styles.backgroundImage}
             />
             <Image
-              source={require('../../assets/images/logo-farm.png')}
+              source={require('../../../assets/images/logo-farm.png')}
               style={styles.logo}
             />
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>{t('loginView.title')}</Text>
-              <Text style={styles.title}>{t('loginView.title2')}</Text>
-              <Text style={styles.subtitle}>{t('loginView.subtitle')}</Text>
+              <Text style={styles.title}>
+                {t('recoveryPasswordView.title')}
+              </Text>
+              <Text style={styles.title}>
+                {t('recoveryPasswordView.title2')}
+              </Text>
+              <Text style={styles.subtitle}>
+                {t('recoveryPasswordView.subtitle')}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <TextInput
-            placeholder={t('loginView.emailPlaceHolder')}
-            value={username}
-            onChangeText={setUsername}
-            style={styles.inputField}
-            mode="outlined"
-            autoCapitalize="none"
-            activeOutlineColor="transparent"
-            textColor="#486732"
-            cursorColor="#486732"
-            placeholderTextColor="#486732"
-            outlineColor="#F1F1F1"
-            onFocus={(event) => {
-              scrollToInput(event.target);
-            }}
-            left={
-              <TextInput.Icon
-                icon="email"
-                color="#486732"
-                style={{
-                  alignSelf: 'center',
-                  alignContent: 'center',
-                  alignItems: 'center',
-                }}
-              />
-            }
-          />
-          <TextInput
-            placeholder={t('loginView.passwordPlaceHolder')}
+            placeholder={t('recoveryPasswordView.newPasswordPlaceHolder')}
             value={password}
             onChangeText={setPassword}
             secureTextEntry={securePassword}
@@ -133,59 +112,51 @@ const Page = () => {
               />
             }
           />
+          <TextInput
+            placeholder={t(
+              'recoveryPasswordView.ConfirmNewPasswordPlaceHolder'
+            )}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={securePassword}
+            style={styles.inputField}
+            mode="outlined"
+            autoCapitalize="none"
+            activeOutlineColor="transparent"
+            textColor="#486732"
+            cursorColor="#486732"
+            underlineColor="#fff"
+            placeholderTextColor="#486732"
+            outlineColor="#F1F1F1"
+            onFocus={(event) => {
+              scrollToInput(event.target);
+            }}
+            left={<TextInput.Icon icon="lock" color="#486732" />}
+            right={
+              <TextInput.Icon
+                onPress={() => setSecurePassword(!securePassword)}
+                icon={securePassword ? 'eye' : 'eye-off'}
+                color="#486732"
+              />
+            }
+          />
+        </View>
+
+        <View style={styles.formContainer}>
+          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+            <Text style={styles.buttonText}>
+              {t('recoveryPasswordView.ChangePasswordText')}
+            </Text>
+          </TouchableOpacity>
           <Pressable
             style={({ pressed }) => ({
               opacity: pressed ? 0.5 : 1,
             })}
           >
-            <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
-              {t('loginView.forgotPasswordPlaceHolder')}
+            <Link href="/" style={styles.registerLink}>
+              {t('recoveryPasswordView.BackToStartText')}
             </Link>
           </Pressable>
-        </View>
-
-        <View style={styles.formContainer}>
-          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
-            <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
-          </TouchableOpacity>
-          <View style={styles.flagsContainer}>
-            <Pressable
-              onPress={() => changeLanguage('es-ES')}
-              style={({ pressed }) => ({
-                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
-              })}
-            >
-              <Image
-                source={require('../../assets/flags/es_spain.png')}
-                style={{ height: rS(36), width: rS(36) }}
-              />
-            </Pressable>
-            <Pressable
-              onPress={() => changeLanguage('en-US')}
-              style={({ pressed }) => ({
-                opacity: pressed || language === 'en-US' ? 1 : 0.5,
-              })}
-            >
-              <Image
-                source={require('../../assets/flags/united_kingdom.png')}
-                style={{ height: rS(36), width: rS(36) }}
-              />
-            </Pressable>
-          </View>
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>
-              {t('loginView.noAccountText')}
-            </Text>
-            <Pressable
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}
-            >
-              <Link href="/register" style={styles.registerLink}>
-                {t('loginView.signUpText')}
-              </Link>
-            </Pressable>
-          </View>
         </View>
       </View>
     </KeyboardAwareScrollView>
@@ -194,7 +165,6 @@ const Page = () => {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     height: height,
     backgroundColor: '#fff',
   },
@@ -256,7 +226,9 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
-    justifyContent: 'space-between',
+    display: 'flex',
+    alignItems: 'center',
+    alignSelf: 'center',
   },
   headerText: {
     color: '#96A59A',
