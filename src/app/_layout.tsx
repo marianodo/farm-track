@@ -74,6 +74,10 @@ const StackLayout = () => {
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen
+              name="recoveryPassword/index"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
               name="register/index"
               options={{ headerShown: false }}
             />

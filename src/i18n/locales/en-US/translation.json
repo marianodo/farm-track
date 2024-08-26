@@ -21,5 +21,14 @@
         "signUpText": "Sign up",
         "alreadyHaveAccountText": "¿Already have an account?",
         "loginText": "Login"
+    },
+    "recoveryPasswordView": {
+        "title": "Reset your",
+        "title2": "password",
+        "subtitle": "Choose a new password for your account",
+        "newPasswordPlaceHolder": "New password",
+        "ConfirmNewPasswordPlaceHolder": "Confirm password",
+        "ChangePasswordText": "Change password",
+        "BackToStartText": "Back to start"
     }
 }

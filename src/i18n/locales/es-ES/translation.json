@@ -21,5 +21,14 @@
         "signUpText": "Registrarse",
         "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
         "loginText": "Iniciar sesión"
+    },
+    "recoveryPasswordView": {
+        "title": "Restablece tu",
+        "title2": "contraseña",
+        "subtitle": "Elige una nueva contraseña para tu cuenta",
+        "newPasswordPlaceHolder": "Nueva contraseña",
+        "ConfirmNewPasswordPlaceHolder": "Confirmar contraseña",
+        "ChangePasswordText": "Cambiar contraseña",
+        "BackToStartText": "Volver al Inicio"
     }
 }
