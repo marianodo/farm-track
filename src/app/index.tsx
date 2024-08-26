@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useRef, useState } from 'react';
 import { rMS, rS, rV } from '@/styles/responsive';
 
@@ -19,10 +20,23 @@ import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useValidationRules } from '@/utils/validation/validationRules';
 
 const { width, height } = Dimensions.get('window');
-
+let styleErrors = { email: [], password: [] };
 const Page = () => {
+  const [errors, setErrors] = useState({ email: [], password: [] });
+  styleErrors = errors;
+  interface FormData {
+    email: string;
+    password: string;
+  }
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+  });
+  // const [errors, setErrors] = useState<FormErrors>({});
+  const { required, minLength, email } = useValidationRules();
   const [securePassword, setSecurePassword] = useState(true);
   const [language, setLanguage] = useState(
     Localization.getLocales()[0].languageTag
@@ -41,12 +55,60 @@ const Page = () => {
     }
   };
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // const [username, setUsername] = useState('');
+  // const [password, setPassword] = useState('');
   const { onLogin } = useAuth();
 
-  const onSignInPress = async () => {
-    onLogin!(username, password);
+  const handleInputChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleBlur = (name: string) => {
+    validateField(name);
+  };
+
+  const validateField = (name: string) => {
+    const value = formData[name as keyof FormData];
+    let fieldErrors: string[] | null = null;
+
+    switch (name) {
+      case 'email':
+        fieldErrors = validateInput(value, [required, email]);
+        break;
+      case 'password':
+        fieldErrors = validateInput(value, [required, minLength(8)]);
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: fieldErrors,
+    }));
+  };
+
+  const handleSubmit = () => {
+    const newErrors: FormErrors = {};
+    Object.keys(formData).forEach((key) => {
+      validateField(key); // Fuerza la validación de cada campo
+    });
+    const trimmedFormData: FormData = {
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+    };
+
+    newErrors.email = validateInput(formData.email, [required, email]);
+    newErrors.password = validateInput(formData.password, [
+      required,
+      minLength(8),
+    ]);
+    if (!Object.values(newErrors).some((error) => error !== null)) {
+      onLogin!(formData.email, formData.password);
+      console.log('Formulario válido, enviar datos:', trimmedFormData);
+      // alert('Formulario enviado');
+    }
   };
 
   return (
@@ -82,8 +144,8 @@ const Page = () => {
         <View style={styles.inputContainer}>
           <TextInput
             placeholder={t('loginView.emailPlaceHolder')}
-            value={username}
-            onChangeText={setUsername}
+            value={formData.email}
+            onChangeText={(text) => handleInputChange('email', text)}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -92,6 +154,7 @@ const Page = () => {
             cursorColor="#486732"
             placeholderTextColor="#486732"
             outlineColor="#F1F1F1"
+            onBlur={() => handleBlur('email')}
             onFocus={(event) => {
               scrollToInput(event.target);
             }}
@@ -107,10 +170,17 @@ const Page = () => {
               />
             }
           />
+          {errors.email && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(12) }}
+            >
+              {errors.email[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t('loginView.passwordPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
+            value={formData.password}
+            onChangeText={(text) => handleInputChange('password', text)}
             secureTextEntry={securePassword}
             style={styles.inputField}
             mode="outlined"
@@ -121,6 +191,7 @@ const Page = () => {
             underlineColor="#fff"
             placeholderTextColor="#486732"
             outlineColor="#F1F1F1"
+            onBlur={() => handleBlur('password')}
             onFocus={(event) => {
               scrollToInput(event.target);
             }}
@@ -133,6 +204,13 @@ const Page = () => {
               />
             }
           />
+          {errors.password && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(12) }}
+            >
+              {errors.password[0]}
+            </Text>
+          )}
           <Pressable
             style={({ pressed }) => ({
               opacity: pressed ? 0.5 : 1,
@@ -145,7 +223,7 @@ const Page = () => {
         </View>
 
         <View style={styles.formContainer}>
-          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
           </TouchableOpacity>
           <View style={styles.flagsContainer}>
@@ -252,7 +330,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     height: rV(146),
-    marginBottom: rMS(30),
+    marginBottom:
+      styleErrors.email[0] && styleErrors.password[0] ? rMS(40) : rMS(30),
   },
   formContainer: {
     flex: 1,

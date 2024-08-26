@@ -1,5 +1,18 @@
 {
     "language": "Lenguaje",
+    "formErrors": {
+        "required": {
+            "null": "Este campo es obligatorio y no puede contener solo espacios.",
+            "startsWithABlankSpace": "Este campo no puede comenzar con un espacio en blanco."
+        },
+        "minLength": {
+            "firstString": "Debe tener al menos",
+            "secondString": "caracteres."
+        },
+        "email":{
+            "invalid": "El formato del correo electrónico no es válido."
+        }
+    },
     "loginView": {
         "title": "Bienvenido",
         "title2": "a FarmTrack",

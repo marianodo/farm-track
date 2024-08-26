@@ -1,5 +1,18 @@
 {
     "language": "Language",
+    "formErrors": {
+        "required": {
+            "null": "This field is required and cannot contain only spaces.",
+            "startsWithABlankSpace": "This field cannot begin with a blank space."
+        },
+        "minLength": {
+            "firstString": "Must have at least",
+            "secondString": "characters."
+        },
+        "email":{
+            "invalid": "The email format is not valid."
+        }
+    },
     "loginView": {
         "title": "Welcome",
         "title2": "to FarmTrack",
