@@ -15,6 +15,7 @@ import { rMS, rS, rV } from '@/styles/responsive';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -132,9 +133,15 @@ const Page = () => {
               />
             }
           />
-          <Text style={styles.forgotPasswordText}>
-            {t('loginView.forgotPasswordPlaceHolder')}
-          </Text>
+          <Pressable
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.5 : 1,
+            })}
+          >
+            <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
+              {t('loginView.forgotPasswordPlaceHolder')}
+            </Link>
+          </Pressable>
         </View>
 
         <View style={styles.formContainer}>
@@ -169,7 +176,15 @@ const Page = () => {
             <Text style={styles.registerText}>
               {t('loginView.noAccountText')}
             </Text>
-            <Text style={styles.registerLink}>{t('loginView.signUpText')}</Text>
+            <Pressable
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.5 : 1,
+              })}
+            >
+              <Link href="/register" style={styles.registerLink}>
+                {t('loginView.signUpText')}
+              </Link>
+            </Pressable>
           </View>
         </View>
       </View>
@@ -233,7 +248,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: rMS(38),
     fontWeight: '400',
-    color: '#486732',
+    color: '#96A59A',
   },
   inputContainer: {
     height: rV(146),
