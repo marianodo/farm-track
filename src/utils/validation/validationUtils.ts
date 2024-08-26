@@ -4,12 +4,13 @@ import { ValidationRule } from './validationRules';
 
 export const validateInput = (
   value: string,
-  rules: ValidationRule[]
+  rules: ValidationRule[],
+  t: (key: string) => string
 ): string[] | null => {
   let errors: string[] = [];
 
   for (const rule of rules) {
-    const error = rule(value);
+    const error = rule(value, t);
     if (error) {
       errors.push(error);
     }

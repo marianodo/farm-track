@@ -11,22 +11,22 @@ import {
   View,
 } from 'react-native';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { rMS, rS, rV } from '@/styles/responsive';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Language } from '@/components/Language';
 import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
 
 const { width, height } = Dimensions.get('window');
-let styleErrors = { email: [], password: [] };
 const Page = () => {
-  const [errors, setErrors] = useState({ email: [], password: [] });
-  styleErrors = errors;
+  const { required, minLength, email } = useValidationRules();
   interface FormData {
     email: string;
     password: string;
@@ -35,8 +35,8 @@ const Page = () => {
     email: '',
     password: '',
   });
-  // const [errors, setErrors] = useState<FormErrors>({});
-  const { required, minLength, email } = useValidationRules();
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [formModified, setFormModified] = useState(false);
   const [securePassword, setSecurePassword] = useState(true);
   const [language, setLanguage] = useState(
     Localization.getLocales()[0].languageTag
@@ -64,6 +64,7 @@ const Page = () => {
       ...formData,
       [name]: value,
     });
+    setFormModified(true);
   };
 
   const handleBlur = (name: string) => {
@@ -76,10 +77,10 @@ const Page = () => {
 
     switch (name) {
       case 'email':
-        fieldErrors = validateInput(value, [required, email]);
+        fieldErrors = validateInput(value, [required, email], t);
         break;
       case 'password':
-        fieldErrors = validateInput(value, [required, minLength(8)]);
+        fieldErrors = validateInput(value, [required, minLength(8)], t);
         break;
     }
 
@@ -99,18 +100,35 @@ const Page = () => {
       password: formData.password.trim(),
     };
 
-    newErrors.email = validateInput(formData.email, [required, email]);
-    newErrors.password = validateInput(formData.password, [
-      required,
-      minLength(8),
-    ]);
+    newErrors.email = validateInput(formData.email, [required, email], t);
+    newErrors.password = validateInput(
+      formData.password,
+      [required, minLength(8)],
+      t
+    );
     if (!Object.values(newErrors).some((error) => error !== null)) {
       onLogin!(formData.email, formData.password);
       console.log('Formulario válido, enviar datos:', trimmedFormData);
-      // alert('Formulario enviado');
+      setFormModified(false);
     }
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      // Limpio los errores al volver al componente
+      setErrors({});
+      setFormModified(false);
+    }, [])
+  );
+
+  useEffect(() => {
+    if (formModified) {
+      // Revalida todos los campos cuando cambie el idioma y el formulario haya sido modificado
+      Object.keys(formData).forEach((key) => validateField(key));
+    }
+  }, [language, formModified]);
+
+  console.log(language);
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={styles.container}
@@ -141,7 +159,20 @@ const Page = () => {
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              marginBottom:
+                errors.email &&
+                errors.email[0] &&
+                errors.password &&
+                errors.password[0]
+                  ? rS(60)
+                  : rS(30),
+            },
+          ]}
+        >
           <TextInput
             placeholder={t('loginView.emailPlaceHolder')}
             value={formData.email}
@@ -172,7 +203,7 @@ const Page = () => {
           />
           {errors.email && (
             <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(12) }}
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
             >
               {errors.email[0]}
             </Text>
@@ -206,20 +237,14 @@ const Page = () => {
           />
           {errors.password && (
             <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(12) }}
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
             >
               {errors.password[0]}
             </Text>
           )}
-          <Pressable
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.5 : 1,
-            })}
-          >
-            <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
-              {t('loginView.forgotPasswordPlaceHolder')}
-            </Link>
-          </Pressable>
+          <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
+            {t('loginView.forgotPasswordPlaceHolder')}
+          </Link>
         </View>
 
         <View style={styles.formContainer}>
@@ -272,7 +297,6 @@ const Page = () => {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     height: height,
     backgroundColor: '#fff',
   },
@@ -330,8 +354,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     height: rV(146),
-    marginBottom:
-      styleErrors.email[0] && styleErrors.password[0] ? rMS(40) : rMS(30),
   },
   formContainer: {
     flex: 1,
@@ -360,6 +382,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   forgotPasswordText: {
+    alignSelf: 'flex-end',
     color: '#486732',
     fontFamily: 'Pro-Regular',
     fontSize: width * 0.035,

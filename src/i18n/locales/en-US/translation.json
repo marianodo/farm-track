@@ -11,7 +11,8 @@
         },
         "email":{
             "invalid": "The email format is not valid."
-        }
+        },
+        "matchPassword": "Passwords do not match"
     },
     "loginView": {
         "title": "Welcome",
@@ -22,7 +23,8 @@
         "forgotPasswordPlaceHolder": "¿Forgot your password?",
         "loginText": "Login",
         "noAccountText": "¿Don't you have an account yet?",
-        "signUpText": "Sign up"
+        "signUpText": "Sign up",
+        "errorLogin": "Wrong username or password!"
     },
     "registerView": {
         "title": "Register",

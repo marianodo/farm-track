@@ -11,7 +11,8 @@
         },
         "email":{
             "invalid": "El formato del correo electrónico no es válido."
-        }
+        },
+        "matchPassword": "Las contraseñas no coinciden"
     },
     "loginView": {
         "title": "Bienvenido",
@@ -22,7 +23,9 @@
         "forgotPasswordPlaceHolder": "¿Olvidaste tu contraseña?",
         "loginText": "Iniciar sesión",
         "noAccountText": "¿Aun no tienes una cuenta?",
-        "signUpText": "Registrarse"
+        "signUpText": "Registrarse",
+         "errorLogin": "usuario o contraseña incorrecta!"
+
     },
     "registerView": {
         "title": "Registro",

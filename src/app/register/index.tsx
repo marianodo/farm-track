@@ -1,5 +1,3 @@
-import * as Localization from 'expo-localization';
-
 import {
   Dimensions,
   Image,
@@ -11,19 +9,35 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useRef, useState } from 'react';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
 
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
-import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useValidationRules } from '@/utils/validation/validationRules';
 
 const { width, height } = Dimensions.get('window');
 
 const RegisterView = () => {
-  const [securePassword, setSecurePassword] = useState(true);
+  const { required, minLength, email, matchPassword } = useValidationRules();
+  interface FormData {
+    username: string;
+    email: string;
+    password: string;
+    confirmPassword: string;
+  }
+  const [formData, setFormData] = useState<FormData>({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [securePassword1, setSecurePassword1] = useState(true);
+  const [securePassword2, setSecurePassword2] = useState(true);
   const { t } = useTranslation();
 
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
@@ -34,11 +48,82 @@ const RegisterView = () => {
     }
   };
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const handleInputChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
-  const onSignInPress = async () => {
-    alert('Ok');
+  const handleBlur = (name: string) => {
+    validateField(name);
+  };
+
+  const validateField = (name: string) => {
+    const value = formData[name as keyof FormData];
+    let fieldErrors: string[] | null = null;
+
+    switch (name) {
+      case 'username':
+        fieldErrors = validateInput(value, [required, minLength(3)], t);
+        break;
+      case 'email':
+        fieldErrors = validateInput(value, [required, email], t);
+        break;
+      case 'password':
+        fieldErrors = validateInput(value, [required, minLength(8)], t);
+        break;
+      case 'confirmPassword':
+        fieldErrors = validateInput(
+          value,
+          [required, matchPassword(formData.password)],
+          t
+        );
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: fieldErrors,
+    }));
+  };
+
+  const handleSubmit = () => {
+    const newErrors: FormErrors = {};
+    Object.keys(formData).forEach((key) => {
+      validateField(key); // Fuerza la validación de cada campo
+    });
+    const trimmedFormData: FormData = {
+      username: formData.username.trim(),
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+      confirmPassword: formData.confirmPassword.trim(),
+    };
+
+    newErrors.username = validateInput(
+      formData.username,
+      [required, minLength(3)],
+      t
+    );
+
+    newErrors.email = validateInput(formData.email, [required, email], t);
+
+    newErrors.password = validateInput(
+      formData.password,
+      [required, minLength(8)],
+      t
+    );
+    newErrors.confirmPassword = validateInput(
+      formData.confirmPassword,
+      [required, matchPassword(formData.password)],
+      t
+    );
+    if (!Object.values(newErrors).some((error) => error !== null)) {
+      // onLogin!(formData.email, formData.password);
+      console.log('Formulario válido, enviar datos:', trimmedFormData);
+      return alert('ok');
+    }
+    alert('ops!');
   };
 
   return (
@@ -64,11 +149,31 @@ const RegisterView = () => {
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              marginBottom:
+                (errors.username &&
+                  errors.username[0] &&
+                  errors.email &&
+                  errors.email[0] &&
+                  errors.password &&
+                  errors.password[0] &&
+                  errors.confirmPassword &&
+                  errors.confirmPassword[0]) ||
+                Object.values(errors).filter((arr) => arr && arr.length > 0)
+                  .length >= 2
+                  ? rS(60)
+                  : rS(20),
+            },
+          ]}
+        >
           <TextInput
             placeholder={t('registerView.namePlaceHolder')}
-            value={username}
-            onChangeText={setUsername}
+            value={formData.username}
+            onBlur={() => handleBlur('username')}
+            onChangeText={(text) => handleInputChange('username', text)}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -92,11 +197,18 @@ const RegisterView = () => {
               />
             }
           />
+          {errors.username && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.username[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t('registerView.emailPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={securePassword}
+            value={formData.email}
+            onChangeText={(text) => handleInputChange('email', text)}
+            onBlur={() => handleBlur('email')}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -110,19 +222,20 @@ const RegisterView = () => {
               scrollToInput(event.target);
             }}
             left={<TextInput.Icon icon="email" color="#486732" />}
-            right={
-              <TextInput.Icon
-                onPress={() => setSecurePassword(!securePassword)}
-                icon={securePassword ? 'eye' : 'eye-off'}
-                color="#486732"
-              />
-            }
           />
+          {errors.email && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.email[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t('registerView.passwordPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={securePassword}
+            value={formData.password}
+            onChangeText={(text) => handleInputChange('password', text)}
+            onBlur={() => handleBlur('password')}
+            secureTextEntry={securePassword1}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -138,17 +251,25 @@ const RegisterView = () => {
             left={<TextInput.Icon icon="lock" color="#486732" />}
             right={
               <TextInput.Icon
-                onPress={() => setSecurePassword(!securePassword)}
-                icon={securePassword ? 'eye' : 'eye-off'}
+                onPress={() => setSecurePassword1(!securePassword1)}
+                icon={securePassword1 ? 'eye' : 'eye-off'}
                 color="#486732"
               />
             }
           />
+          {errors.password && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.password[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t('registerView.confirmPasswordPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={securePassword}
+            value={formData.confirmPassword}
+            onChangeText={(text) => handleInputChange('confirmPassword', text)}
+            onBlur={() => handleBlur('confirmPassword')}
+            secureTextEntry={securePassword2}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -164,16 +285,23 @@ const RegisterView = () => {
             left={<TextInput.Icon icon="lock" color="#486732" />}
             right={
               <TextInput.Icon
-                onPress={() => setSecurePassword(!securePassword)}
-                icon={securePassword ? 'eye' : 'eye-off'}
+                onPress={() => setSecurePassword2(!securePassword2)}
+                icon={securePassword2 ? 'eye' : 'eye-off'}
                 color="#486732"
               />
             }
           />
+          {errors.confirmPassword && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.confirmPassword[0]}
+            </Text>
+          )}
         </View>
 
         <View style={styles.formContainer}>
-          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>
               {t('registerView.signUpText')}
             </Text>

@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
-export type ValidationRule = (value: string) => string | null;
+export type ValidationRule = (
+  value: string,
+  t: (key: string) => string
+) => string | null;
 
 export const useValidationRules = () => {
   const { t } = useTranslation();
@@ -33,9 +36,15 @@ export const useValidationRules = () => {
       ? null
       : t('formErrors.email.invalid');
 
+  const matchPassword =
+    (confirmPassword: string): ValidationRule =>
+    (value) =>
+      value === confirmPassword ? null : t('formErrors.matchPassword');
+
   return {
     required,
     minLength,
     email,
+    matchPassword,
   };
 };
