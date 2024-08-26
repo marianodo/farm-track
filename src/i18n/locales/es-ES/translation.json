@@ -10,5 +10,16 @@
         "loginText": "Iniciar sesión",
         "noAccountText": "¿Aun no tienes una cuenta?",
         "signUpText": "Registrarse"
+    },
+    "registerView": {
+        "title": "Registro",
+        "subtitle": "Crear tu nueva cuenta",
+        "namePlaceHolder": "Nombre completo",
+        "emailPlaceHolder": "Correo electrónico",
+        "passwordPlaceHolder": "Contraseña",
+        "confirmPasswordPlaceHolder": "Confirmar contraseña",
+        "signUpText": "Registrarse",
+        "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
+        "loginText": "Iniciar sesión"
     }
 }

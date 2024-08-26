@@ -10,5 +10,16 @@
         "loginText": "Login",
         "noAccountText": "¿Don't you have an account yet?",
         "signUpText": "Sign up"
+    },
+    "registerView": {
+        "title": "Register",
+        "subtitle": "Create your new account",
+        "namePlaceHolder": "Full name",
+        "emailPlaceHolder": "Email",
+        "passwordPlaceHolder": "Password",
+        "confirmPasswordPlaceHolder": "Confirm Password",
+        "signUpText": "Sign up",
+        "alreadyHaveAccountText": "¿Already have an account?",
+        "loginText": "Login"
     }
 }
