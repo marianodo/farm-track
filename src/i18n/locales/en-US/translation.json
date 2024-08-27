@@ -1,5 +1,19 @@
 {
     "language": "Language",
+    "formErrors": {
+        "required": {
+            "null": "This field is required and cannot contain only spaces.",
+            "startsWithABlankSpace": "This field cannot begin with a blank space."
+        },
+        "minLength": {
+            "firstString": "Must have at least",
+            "secondString": "characters."
+        },
+        "email":{
+            "invalid": "The email format is not valid."
+        },
+        "matchPassword": "Passwords do not match"
+    },
     "loginView": {
         "title": "Welcome",
         "title2": "to FarmTrack",
@@ -9,7 +23,8 @@
         "forgotPasswordPlaceHolder": "¿Forgot your password?",
         "loginText": "Login",
         "noAccountText": "¿Don't you have an account yet?",
-        "signUpText": "Sign up"
+        "signUpText": "Sign up",
+        "errorLogin": "Wrong username or password!"
     },
     "registerView": {
         "title": "Register",

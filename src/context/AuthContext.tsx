@@ -1,5 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 
+import { useTranslation } from 'react-i18next';
+
 //? exportamos un enum para los roles.
 export enum Role {
   ADMIN = 'admin',
@@ -24,6 +26,7 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: any) => {
+  const { t } = useTranslation();
   const [authState, setAuthState] = useState<{
     authenticated: boolean | null;
     username: string | null;
@@ -48,7 +51,7 @@ export const AuthProvider = ({ children }: any) => {
         role: Role.USER,
       });
     } else {
-      alert('Usuario o contraseña incorrecta!');
+      alert(t('loginView.errorLogin'));
     }
   };
 

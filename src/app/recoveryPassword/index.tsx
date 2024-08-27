@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useRef, useState } from 'react';
 import { rMS, rS, rV } from '@/styles/responsive';
 
@@ -19,20 +20,25 @@ import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { useValidationRules } from '@/utils/validation/validationRules';
 
 const { width, height } = Dimensions.get('window');
 
 const Page = () => {
-  const [securePassword, setSecurePassword] = useState(true);
-  const [language, setLanguage] = useState(
-    Localization.getLocales()[0].languageTag
-  );
-  const { i18n, t } = useTranslation();
-  const changeLanguage = async (lang: string) => {
-    await AsyncStorage.setItem('language', lang);
-    i18n.changeLanguage(lang);
-    setLanguage(lang);
-  };
+  const { required, minLength, matchPassword } = useValidationRules();
+  interface FormData {
+    password: string;
+    confirmPassword: string;
+  }
+  const [formData, setFormData] = useState<FormData>({
+    password: '',
+    confirmPassword: '',
+  });
+  const [securePassword1, setSecurePassword1] = useState(true);
+  const [securePassword2, setSecurePassword2] = useState(true);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const { t } = useTranslation();
+
   const scrollRef = useRef<KeyboardAwareScrollView>(null);
 
   const scrollToInput = (reactNode: any) => {
@@ -41,12 +47,65 @@ const Page = () => {
     }
   };
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const { onLogin } = useAuth();
+  const handleInputChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
 
-  const onSignInPress = async () => {
-    alert('ok');
+  const handleBlur = (name: string) => {
+    validateField(name);
+  };
+
+  const validateField = (name: string) => {
+    const value = formData[name as keyof FormData];
+    let fieldErrors: string[] | null = null;
+
+    switch (name) {
+      case 'password':
+        fieldErrors = validateInput(value, [required, minLength(8)], t);
+        break;
+      case 'confirmPassword':
+        fieldErrors = validateInput(
+          value,
+          [required, matchPassword(formData.password)],
+          t
+        );
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: fieldErrors,
+    }));
+  };
+
+  const handleSubmit = () => {
+    const newErrors: FormErrors = {};
+    Object.keys(formData).forEach((key) => {
+      validateField(key); // Fuerza la validación de cada campo
+    });
+    const trimmedFormData: FormData = {
+      password: formData.password.trim(),
+      confirmPassword: formData.confirmPassword.trim(),
+    };
+
+    newErrors.password = validateInput(
+      formData.password,
+      [required, minLength(8)],
+      t
+    );
+    newErrors.confirmPassword = validateInput(
+      formData.confirmPassword,
+      [required, matchPassword(formData.password)],
+      t
+    );
+    if (!Object.values(newErrors).some((error) => error !== null)) {
+      console.log('Formulario válido, enviar datos:', trimmedFormData);
+      return alert('ok');
+    }
+    alert('ops!');
   };
 
   return (
@@ -88,9 +147,10 @@ const Page = () => {
         <View style={styles.inputContainer}>
           <TextInput
             placeholder={t('recoveryPasswordView.newPasswordPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={securePassword}
+            value={formData.password}
+            onChangeText={(text) => handleInputChange('password', text)}
+            onBlur={() => handleBlur('password')}
+            secureTextEntry={securePassword1}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -99,6 +159,8 @@ const Page = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);
@@ -106,19 +168,27 @@ const Page = () => {
             left={<TextInput.Icon icon="lock" color="#486732" />}
             right={
               <TextInput.Icon
-                onPress={() => setSecurePassword(!securePassword)}
-                icon={securePassword ? 'eye' : 'eye-off'}
+                onPress={() => setSecurePassword1(!securePassword1)}
+                icon={securePassword1 ? 'eye' : 'eye-off'}
                 color="#486732"
               />
             }
           />
+          {errors.password && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.password[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t(
               'recoveryPasswordView.ConfirmNewPasswordPlaceHolder'
             )}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={securePassword}
+            value={formData.confirmPassword}
+            onChangeText={(text) => handleInputChange('confirmPassword', text)}
+            onBlur={() => handleBlur('confirmPassword')}
+            secureTextEntry={securePassword2}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -127,6 +197,8 @@ const Page = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);
@@ -134,16 +206,23 @@ const Page = () => {
             left={<TextInput.Icon icon="lock" color="#486732" />}
             right={
               <TextInput.Icon
-                onPress={() => setSecurePassword(!securePassword)}
-                icon={securePassword ? 'eye' : 'eye-off'}
+                onPress={() => setSecurePassword2(!securePassword2)}
+                icon={securePassword2 ? 'eye' : 'eye-off'}
                 color="#486732"
               />
             }
           />
+          {errors.confirmPassword && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.confirmPassword[0]}
+            </Text>
+          )}
         </View>
 
         <View style={styles.formContainer}>
-          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>
               {t('recoveryPasswordView.ChangePasswordText')}
             </Text>

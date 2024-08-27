@@ -10,19 +10,33 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useRef, useState } from 'react';
+import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { rMS, rS, rV } from '@/styles/responsive';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Language } from '@/components/Language';
 import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useValidationRules } from '@/utils/validation/validationRules';
 
 const { width, height } = Dimensions.get('window');
-
 const Page = () => {
+  const { required, minLength, email } = useValidationRules();
+  interface FormData {
+    email: string;
+    password: string;
+  }
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [formModified, setFormModified] = useState(false);
   const [securePassword, setSecurePassword] = useState(true);
   const [language, setLanguage] = useState(
     Localization.getLocales()[0].languageTag
@@ -41,14 +55,80 @@ const Page = () => {
     }
   };
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  // const [username, setUsername] = useState('');
+  // const [password, setPassword] = useState('');
   const { onLogin } = useAuth();
 
-  const onSignInPress = async () => {
-    onLogin!(username, password);
+  const handleInputChange = (name: string, value: string) => {
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+    setFormModified(true);
   };
 
+  const handleBlur = (name: string) => {
+    validateField(name);
+  };
+
+  const validateField = (name: string) => {
+    const value = formData[name as keyof FormData];
+    let fieldErrors: string[] | null = null;
+
+    switch (name) {
+      case 'email':
+        fieldErrors = validateInput(value, [required, email], t);
+        break;
+      case 'password':
+        fieldErrors = validateInput(value, [required, minLength(8)], t);
+        break;
+    }
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: fieldErrors,
+    }));
+  };
+
+  const handleSubmit = () => {
+    const newErrors: FormErrors = {};
+    Object.keys(formData).forEach((key) => {
+      validateField(key); // Fuerza la validación de cada campo
+    });
+    const trimmedFormData: FormData = {
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+    };
+
+    newErrors.email = validateInput(formData.email, [required, email], t);
+    newErrors.password = validateInput(
+      formData.password,
+      [required, minLength(8)],
+      t
+    );
+    if (!Object.values(newErrors).some((error) => error !== null)) {
+      onLogin!(formData.email, formData.password);
+      console.log('Formulario válido, enviar datos:', trimmedFormData);
+      setFormModified(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      // Limpio los errores al volver al componente
+      setErrors({});
+      setFormModified(false);
+    }, [])
+  );
+
+  useEffect(() => {
+    if (formModified) {
+      // Revalida todos los campos cuando cambie el idioma y el formulario haya sido modificado
+      Object.keys(formData).forEach((key) => validateField(key));
+    }
+  }, [language, formModified]);
+
+  console.log(language);
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={styles.container}
@@ -79,11 +159,24 @@ const Page = () => {
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            {
+              marginBottom:
+                errors.email &&
+                errors.email[0] &&
+                errors.password &&
+                errors.password[0]
+                  ? rS(60)
+                  : rS(30),
+            },
+          ]}
+        >
           <TextInput
             placeholder={t('loginView.emailPlaceHolder')}
-            value={username}
-            onChangeText={setUsername}
+            value={formData.email}
+            onChangeText={(text) => handleInputChange('email', text)}
             style={styles.inputField}
             mode="outlined"
             autoCapitalize="none"
@@ -91,7 +184,10 @@ const Page = () => {
             textColor="#486732"
             cursorColor="#486732"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
+            onBlur={() => handleBlur('email')}
             onFocus={(event) => {
               scrollToInput(event.target);
             }}
@@ -107,10 +203,17 @@ const Page = () => {
               />
             }
           />
+          {errors.email && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.email[0]}
+            </Text>
+          )}
           <TextInput
             placeholder={t('loginView.passwordPlaceHolder')}
-            value={password}
-            onChangeText={setPassword}
+            value={formData.password}
+            onChangeText={(text) => handleInputChange('password', text)}
             secureTextEntry={securePassword}
             style={styles.inputField}
             mode="outlined"
@@ -120,7 +223,10 @@ const Page = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
+            onBlur={() => handleBlur('password')}
             onFocus={(event) => {
               scrollToInput(event.target);
             }}
@@ -133,19 +239,20 @@ const Page = () => {
               />
             }
           />
-          <Pressable
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.5 : 1,
-            })}
-          >
-            <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
-              {t('loginView.forgotPasswordPlaceHolder')}
-            </Link>
-          </Pressable>
+          {errors.password && (
+            <Text
+              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
+            >
+              {errors.password[0]}
+            </Text>
+          )}
+          <Link href="/recoveryPassword" style={styles.forgotPasswordText}>
+            {t('loginView.forgotPasswordPlaceHolder')}
+          </Link>
         </View>
 
         <View style={styles.formContainer}>
-          <TouchableOpacity onPress={onSignInPress} style={styles.button}>
+          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
           </TouchableOpacity>
           <View style={styles.flagsContainer}>
@@ -194,7 +301,6 @@ const Page = () => {
 
 const styles = StyleSheet.create({
   container: {
-    // flex: 1,
     height: height,
     backgroundColor: '#fff',
   },
@@ -252,7 +358,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     height: rV(146),
-    marginBottom: rMS(30),
   },
   formContainer: {
     flex: 1,
@@ -281,6 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   forgotPasswordText: {
+    alignSelf: 'flex-end',
     color: '#486732',
     fontFamily: 'Pro-Regular',
     fontSize: width * 0.035,
