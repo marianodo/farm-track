@@ -31,11 +31,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: |
-            cd frontend
-            bun install
+        working-directory: ./frontend
+        run: bun install
 
       - name: Publish update
-        run: |
-            cd frontend
-            eas update --auto
+        working-directory: ./frontend
+        run: eas update --auto
