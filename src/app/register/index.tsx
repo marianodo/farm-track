@@ -181,6 +181,8 @@ const RegisterView = () => {
             textColor="#486732"
             cursorColor="#486732"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);
@@ -217,6 +219,8 @@ const RegisterView = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);
@@ -244,6 +248,8 @@ const RegisterView = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);
@@ -278,6 +284,8 @@ const RegisterView = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onFocus={(event) => {
               scrollToInput(event.target);

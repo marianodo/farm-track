@@ -184,6 +184,8 @@ const Page = () => {
             textColor="#486732"
             cursorColor="#486732"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onBlur={() => handleBlur('email')}
             onFocus={(event) => {
@@ -221,6 +223,8 @@ const Page = () => {
             cursorColor="#486732"
             underlineColor="#fff"
             placeholderTextColor="#486732"
+            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+            selectionHandleColor="#486732"
             outlineColor="#F1F1F1"
             onBlur={() => handleBlur('password')}
             onFocus={(event) => {
