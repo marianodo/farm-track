@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: /frontend
+        working-directory: .
     steps:
       - name: Check for EXPO_TOKEN
         run: |
@@ -31,7 +31,9 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
-        run: bun install
+        run: |
+            cd frontend
+            bun install
 
       - name: Publish update
         run: eas update --auto
