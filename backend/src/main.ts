@@ -14,16 +14,16 @@ console.log(`Loaded environment from ${process.env.MAIL_USER}`);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transformOptions: {
-        enableImplicitConversion: true
+        enableImplicitConversion: true,
       },
     }),
-  )
+  );
   await app.listen(4000);
 }
 bootstrap();

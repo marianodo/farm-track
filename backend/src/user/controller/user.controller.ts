@@ -1,11 +1,21 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  // Get,
+  Post,
+  Body,
+  // Patch,
+  Param,
+  Delete,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 // import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED) // Establece el código de estado HTTP 201 (Created) si la solicitud es exitosa
@@ -14,13 +24,11 @@ export class UserController {
       // Llama al servicio para crear el usuario
       const user = await this.userService.createUser(createUserDto);
       return user;
-
     } catch (error) {
-      throw error
+      throw error;
     }
     // Devuelve el usuario creado con el código de estado 201
   }
-
 
   @Delete('delete/:id')
   @HttpCode(HttpStatus.NO_CONTENT) // Establece el código de estado HTTP 204 (No Content) si la solicitud es exitosa

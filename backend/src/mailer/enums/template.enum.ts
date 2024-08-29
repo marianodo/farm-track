@@ -1,3 +1,3 @@
 export enum Template {
-    WELCOME = 'welcome'
+  WELCOME = 'welcome',
 }

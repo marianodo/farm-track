@@ -1,4 +1,9 @@
-import { ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  // ConflictException,
+  Injectable,
+  InternalServerErrorException,
+  // NotFoundException,
+} from '@nestjs/common';
 
 import { CreateUserDto } from './../dto/create-user.dto';
 import { MailerService } from './../../mailer/service/mailer.service';
@@ -9,7 +14,7 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
-  ) { }
+  ) {}
 
   async createUser(createUserDto: CreateUserDto) {
     try {
@@ -21,7 +26,7 @@ export class UserService {
         from: `Welcome Farm Track <${process.env.MAIL_USER}>`,
         subjectEmail: 'Envio de mail automatico!',
         sendTo: user.email,
-        template: "welcome"
+        template: 'welcome',
       };
 
       try {
@@ -29,11 +34,13 @@ export class UserService {
       } catch (emailError) {
         // Si falla el envío del correo, loguea el error y lanza una excepción
         console.error('Failed to send email:', emailError.message);
-        throw new InternalServerErrorException('User created, but failed to send the email.');
+        throw new InternalServerErrorException(
+          'User created, but failed to send the email.',
+        );
       }
       return user;
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 
@@ -41,7 +48,7 @@ export class UserService {
     try {
       return await this.userRepository.deleteUserById(id);
     } catch (error) {
-      throw error
+      throw error;
     }
   }
 }

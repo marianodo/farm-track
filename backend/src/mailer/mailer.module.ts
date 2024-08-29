@@ -6,6 +6,6 @@ import { Module } from '@nestjs/common';
 @Module({
   controllers: [MailerController],
   providers: [MailerService, Email],
-  exports: [MailerService]
+  exports: [MailerService],
 })
-export class MailerModule { }
+export class MailerModule {}
