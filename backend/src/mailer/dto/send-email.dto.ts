@@ -18,4 +18,8 @@ export class SendEmailDto {
   @IsEnum(Template)
   @IsNotEmpty()
   template: string;
+
+  @IsString()
+  @IsNotEmpty()
+  verification_token: string;
 }

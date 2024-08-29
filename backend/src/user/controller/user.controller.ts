@@ -1,6 +1,6 @@
 import {
   Controller,
-  // Get,
+  Get,
   Post,
   Body,
   // Patch,
@@ -8,6 +8,8 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -16,6 +18,21 @@ import { CreateUserDto } from '../dto/create-user.dto';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('verify')
+  //De momento es un get, pero habria que cambiarlo en el futuro por un patch.
+  @HttpCode(HttpStatus.OK) // Establece el codigo de estado HTTP 200 (Ok) si la solicitud es exitosa
+  async verifyEmail(@Query('token') token: string) {
+    try {
+      if (!token) {
+        throw new BadRequestException('Token is required');
+      }
+
+      return await this.userService.verifyEmail(token);
+    } catch (error) {
+      throw error;
+    }
+  }
 
   @Post('create')
   @HttpCode(HttpStatus.CREATED) // Establece el código de estado HTTP 201 (Created) si la solicitud es exitosa
@@ -27,7 +44,6 @@ export class UserController {
     } catch (error) {
       throw error;
     }
-    // Devuelve el usuario creado con el código de estado 201
   }
 
   @Delete('delete/:id')
