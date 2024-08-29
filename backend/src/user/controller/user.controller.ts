@@ -28,7 +28,7 @@ export class UserController {
         throw new BadRequestException('Token is required');
       }
 
-      return await this.userService.verifyUser(token);
+      return await this.userService.verifyEmail(token);
     } catch (error) {
       throw error;
     }

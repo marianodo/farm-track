@@ -50,7 +50,7 @@ export class UserRepository {
     }
   }
 
-  async verifyUser(token: string): Promise<string> {
+  async verifyEmail(token: string): Promise<string> {
     try {
       const user = await this.db.user.findFirst({
         where: { verification_token: token },

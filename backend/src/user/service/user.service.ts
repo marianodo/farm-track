@@ -40,9 +40,9 @@ export class UserService {
     }
   }
 
-  async verifyUser(token: string) {
+  async verifyEmail(token: string) {
     try {
-      return await this.userRepository.verifyUser(token);
+      return await this.userRepository.verifyEmail(token);
     } catch (error) {
       throw error;
     }
