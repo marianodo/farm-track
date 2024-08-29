@@ -11,4 +11,4 @@ export const fillTemplate = (body) => `
     <h2>Gracias por unirte</h2>
 </body>
 </html>
-`
+`;

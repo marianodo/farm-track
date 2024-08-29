@@ -10,4 +10,4 @@ import { UserService } from './service/user.service';
   controllers: [UserController],
   providers: [UserService, UserRepository, PrismaService, MailerService, Email],
 })
-export class UserModule { }
+export class UserModule {}
