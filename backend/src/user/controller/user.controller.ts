@@ -22,7 +22,7 @@ export class UserController {
   @Get('verify')
   //De momento es un get, pero habria que cambiarlo en el futuro por un patch.
   @HttpCode(HttpStatus.OK) // Establece el codigo de estado HTTP 200 (Ok) si la solicitud es exitosa
-  async verifyUser(@Query('token') token: string) {
+  async verifyEmail(@Query('token') token: string) {
     try {
       if (!token) {
         throw new BadRequestException('Token is required');
