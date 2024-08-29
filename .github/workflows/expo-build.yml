@@ -1,5 +1,5 @@
-name: push
-on: pull_request
+name: preview
+on: push
 
 jobs:
   update:
@@ -40,5 +40,5 @@ jobs:
       - name: Create preview
         uses: expo/expo-github-action/preview@v8
         with:
-          working-directory: ./frontend
+          working-directory: frontend
           command: eas update --auto
