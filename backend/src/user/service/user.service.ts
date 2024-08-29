@@ -1,9 +1,4 @@
-import {
-  // ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  // NotFoundException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 import { CreateUserDto } from './../dto/create-user.dto';
 import { MailerService } from './../../mailer/service/mailer.service';
@@ -27,6 +22,7 @@ export class UserService {
         subjectEmail: 'Envio de mail automatico!',
         sendTo: user.email,
         template: 'welcome',
+        verification_token: user.verification_token,
       };
 
       try {
@@ -38,7 +34,15 @@ export class UserService {
           'User created, but failed to send the email.',
         );
       }
-      return user;
+      return 'User created successfully';
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyUser(token: string) {
+    try {
+      return await this.userRepository.verifyUser(token);
     } catch (error) {
       throw error;
     }
