@@ -26,7 +26,7 @@ export class MailerService {
   }
 
   getTemplateFile(templateName) {
-    const path = "./templates"
+    const path = "../templates"
     const templateFile = require(`${path}/${templateName}`)
     return templateFile
   }
