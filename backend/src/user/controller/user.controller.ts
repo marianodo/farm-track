@@ -10,9 +10,11 @@ import {
   HttpStatus,
   Query,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { CreateUserDto } from '../dto/create-user.dto';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 // import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Controller('users')
@@ -46,6 +48,7 @@ export class UserController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('delete/:id')
   @HttpCode(HttpStatus.NO_CONTENT) // Establece el código de estado HTTP 204 (No Content) si la solicitud es exitosa
   async deleteUser(@Param('id') id: string) {
