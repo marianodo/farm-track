@@ -5,6 +5,10 @@ import {
   Body,
   UseGuards,
   Request,
+  HttpCode,
+  HttpStatus,
+  Query,
+  BadRequestException,
   // Patch,
   // Param,
   // Delete,
@@ -12,14 +16,22 @@ import {
 import { AuthService } from '../service/auth.service';
 import { LoginAuthDto } from '../dto/login-auth.dto';
 import { RefreshJwtAuthGuard } from '../guard/refresh-jwt-auth.guard';
+import { RegisterAuthDto } from '../dto/register-auth.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post()
-  registerUser() {
-    return this.authService.registerUser();
+  @Post('register')
+  @HttpCode(HttpStatus.CREATED) // Establece el código de estado HTTP 201 (Created) si la solicitud es exitosa
+  async registerUser(@Body() registerAuthDto: RegisterAuthDto) {
+    try {
+      // Llama al servicio para crear el usuario
+      const user = await this.authService.registerUser(registerAuthDto);
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
   @Post('login')
@@ -33,9 +45,18 @@ export class AuthController {
     return this.authService.refreshToken(req.user);
   }
 
-  @Get(':id')
-  verifyEmail(verification_token: string) {
-    return verification_token;
-    // return this.authService.findOne(+id);
+  @Get('verify')
+  //De momento es un get, pero habria que cambiarlo en el futuro por un patch.
+  @HttpCode(HttpStatus.OK) // Establece el codigo de estado HTTP 200 (Ok) si la solicitud es exitosa
+  async verifyEmail(@Query('token') token: string) {
+    try {
+      if (!token) {
+        throw new BadRequestException('Token is required');
+      }
+
+      return await this.authService.verifyEmail(token);
+    } catch (error) {
+      throw error;
+    }
   }
 }
