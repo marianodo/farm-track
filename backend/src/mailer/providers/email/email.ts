@@ -4,7 +4,6 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class Email {
-  //manejar con variables de entorno.
   transporter = nodemailer.createTransport({
     host: process.env.HOST_EMAIL,
     port: process.env.PORT_EMAIL,

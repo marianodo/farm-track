@@ -39,7 +39,7 @@ export class AuthRepository {
       };
       const token = await this.jwtService.signAsync(payload);
       const refreshToken = await this.jwtService.signAsync(payload, {
-        expiresIn: '20d',
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
       });
 
       const data = {
@@ -68,7 +68,6 @@ export class AuthRepository {
   async refreshToken(user) {
     try {
       const { email } = user;
-      console.log('reposityory', user);
       const findUser = await this.db.user.findFirst({
         where: { email },
       });
@@ -94,7 +93,6 @@ export class AuthRepository {
       if (error instanceof ForbiddenException) {
         throw error;
       }
-      console.log(error);
       throw new InternalServerErrorException(
         'An error occurred while login user.',
       );

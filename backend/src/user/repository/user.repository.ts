@@ -84,7 +84,6 @@ export class UserRepository {
         where: { id },
       });
     } catch (error) {
-      console.log('Repository error:', error);
       if (error.code === 'P2025') {
         // Código de error para registro no encontrado en Prisma
         throw new NotFoundException('User not found.');

@@ -6,14 +6,13 @@ import { AuthRepository } from './repository/auth.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshJwtStrategy } from './strategy/refreshToken.strategy';
-console.log(process.env.JWT_SECRET);
 
 @Module({
   imports: [
     JwtModule.register({
       global: true,
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '10d' },
+      signOptions: { expiresIn: process.env.TOKEN_EXPIRES },
     }),
   ],
   controllers: [AuthController],
