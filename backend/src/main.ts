@@ -6,11 +6,7 @@ import { config as dotenvConfig } from 'dotenv';
 import * as morgan from 'morgan';
 dotenvConfig();
 
-const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
-dotenvConfig({ path: envFile });
-
-console.log(`Loaded environment from ${envFile}`);
-console.log(`Loaded environment from ${process.env.MAIL_USER}`);
+console.log(typeof process.env.TOKEN_EXPIRES);
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use(morgan('dev'));
