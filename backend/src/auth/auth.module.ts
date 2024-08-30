@@ -6,6 +6,8 @@ import { AuthRepository } from './repository/auth.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshJwtStrategy } from './strategy/refreshToken.strategy';
+import { MailerService } from 'src/mailer/service/mailer.service';
+import { Email } from 'src/mailer/providers/email/email';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { RefreshJwtStrategy } from './strategy/refreshToken.strategy';
     AuthRepository,
     JwtStrategy,
     RefreshJwtStrategy,
+    MailerService,
+    Email,
   ],
 })
 export class AuthModule {}
