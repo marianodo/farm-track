@@ -24,7 +24,7 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED) // Establece el código de estado HTTP 201 (Created) si la solicitud es exitosa
-  async egisterUser(@Body() registerAuthDto: RegisterAuthDto) {
+  async registerUser(@Body() registerAuthDto: RegisterAuthDto) {
     try {
       // Llama al servicio para crear el usuario
       const user = await this.authService.registerUser(registerAuthDto);
