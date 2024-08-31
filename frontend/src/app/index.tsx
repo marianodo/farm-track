@@ -13,7 +13,6 @@ import {
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { rMS, rS, rV } from '@/styles/responsive';
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Language } from '@/components/Language';
@@ -23,9 +22,16 @@ import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
+import useAuthStore from '@/store/authStore';
 
 const { width, height } = Dimensions.get('window');
 const Page = () => {
+  const { onLogin, authLoading, emailUser } = useAuthStore((state) => ({
+    emailUser: state.email,
+    onLogin: state.onLogin,
+    authLoading: state.authLoading,
+  }));
+  console.log('EMAILUSER', emailUser);
   const { required, minLength, email } = useValidationRules();
   interface FormData {
     email: string;
@@ -57,7 +63,6 @@ const Page = () => {
 
   // const [username, setUsername] = useState('');
   // const [password, setPassword] = useState('');
-  const { onLogin } = useAuth();
 
   const handleInputChange = (name: string, value: string) => {
     setFormData({
@@ -107,9 +112,13 @@ const Page = () => {
       t
     );
     if (!Object.values(newErrors).some((error) => error !== null)) {
-      onLogin!(formData.email, formData.password);
-      console.log('Formulario válido, enviar datos:', trimmedFormData);
-      setFormModified(false);
+      try {
+        onLogin!(formData.email, formData.password);
+        setFormModified(false);
+        console.log('Formulario válido, enviar datos:', trimmedFormData);
+      } catch (error) {
+        alert(t('loginView.errorLogin'));
+      }
     }
   };
 
