@@ -18,10 +18,15 @@ import { Link } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
+import useAuthStore from '@/store/authStore';
 
 const { width, height } = Dimensions.get('window');
 
 const RegisterView = () => {
+  const { register, authLoading } = useAuthStore((state) => ({
+    register: state.register,
+    authLoading: state.authLoading,
+  }));
   const { required, minLength, email, matchPassword } = useValidationRules();
   interface FormData {
     username: string;
@@ -119,11 +124,24 @@ const RegisterView = () => {
       t
     );
     if (!Object.values(newErrors).some((error) => error !== null)) {
-      // onLogin!(formData.email, formData.password);
-      console.log('Formulario válido, enviar datos:', trimmedFormData);
-      return alert('ok');
+      try {
+        register(
+          trimmedFormData.username,
+          trimmedFormData.email,
+          trimmedFormData.password
+        );
+        setFormData({
+          username: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      alert('ops!');
     }
-    alert('ops!');
   };
 
   return (

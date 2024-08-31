@@ -72,7 +72,23 @@ const useAuthStore = create<AuthState>((set) => ({
     await AsyncStorage.removeItem('refreshToken');
   },
 
-  register: async () => {},
+  register: async (username: string, email: string, password: string) => {
+    set({ authLoading: true });
+    try {
+      await axios.post(`${API_URL}/auth/register`, {
+        username,
+        email,
+        password,
+      });
+
+      set({
+        authLoading: false,
+      });
+    } catch (error) {
+      set({ authLoading: false });
+      alert('Error al registrar el usuario');
+    }
+  },
 }));
 
 export default useAuthStore;
