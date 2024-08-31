@@ -67,6 +67,11 @@ export class AuthRepository {
 
       const checkPassword = await compare(password, findUser.password);
 
+      if (findUser.is_verified === false)
+        throw new ForbiddenException(
+          'Verify your email and activate your account',
+        );
+
       if (!checkPassword) throw new ForbiddenException('Password incorrect');
 
       const payload = {

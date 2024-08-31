@@ -10,7 +10,7 @@ export const fillTemplate = (body) => `
       <h1>Bienvenido a Farm Track</h1>
       <h2>Gracias por unirte</h2>
       <p>Por favor, verifica tu cuenta haciendo clic en el siguiente enlace:</p>
-      <a href=${process.env.BACKEND_URL}/api/users/verify?token=${body.verification_token}>Verificar cuenta</a>
+      <a href=${process.env.BACKEND_URL}/auth/verify?token=${body.verification_token}>Verificar cuenta</a>
   </body>
   </html>
 `;
