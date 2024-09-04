@@ -23,15 +23,14 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useAuthStore from '@/store/authStore';
+import Loader from '@/components/Loader';
 
 const { width, height } = Dimensions.get('window');
 const Page = () => {
-  const { onLogin, authLoading, emailUser } = useAuthStore((state) => ({
-    emailUser: state.email,
+  const { onLogin, authLoading } = useAuthStore((state) => ({
     onLogin: state.onLogin,
     authLoading: state.authLoading,
   }));
-  console.log('EMAILUSER', emailUser);
   const { required, minLength, email } = useValidationRules();
   interface FormData {
     email: string;
@@ -60,9 +59,6 @@ const Page = () => {
       scrollRef.current?.scrollToFocusedInput(reactNode);
     }
   };
-
-  // const [username, setUsername] = useState('');
-  // const [password, setPassword] = useState('');
 
   const handleInputChange = (name: string, value: string) => {
     setFormData({
@@ -138,6 +134,11 @@ const Page = () => {
   }, [language, formModified]);
 
   console.log(language);
+
+  if (authLoading) {
+    return <Loader />;
+  }
+
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={styles.container}
