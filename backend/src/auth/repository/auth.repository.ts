@@ -1,3 +1,6 @@
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+
 import {
   ConflictException,
   ForbiddenException,
@@ -5,14 +8,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { LoginAuthDto } from '../dto/login-auth.dto';
-import { compare } from 'bcrypt';
+
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
+import { LoginAuthDto } from '../dto/login-auth.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
 import { User } from '@prisma/client';
+import { compare } from 'bcrypt';
 
 @Injectable()
 export class AuthRepository {
@@ -68,6 +70,11 @@ export class AuthRepository {
       const checkPassword = await compare(password, findUser.password);
 
       if (!checkPassword) throw new ForbiddenException('Password incorrect');
+
+      if (findUser.is_verified === false)
+        throw new ForbiddenException(
+          'Verify your email and activate your account',
+        );
 
       const payload = {
         userId: findUser.id,

@@ -1,69 +1,29 @@
 import 'react-native-reanimated';
 import '@/i18n';
-
-import * as SplashScreen from 'expo-splash-screen';
-
-import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { useLoadFonts } from '@/hooks/useLoadFonts';
+import { useLoadLanguage } from '@/hooks/useLoadLanguage';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 import {
+  ThemeProvider,
   DarkTheme,
   DefaultTheme,
-  ThemeProvider,
 } from '@react-navigation/native';
-import {
-  DefaultTheme as PaperDefaultTheme,
-  PaperProvider,
-} from 'react-native-paper';
+import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useSegments } from 'expo-router';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useEffect } from 'react';
-import { useFonts } from 'expo-font';
-import { useTranslation } from 'react-i18next';
-
-SplashScreen.preventAutoHideAsync();
+import { Image, StyleSheet, View } from 'react-native';
+import useAuthStore from '@/store/authStore';
 
 const StackLayout = () => {
-  const { i18n } = useTranslation();
-  const currentLanguage = i18n.language;
-  const [loaded, error] = useFonts({
-    'Pro-Regular': require('../../assets/fonts/Sf-Pro-Regular.otf'),
-    'Pro-Bold': require('../../assets/fonts/Sf-Pro-Bold.otf'),
-    // Asegúrate de que esta ruta sea correcta
-    // 'Sf-Pro-Regular2': require('../../assets/fonts/Sf-Pro-Regular.otf'),
-  });
-
-  const segments = useSegments();
-  const router = useRouter();
+  const { fontsLoaded } = useLoadFonts();
   const colorScheme = useColorScheme();
-  const { authState } = useAuth();
 
-  useEffect(() => {
-    const loadLanguage = async () => {
-      const savedLanguage = await AsyncStorage.getItem('language');
-      if (savedLanguage) {
-        i18n.changeLanguage(savedLanguage);
-      }
-    };
-    loadLanguage();
-    console.log('authState', authState);
-    const inAuthGroup = segments[0] === '(protected)';
-    if (!authState?.authenticated && inAuthGroup) {
-      router.replace('/');
-    } else if (authState?.authenticated === true) {
-      router.replace('/(protected)');
-    }
-  }, [authState, router, segments, i18n]);
+  useLoadLanguage();
 
-  useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded, error]);
+  useAuthRedirect();
 
-  if (!loaded && !error) {
+  if (!fontsLoaded) {
     return null;
   }
 
@@ -92,9 +52,7 @@ const StackLayout = () => {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <StackLayout />
-      </AuthProvider>
+      <StackLayout />
     </SafeAreaProvider>
   );
 }

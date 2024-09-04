@@ -102,7 +102,6 @@ const Page = () => {
       t
     );
     if (!Object.values(newErrors).some((error) => error !== null)) {
-      console.log('Formulario válido, enviar datos:', trimmedFormData);
       return alert('ok');
     }
     alert('ops!');

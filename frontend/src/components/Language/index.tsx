@@ -44,7 +44,7 @@ export function Language() {
     <Fragment>
       <TouchableOpacity
         onPress={() => {
-          changeLanguage('en-US'), console.log(currentLanguage);
+          changeLanguage('en-US');
         }}
         style={styles.button}
       >
@@ -52,7 +52,7 @@ export function Language() {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => {
-          changeLanguage('es-ES'), console.log(currentLanguage);
+          changeLanguage('es-ES');
         }}
         style={styles.button}
       >
