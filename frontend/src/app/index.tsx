@@ -111,7 +111,6 @@ const Page = () => {
       try {
         onLogin!(formData.email, formData.password);
         setFormModified(false);
-        console.log('Formulario válido, enviar datos:', trimmedFormData);
       } catch (error) {
         alert(t('loginView.errorLogin'));
       }
@@ -132,8 +131,6 @@ const Page = () => {
       Object.keys(formData).forEach((key) => validateField(key));
     }
   }, [language, formModified]);
-
-  console.log(language);
 
   if (authLoading) {
     return <Loader />;

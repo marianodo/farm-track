@@ -12,17 +12,18 @@ import {
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useRef, useState } from 'react';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
-
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useAuthStore from '@/store/authStore';
+import Loader from '@/components/Loader';
 
 const { width, height } = Dimensions.get('window');
 
 const RegisterView = () => {
+  const router = useRouter();
   const { register, authLoading } = useAuthStore((state) => ({
     register: state.register,
     authLoading: state.authLoading,
@@ -136,6 +137,7 @@ const RegisterView = () => {
           password: '',
           confirmPassword: '',
         });
+        router.push('/');
       } catch (error) {
         console.log(error);
       }
@@ -144,230 +146,226 @@ const RegisterView = () => {
     }
   };
 
+  if (authLoading) {
+    return <Loader />;
+  }
+
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
+      style={styles.container}
+      contentContainerStyle={styles.scrollViewContent}
       keyboardShouldPersistTaps="handled"
       ref={scrollRef}
-      contentInsetAdjustmentBehavior="always"
+      contentInsetAdjustmentBehavior="automatic"
       scrollEnabled={true}
       enableAutomaticScroll={Platform.OS === 'ios'}
-      extraHeight={rV(140)}
-      extraScrollHeight={rV(140)}
+      extraHeight={rV(170)}
+      // extraScrollHeight={rV(140)}
     >
-      <View style={styles.scrollViewContent}>
-        <View style={styles.headerContainer}>
-          <Image
-            source={require('../../../assets/images/logo-farm.png')}
-            style={styles.logo}
-          />
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>{t('registerView.title')}</Text>
-            <Text style={styles.subtitle}>{t('registerView.subtitle')}</Text>
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.inputContainer,
-            {
-              marginBottom:
-                (errors.username &&
-                  errors.username[0] &&
-                  errors.email &&
-                  errors.email[0] &&
-                  errors.password &&
-                  errors.password[0] &&
-                  errors.confirmPassword &&
-                  errors.confirmPassword[0]) ||
-                Object.values(errors).filter((arr) => arr && arr.length > 0)
-                  .length >= 2
-                  ? rS(60)
-                  : rS(20),
-            },
-          ]}
-        >
-          <TextInput
-            placeholder={t('registerView.namePlaceHolder')}
-            value={formData.username}
-            onBlur={() => handleBlur('username')}
-            onChangeText={(text) => handleInputChange('username', text)}
-            style={styles.inputField}
-            mode="outlined"
-            autoCapitalize="none"
-            activeOutlineColor="transparent"
-            textColor="#486732"
-            cursorColor="#486732"
-            placeholderTextColor="#486732"
-            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-            selectionHandleColor="#486732"
-            outlineColor="#F1F1F1"
-            onFocus={(event) => {
-              scrollToInput(event.target);
-            }}
-            left={
-              <TextInput.Icon
-                icon="account"
-                color="#486732"
-                style={{
-                  alignSelf: 'center',
-                  alignContent: 'center',
-                  alignItems: 'center',
-                }}
-              />
-            }
-          />
-          {errors.username && (
-            <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
-            >
-              {errors.username[0]}
-            </Text>
-          )}
-          <TextInput
-            placeholder={t('registerView.emailPlaceHolder')}
-            value={formData.email}
-            onChangeText={(text) => handleInputChange('email', text)}
-            onBlur={() => handleBlur('email')}
-            style={styles.inputField}
-            mode="outlined"
-            autoCapitalize="none"
-            activeOutlineColor="transparent"
-            textColor="#486732"
-            cursorColor="#486732"
-            underlineColor="#fff"
-            placeholderTextColor="#486732"
-            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-            selectionHandleColor="#486732"
-            outlineColor="#F1F1F1"
-            onFocus={(event) => {
-              scrollToInput(event.target);
-            }}
-            left={<TextInput.Icon icon="email" color="#486732" />}
-          />
-          {errors.email && (
-            <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
-            >
-              {errors.email[0]}
-            </Text>
-          )}
-          <TextInput
-            placeholder={t('registerView.passwordPlaceHolder')}
-            value={formData.password}
-            onChangeText={(text) => handleInputChange('password', text)}
-            onBlur={() => handleBlur('password')}
-            secureTextEntry={securePassword1}
-            style={styles.inputField}
-            mode="outlined"
-            autoCapitalize="none"
-            activeOutlineColor="transparent"
-            textColor="#486732"
-            cursorColor="#486732"
-            underlineColor="#fff"
-            placeholderTextColor="#486732"
-            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-            selectionHandleColor="#486732"
-            outlineColor="#F1F1F1"
-            onFocus={(event) => {
-              scrollToInput(event.target);
-            }}
-            left={<TextInput.Icon icon="lock" color="#486732" />}
-            right={
-              <TextInput.Icon
-                onPress={() => setSecurePassword1(!securePassword1)}
-                icon={securePassword1 ? 'eye' : 'eye-off'}
-                color="#486732"
-              />
-            }
-          />
-          {errors.password && (
-            <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
-            >
-              {errors.password[0]}
-            </Text>
-          )}
-          <TextInput
-            placeholder={t('registerView.confirmPasswordPlaceHolder')}
-            value={formData.confirmPassword}
-            onChangeText={(text) => handleInputChange('confirmPassword', text)}
-            onBlur={() => handleBlur('confirmPassword')}
-            secureTextEntry={securePassword2}
-            style={styles.inputField}
-            mode="outlined"
-            autoCapitalize="none"
-            activeOutlineColor="transparent"
-            textColor="#486732"
-            cursorColor="#486732"
-            underlineColor="#fff"
-            placeholderTextColor="#486732"
-            selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-            selectionHandleColor="#486732"
-            outlineColor="#F1F1F1"
-            onFocus={(event) => {
-              scrollToInput(event.target);
-            }}
-            left={<TextInput.Icon icon="lock" color="#486732" />}
-            right={
-              <TextInput.Icon
-                onPress={() => setSecurePassword2(!securePassword2)}
-                icon={securePassword2 ? 'eye' : 'eye-off'}
-                color="#486732"
-              />
-            }
-          />
-          {errors.confirmPassword && (
-            <Text
-              style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}
-            >
-              {errors.confirmPassword[0]}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.formContainer}>
-          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-            <Text style={styles.buttonText}>
-              {t('registerView.signUpText')}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>
-              {t('registerView.alreadyHaveAccountText')}
-            </Text>
-            <Pressable
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}
-            >
-              <Link href="/" style={styles.registerLink}>
-                {t('registerView.loginText')}
-              </Link>
-            </Pressable>
-          </View>
-          <ImageBackground
-            source={require('../../../assets/images/register-bg-image.jpg')}
-            resizeMode="cover"
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              right: 0,
-              top: 10,
-              zIndex: -1,
-            }}
-          />
+      {/* <View style={styles.scrollViewContent}> */}
+      <View style={styles.headerContainer}>
+        <Image
+          source={require('../../../assets/images/logo-farm.png')}
+          style={styles.logo}
+        />
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{t('registerView.title')}</Text>
+          <Text style={styles.subtitle}>{t('registerView.subtitle')}</Text>
         </View>
       </View>
+
+      <View
+        style={[
+          styles.inputContainer,
+          {
+            marginBottom:
+              (errors.username &&
+                errors.username[0] &&
+                errors.email &&
+                errors.email[0] &&
+                errors.password &&
+                errors.password[0] &&
+                errors.confirmPassword &&
+                errors.confirmPassword[0]) ||
+              Object.values(errors).filter((arr) => arr && arr.length > 0)
+                .length >= 2
+                ? rS(60)
+                : rS(20),
+          },
+        ]}
+      >
+        <TextInput
+          placeholder={t('registerView.namePlaceHolder')}
+          value={formData.username}
+          onBlur={() => handleBlur('username')}
+          onChangeText={(text) => handleInputChange('username', text)}
+          style={styles.inputField}
+          mode="outlined"
+          autoCapitalize="none"
+          activeOutlineColor="transparent"
+          textColor="#486732"
+          cursorColor="#486732"
+          placeholderTextColor="#486732"
+          selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+          selectionHandleColor="#486732"
+          outlineColor="#F1F1F1"
+          onFocus={(event) => {
+            scrollToInput(event.target);
+          }}
+          left={
+            <TextInput.Icon
+              icon="account"
+              color="#486732"
+              style={{
+                alignSelf: 'center',
+                alignContent: 'center',
+                alignItems: 'center',
+              }}
+            />
+          }
+        />
+        {errors.username && (
+          <Text style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}>
+            {errors.username[0]}
+          </Text>
+        )}
+        <TextInput
+          placeholder={t('registerView.emailPlaceHolder')}
+          value={formData.email}
+          onChangeText={(text) => handleInputChange('email', text)}
+          onBlur={() => handleBlur('email')}
+          style={styles.inputField}
+          mode="outlined"
+          autoCapitalize="none"
+          activeOutlineColor="transparent"
+          textColor="#486732"
+          cursorColor="#486732"
+          underlineColor="#fff"
+          placeholderTextColor="#486732"
+          selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+          selectionHandleColor="#486732"
+          outlineColor="#F1F1F1"
+          onFocus={(event) => {
+            scrollToInput(event.target);
+          }}
+          left={<TextInput.Icon icon="email" color="#486732" />}
+        />
+        {errors.email && (
+          <Text style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}>
+            {errors.email[0]}
+          </Text>
+        )}
+        <TextInput
+          placeholder={t('registerView.passwordPlaceHolder')}
+          value={formData.password}
+          onChangeText={(text) => handleInputChange('password', text)}
+          onBlur={() => handleBlur('password')}
+          secureTextEntry={securePassword1}
+          style={styles.inputField}
+          mode="outlined"
+          autoCapitalize="none"
+          activeOutlineColor="transparent"
+          textColor="#486732"
+          cursorColor="#486732"
+          underlineColor="#fff"
+          placeholderTextColor="#486732"
+          selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+          selectionHandleColor="#486732"
+          outlineColor="#F1F1F1"
+          onFocus={(event) => {
+            scrollToInput(event.target);
+          }}
+          left={<TextInput.Icon icon="lock" color="#486732" />}
+          right={
+            <TextInput.Icon
+              onPress={() => setSecurePassword1(!securePassword1)}
+              icon={securePassword1 ? 'eye' : 'eye-off'}
+              color="#486732"
+            />
+          }
+        />
+        {errors.password && (
+          <Text style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}>
+            {errors.password[0]}
+          </Text>
+        )}
+        <TextInput
+          placeholder={t('registerView.confirmPasswordPlaceHolder')}
+          value={formData.confirmPassword}
+          onChangeText={(text) => handleInputChange('confirmPassword', text)}
+          onBlur={() => handleBlur('confirmPassword')}
+          secureTextEntry={securePassword2}
+          style={styles.inputField}
+          mode="outlined"
+          autoCapitalize="none"
+          activeOutlineColor="transparent"
+          textColor="#486732"
+          cursorColor="#486732"
+          underlineColor="#fff"
+          placeholderTextColor="#486732"
+          selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+          selectionHandleColor="#486732"
+          outlineColor="#F1F1F1"
+          onFocus={(event) => {
+            scrollToInput(event.target);
+          }}
+          left={<TextInput.Icon icon="lock" color="#486732" />}
+          right={
+            <TextInput.Icon
+              onPress={() => setSecurePassword2(!securePassword2)}
+              icon={securePassword2 ? 'eye' : 'eye-off'}
+              color="#486732"
+            />
+          }
+        />
+        {errors.confirmPassword && (
+          <Text style={{ color: 'red', textAlign: 'center', fontSize: rS(11) }}>
+            {errors.confirmPassword[0]}
+          </Text>
+        )}
+      </View>
+
+      <View style={styles.formContainer}>
+        <TouchableOpacity onPress={handleSubmit} style={styles.button}>
+          <Text style={styles.buttonText}>{t('registerView.signUpText')}</Text>
+        </TouchableOpacity>
+
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerText}>
+            {t('registerView.alreadyHaveAccountText')}
+          </Text>
+          <Pressable
+            style={({ pressed }) => ({
+              opacity: pressed ? 0.5 : 1,
+            })}
+          >
+            <Link href="/" style={styles.registerLink}>
+              {t('registerView.loginText')}
+            </Link>
+          </Pressable>
+        </View>
+        <ImageBackground
+          source={require('../../../assets/images/register-bg-image.jpg')}
+          resizeMode="cover"
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            right: 0,
+            top: Platform.OS === 'android' ? rMV(10) : rMV(30),
+            zIndex: -1,
+          }}
+        />
+      </View>
+      {/* </View> */}
     </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    height: height,
+    // height: height,
+    flex: 1,
     backgroundColor: '#fff',
   },
   scrollViewContent: {

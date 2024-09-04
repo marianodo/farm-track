@@ -4,19 +4,30 @@ import { Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import useAuthStore from '@/store/authStore';
+import Loader from '@/components/Loader';
+useAuthStore;
 
 export default function HomeScreen() {
-  const { authState, onLogout } = useAuth();
-  const router = useRouter();
+  const { onLogout, role, deleted, authLoading } = useAuthStore((state) => ({
+    role: state.role,
+    onLogout: state.onLogout,
+    deleted: state.deleted,
+    authLoading: state.authLoading,
+  }));
   const { t } = useTranslation();
   const onLogoutPressed = () => {
     onLogout!();
   };
 
+  if (authLoading) {
+    return <Loader />;
+  }
+
   return (
     <View style={styles.titleContainer}>
       <Text>Home</Text>
-      <Text>Role: {authState?.role}</Text>
+      <Text>Role: {role}</Text>
       <Pressable>
         <Text>{t('language')}</Text>
       </Pressable>
@@ -27,6 +38,14 @@ export default function HomeScreen() {
         textColor="white"
       >
         Logout
+      </Button>
+      <Button
+        style={{}}
+        onPress={() => deleted('asdsadsad')}
+        buttonColor="black"
+        textColor="white"
+      >
+        Deleted
       </Button>
     </View>
   );

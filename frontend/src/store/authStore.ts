@@ -100,14 +100,17 @@ const useAuthStore = create<AuthState>((set: any) => ({
       set({
         authLoading: false,
       });
-    } catch (error) {
+      return alert('User created');
+    } catch (error: any) {
       set({ authLoading: false });
-      alert('Error al registrar el usuario');
+      if (error.response) {
+        return alert(`Login error: ${error.response.data.message}`);
+      }
+      // alert('Error al registrar el usuario');
     }
   },
 
   deleted: async (id: string) => {
-    console.log('TOKEEEEN', await AsyncStorage.getItem('accessToken'));
     set({ authLoading: true });
     try {
       await axiosInstance.delete(
@@ -141,7 +144,6 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   async (request) => {
     const accessToken = await AsyncStorage.getItem('accessToken');
-    console.log('entreEEEEEE');
     if (accessToken) {
       request.headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -160,7 +162,6 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
       try {
         const refreshToken = await SecureStore.getItemAsync('refreshToken');
-        console.log('INTENTANDO REFRESCAR TOKEN');
         const response = await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/auth/refreshToken`,
           {
