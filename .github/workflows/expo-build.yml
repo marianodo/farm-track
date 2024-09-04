@@ -42,5 +42,3 @@ jobs:
         with:
           working-directory: frontend
           command: eas update --auto
-          env:
-            EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL }}
