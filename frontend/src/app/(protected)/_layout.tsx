@@ -1,57 +1,88 @@
 import { Button, Text } from 'react-native-paper';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Tabs, useRouter } from 'expo-router';
+import { rMS, rMV } from '@/styles/responsive';
 
 import { Colors } from '@/constants/Colors';
+import { Image } from 'react-native';
 import React from 'react';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { Tabs } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
+  const { t } = useTranslation();
   return (
-    <>
-      <View style={styles.titleContainer}>
-        <Pressable
-          style={{ height: '100%', marginTop: 90 }}
-          onPress={() => router.push('/')}
-        >
-          <Text>⬅️</Text>
-        </Pressable>
-      </View>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-          headerShown: false,
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        headerShown: false,
+        tabBarLabelStyle: {
+          color: '#486732',
+          fontSize: rMV(10), // Tamaño del texto
+          fontFamily: 'Pro-Regular',
+          fontWeight: 500, // Peso del texto
+        },
+        tabBarStyle: {
+          height: rMV(66), // Aquí defines la altura deseada
+          paddingBottom: rMS(5), // Ajusta el relleno para centrar el ícono si es necesario
+          paddingTop: rMS(6),
+        },
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: t('tabs.home') ,
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../../assets/images/tabs/field-selected.png')
+                  : require('../../../assets/images/tabs/field-unselected.png')
+              }
+              style={{ width: rMS(24), height: rMV(23) }}
+              resizeMode="contain"
+            />
+          ),
         }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Home',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? 'home' : 'home-outline'}
-                color={color}
-              />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="explore"
-          options={{
-            title: 'Explore',
-            tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? 'code-slash' : 'code-slash-outline'}
-                color={color}
-              />
-            ),
-          }}
-        />
-      </Tabs>
-    </>
+      />
+      <Tabs.Screen
+        name="objects/index"
+        options={{
+          title:t('tabs.objects'),
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../../assets/images/tabs/object-selected.png')
+                  : require('../../../assets/images/tabs/object-unselected.png')
+              }
+              style={{ width: rMS(24), height: rMV(23) }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="variables/index"
+        options={{
+          title: t('tabs.attributes'),
+          tabBarIcon: ({ focused }) => (
+            <Image
+              source={
+                focused
+                  ? require('../../../assets/images/tabs/variables-selected.png')
+                  : require('../../../assets/images/tabs/variables-unselected.png')
+              }
+              style={{ width: rMS(24), height: rMV(23) }}
+              resizeMode="contain"
+            />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
 

@@ -14,6 +14,11 @@
         },
         "matchPassword": "Las contraseñas no coinciden"
     },
+     "tabs": {
+        "home": "Inicio",
+        "objects": "Objectos",
+        "attributes": "Attributos"
+    },
     "loginView": {
         "title": "Bienvenido",
         "title2": "a FarmTrack",
@@ -37,6 +42,11 @@
         "signUpText": "Registrarse",
         "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
         "loginText": "Iniciar sesión"
+    },
+    "fieldView": {
+        "greeting": "Hola",
+        "welcome": "Bienvenido de nuevo",
+        "fieldText": "Campos"
     },
     "recoveryPasswordView": {
         "title": "Restablece tu",

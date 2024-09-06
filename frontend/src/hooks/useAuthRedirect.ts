@@ -12,7 +12,7 @@ export const useAuthRedirect = () => {
     const inAuthGroup = segments[0] === '(protected)';
     if (token == null && inAuthGroup) {
       router.replace('/');
-    } else if (token !== null) {
+    } else if (token !== null && !inAuthGroup) {
       router.replace('/(protected)');
     }
   }, [token, router, segments]);
