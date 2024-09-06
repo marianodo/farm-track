@@ -6,19 +6,21 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { rMS, rMV, rS, rV } from '@/styles/responsive';
 
+import Loader from '@/components/Loader';
+import { grey100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import { useAuth } from '@/context/AuthContext';
+import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import useAuthStore from '@/store/authStore';
-import Loader from '@/components/Loader';
-import { rMS, rMV, rS, rV } from '@/styles/responsive';
-import { grey100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+
 useAuthStore;
 
 export default function HomeScreen() {
-  const { onLogout, role, deleted, authLoading } = useAuthStore((state) => ({
+  const { onLogout, role, deleted, authLoading, userName } = useAuthStore((state) => ({
     role: state.role,
+    userName: state.username,
     onLogout: state.onLogout,
     deleted: state.deleted,
     authLoading: state.authLoading,
@@ -132,7 +134,7 @@ export default function HomeScreen() {
                 fontWeight: 'regular',
               }}
             >
-              Hola Juan Perez!
+              {t('fieldView.greeting')} {userName}
             </Text>
             <Text
               style={{
@@ -142,7 +144,7 @@ export default function HomeScreen() {
                 fontWeight: 'bold',
               }}
             >
-              Bienvenido de nuevo
+              {t('fieldView.welcome')}
             </Text>
           </View>
         </View>
@@ -168,7 +170,7 @@ export default function HomeScreen() {
             fontFamily: 'Pro-Regular',
           }}
         >
-          Campos
+          {t('fieldView.fieldText')}
         </Text>
         {!fields.length ? (
           <View

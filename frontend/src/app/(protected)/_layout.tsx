@@ -1,15 +1,18 @@
 import { Button, Text } from 'react-native-paper';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Tabs } from 'expo-router';
-import { Image } from 'react-native';
+import { rMS, rMV } from '@/styles/responsive';
+
 import { Colors } from '@/constants/Colors';
+import { Image } from 'react-native';
 import React from 'react';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
+import { Tabs } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { rMS, rMV } from '@/styles/responsive';
+import { useTranslation } from 'react-i18next';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -31,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: t('tabs.home') ,
           tabBarIcon: ({ focused }) => (
             <Image
               source={
@@ -48,7 +51,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="objects/index"
         options={{
-          title: 'Objects',
+          title:t('tabs.objects'),
           tabBarIcon: ({ focused }) => (
             <Image
               source={
@@ -65,7 +68,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="variables/index"
         options={{
-          title: 'Variables',
+          title: t('tabs.attributes'),
           tabBarIcon: ({ focused }) => (
             <Image
               source={

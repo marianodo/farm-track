@@ -14,6 +14,11 @@
         },
         "matchPassword": "Passwords do not match"
     },
+    "tabs": {
+        "home": "home",
+        "objects": "objects",
+        "attributes": "attributes"
+    },
     "loginView": {
         "title": "Welcome",
         "title2": "to FarmTrack",
@@ -36,6 +41,11 @@
         "signUpText": "Sign up",
         "alreadyHaveAccountText": "¿Already have an account?",
         "loginText": "Login"
+    },
+    "fieldView": {
+        "greeting": "Hi",
+        "welcome": "Welcome back",
+        "fieldText": "Fields"
     },
     "recoveryPasswordView": {
         "title": "Reset your",
