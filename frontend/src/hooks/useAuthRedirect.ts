@@ -9,11 +9,12 @@ export const useAuthRedirect = () => {
   const segments = useSegments();
   const router = useRouter();
   useEffect(() => {
-    const inAuthGroup = segments[0] === '(protected)';
+    const inAuthGroup =
+      segments[0] === '(protected)' || segments[0] === 'createField';
     if (token == null && inAuthGroup) {
       router.replace('/');
     } else if (token !== null && !inAuthGroup) {
-      router.replace('/(protected)');
+      router.replace('/home');
     }
   }, [token, router, segments]);
 };

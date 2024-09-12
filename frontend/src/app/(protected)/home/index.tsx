@@ -1,34 +1,63 @@
 import { IconButton, Text } from 'react-native-paper';
 import {
+  Alert,
+  FlatList,
   Image,
   ImageBackground,
-  ScrollView,
+  Pressable,
   StyleSheet,
   View,
 } from 'react-native';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
-
 import Loader from '@/components/Loader';
-import { grey100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 import { useAuth } from '@/context/AuthContext';
 import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-
-useAuthStore;
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function HomeScreen() {
-  const { onLogout, role, deleted, authLoading, userName } = useAuthStore((state) => ({
-    role: state.role,
-    userName: state.username,
-    onLogout: state.onLogout,
-    deleted: state.deleted,
-    authLoading: state.authLoading,
-  }));
+  const router = useRouter();
+  const { onLogout, role, deleted, authLoading, userName } = useAuthStore(
+    (state) => ({
+      role: state.role,
+      userName: state.username,
+      onLogout: state.onLogout,
+      deleted: state.deleted,
+      authLoading: state.authLoading,
+    })
+  );
   const { t } = useTranslation();
   const onLogoutPressed = () => {
     onLogout!();
   };
+
+  const deleteBUttonAlert = () =>
+    Alert.alert(
+      '¿Desea eliminar el "Campo Maravilla"?',
+      'Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        { text: 'OK', onPress: () => console.log('OK Pressed') },
+      ]
+    );
+
+  const renderRightActions = (progress: any, dragX: any, field: any) => (
+    <View style={styles.rightActions}>
+      <Pressable style={styles.editButton} onPress={() => console.log(field)}>
+        <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
+        <Text style={styles.actionText}>Editar</Text>
+      </Pressable>
+      <Pressable style={styles.deleteButton} onPress={deleteBUttonAlert}>
+        <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
+        <Text style={styles.actionText}>Eliminar</Text>
+      </Pressable>
+    </View>
+  );
 
   if (authLoading) {
     return <Loader />;
@@ -68,12 +97,12 @@ export default function HomeScreen() {
   ];
 
   const typeOfProductionImages: Record<string, any> = {
-    bovina_carne: require('../../../assets/images/typeOfProduction/bovina_carne.png'),
-    bovina_leche: require('../../../assets/images/typeOfProduction/bovina_leche.png'),
-    porcina: require('../../../assets/images/typeOfProduction/porcina.png'),
-    avicola_broile: require('../../../assets/images/typeOfProduction/avicola.png'),
-    avicola_postura: require('../../../assets/images/typeOfProduction/avicola_postura.png'),
-    customizada: require('../../../assets/images/typeOfProduction/custom_option.png'),
+    bovina_carne: require('../../../../assets/images/typeOfProduction/bovina_carne.png'),
+    bovina_leche: require('../../../../assets/images/typeOfProduction/bovina_leche.png'),
+    porcina: require('../../../../assets/images/typeOfProduction/porcina.png'),
+    avicola_broile: require('../../../../assets/images/typeOfProduction/avicola.png'),
+    avicola_postura: require('../../../../assets/images/typeOfProduction/avicola_postura.png'),
+    customizada: require('../../../../assets/images/typeOfProduction/custom_option.png'),
   };
 
   return (
@@ -82,12 +111,12 @@ export default function HomeScreen() {
         style={styles.floatingButton}
         icon="plus"
         iconColor="#FFF"
-        onPress={() => console.log('Botón presionado')}
+        onPress={() => router.push('/createField')}
         size={rS(24)}
       />
       {/* header */}
       <ImageBackground
-        source={require('../../../assets/images/tabs/tabs-header.png')}
+        source={require('../../../../assets/images/tabs/tabs-header.png')}
         style={{ height: rV(174), width: '100%' }}
         resizeMode="cover"
       >
@@ -109,7 +138,7 @@ export default function HomeScreen() {
             }}
           >
             <IconButton
-              icon={require('../../../assets/images/profile.png')}
+              icon={require('../../../../assets/images/profile.png')}
               iconColor="#fff"
               size={rMV(24)}
               onPress={() => console.log('Pressed')}
@@ -130,7 +159,6 @@ export default function HomeScreen() {
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
                 fontSize: rMS(13.6),
-                // fontSize: 14,
                 fontWeight: 'regular',
               }}
             >
@@ -212,78 +240,85 @@ export default function HomeScreen() {
             </View>
           </View>
         ) : (
+          /* contenido scroll */
           <View style={styles.spacer}>
-            <ScrollView
-              contentContainerStyle={{
-                paddingHorizontal: rMS(20),
-                paddingTop: rMS(10),
-              }}
-            >
-              {/* Renderiza dinámicamente los campos */}
-              {fields.map((field, index) => (
-                <View key={index} style={styles.fieldContainer}>
-                  <View
-                    style={{ display: 'flex', justifyContent: 'space-between' }}
-                  >
-                    <Text
-                      style={{
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        fontFamily: 'Pro-Regular',
-                      }}
-                    >
-                      Nombre: {field.name}
-                    </Text>
+            <FlatList
+              style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+              data={fields}
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item: field, index }) => (
+                <Swipeable
+                  renderRightActions={(progress, dragX) =>
+                    renderRightActions(progress, dragX, field)
+                  }
+                  containerStyle={{
+                    backgroundColor: '#3A5228',
+                    height: rMS(98),
+                    marginBottom: 10,
+                    borderRadius: 10,
+                  }}
+                >
+                  <View key={index} style={styles.fieldContainer}>
                     <View
                       style={{
                         display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                        gap: rMS(12),
-                        marginBottom: rMS(12),
+                        justifyContent: 'space-between',
                       }}
                     >
-                      <Image
-                        source={require('../../../assets/images/map-marker.png')}
+                      <Text
                         style={{
-                          width: rMS(16),
-                          height: rMS(16),
+                          textAlign: 'center',
+                          fontSize: 18,
+                          fontWeight: 'bold',
+                          fontFamily: 'Pro-Regular',
+                        }}
+                      >
+                        Nombre: {field.name}
+                      </Text>
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'flex-start',
+                          alignItems: 'center',
+                          gap: rMS(12),
+                          marginBottom: rMS(12),
+                        }}
+                      >
+                        <Image
+                          source={require('../../../../assets/images/map-marker.png')}
+                          style={{
+                            width: rMS(16),
+                            height: rMS(16),
+                            alignSelf: 'center',
+                          }}
+                          resizeMode="contain"
+                        />
+                        <Text>{field.locality}</Text>
+                      </View>
+                    </View>
+                    <View style={{ width: rS(120) }}>
+                      <Image
+                        source={typeOfProductionImages[field.typeOfProduction]}
+                        style={{
+                          width: rMS(48),
+                          height: rMS(48),
                           alignSelf: 'center',
                         }}
                         resizeMode="contain"
                       />
-                      <Text>{field.locality}</Text>
+                      <View>
+                        <Text style={styles.fieldText}>
+                          {field.typeOfProduction}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                  <View
-                    style={{
-                      width: rS(120),
-                    }}
-                  >
-                    <Image
-                      source={typeOfProductionImages[field.typeOfProduction]}
-                      style={{
-                        width: rMS(48),
-                        height: rMS(48),
-                        alignSelf: 'center',
-                      }}
-                      resizeMode="contain"
-                    />
-
-                    <View>
-                      <Text style={styles.fieldText}>
-                        {field.typeOfProduction}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
+                </Swipeable>
+              )}
+            />
           </View>
         )}
-        {/* contenido scroll */}
       </View>
     </View>
   );
@@ -297,13 +332,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   spacer: {
-    height: '74%',
+    height: '72%',
   },
   fieldContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    height: 100,
+    height: rMS(98),
     marginBottom: 10,
     paddingVertical: 10,
     paddingHorizontal: 10,
@@ -337,5 +372,50 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 30,
     fontWeight: 'bold',
+  },
+  leftActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: rMS(98),
+    backgroundColor: '#f0f0f0',
+    borderBottomRightRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  editButton: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 10,
+    backgroundColor: '#3A5228',
+    height: rMS(98),
+    width: 68,
+  },
+  deleteButton: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingBottom: 10,
+    backgroundColor: '#B82E2E',
+    height: rMS(98),
+    width: 68,
+    borderBottomRightRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  archiveButton: {
+    backgroundColor: '#2196F3',
+    padding: 15,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  actionText: {
+    color: '#fff',
+    fontFamily: 'Pro-Regular',
+    fontSize: 11.2,
   },
 });
