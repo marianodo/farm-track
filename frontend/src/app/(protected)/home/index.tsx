@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Pro-Regular',
   },
   floatingButton: {
-    position: 'absolute',
+    position: 'relative',
     fontWeight: 'bold',
     zIndex: 1,
     bottom: 200,
