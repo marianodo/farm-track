@@ -1,15 +1,18 @@
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import React, { useState } from 'react';
 
 import { useAuth } from '../context/AuthContext';
-
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 const Page = () => {
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('admin');
@@ -23,35 +26,36 @@ const Page = () => {
     onLogin!('user', 'user');
   };
 
+  const onSearchError = React.useCallback((error: PlacesError) => {
+    console.log(error);
+  }, []);
+
+  const onPlaceSelected = React.useCallback((place: PlaceDetails) => {
+    console.log(place);
+  }, []);
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+    <KeyboardAwareScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{ flexGrow: 1 }}
+      style={{ flexGrow: 1 }}
     >
-      <Text style={styles.header}>Puto</Text>
-      <TextInput
-        autoCapitalize="none"
-        placeholder="admin"
-        value={username}
-        onChangeText={setUsername}
-        style={styles.inputField}
+      <GooglePlacesAutocomplete
+        placeholder="Pickup"
+        minLength={1}
+        styles={{ height: 10 }}
+        onFail={(err) => console.error(err)}
+        fetchDetails={true}
+        disableScroll={true}
+        // listViewDisplayed=""
+        onPress={(data, details = true) => {
+          console.log('data: ', data, details);
+        }}
+        query={{
+          key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+          language: 'en',
+        }}
       />
-      <TextInput
-        placeholder="password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.inputField}
-      />
-
-      <TouchableOpacity onPress={onSignInPress} style={styles.button}>
-        <Text style={{ color: '#fff' }}>Sign in</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={onUserSignInPress} style={styles.button}>
-        <Text style={{ color: '#fff' }}>Sign in as user</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 };
 
