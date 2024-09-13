@@ -17,7 +17,7 @@ import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import DropDown, { Dropdown } from 'react-native-paper-dropdown';
 const { width, height } = Dimensions.get('window');
 import MapView, { Marker } from 'react-native-maps';
@@ -25,12 +25,35 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
+  const mapRef = useRef(null);
   const [formData, setFormData] = useState({
     nombreCampo: { value: '', placeholder: 'Nombre del campo' },
     descripcion: { value: '', placeholder: 'Descripción' },
     ubicacion: { value: '', placeholder: 'Ubicación', lat: 0, lng: 0 },
     tipoProduccion: { value: '', placeholder: 'Tipo de producción' },
     numeroAnimales: { value: '', placeholder: 'Número de animales' },
+  });
+
+  const [ubication, setUbication] = useState({
+    origin: {
+      latitude: -38.416097, // Coordenadas de Argentina
+      longitude: -63.616672,
+      latitudeDelta: 10, // Ajusta para mostrar una mayor área de Argentina
+      longitudeDelta: 10,
+    },
+    userLocation: {
+      latitude: 0,
+      longitude: 0,
+    },
+    inputLocation: {
+      direcction: '',
+      latitude: 0,
+      longitude: 0,
+    },
+    marketLocation: {
+      latitude: 0,
+      longitude: 0,
+    },
   });
   const [origin, setOrigin] = useState({
     latitude: -38.416097, // Coordenadas de Argentina
@@ -66,59 +89,65 @@ export default function HomeScreen() {
     });
   };
 
-  useEffect(() => {
-    const getLanguage = async () => {
-      const lang = await AsyncStorage.getItem('language');
-      setLang(lang);
-    };
-    getLanguage();
-  }, []);
+  // useEffect(() => {
+  //   const getLanguage = async () => {
+  //     const lang = await AsyncStorage.getItem('language');
+  //     setLang(lang);
+  //   };
+  //   getLanguage();
+  // }, []);
 
-  useEffect(() => {
-    const getLocation = async () => {
-      if (Platform.OS === 'android') {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const { coords } = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-            distanceInterval: 10, // Actualiza la ubicación si se mueve más de 10 metros
-            mayShowUserSettingsDialog: true, // Muestra un diálogo si los permisos no están habilitados
-          });
-          const { latitude, longitude } = coords;
-          setUserLocation({ latitude, longitude });
-          setMarkerPosition({ latitude, longitude });
-          setOrigin({
-            ...origin,
-            latitude,
-            longitude,
-          });
-        } else {
-          console.log('Permiso de ubicación denegado');
-        }
-      } else if (Platform.OS === 'ios') {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const { coords } = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.High,
-            distanceInterval: 10, // Actualiza la ubicación si se mueve más de 10 metros
-            mayShowUserSettingsDialog: true, // Muestra un diálogo si los permisos no están habilitados
-          });
-          const { latitude, longitude } = coords;
-          setUserLocation({ latitude, longitude });
-          setMarkerPosition({ latitude, longitude });
-          setOrigin({
-            ...origin,
-            latitude,
-            longitude,
-          });
-        } else {
-          console.log('Permiso de ubicación denegado');
-        }
-      }
-    };
+  // useEffect(() => {
+  //   const getLocation = async () => {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status === 'granted') {
+  //       const { coords } = await Location.getCurrentPositionAsync({
+  //         accuracy: Location.Accuracy.High,
+  //         distanceInterval: 10,
+  //       });
+  //       const { latitude, longitude } = coords;
+  //       // const response = await fetch(
+  //       //   `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
+  //       // );
+  //       // const data = await response.json();
+  //       // console.log('DATITA: ', data.results[4].formatted_address);
+  //       setUbication({
+  //         ...ubication,
+  //         origin: {
+  //           ...origin,
+  //           latitude,
+  //           longitude,
+  //         },
+  //         marketLocation: { latitude, longitude },
+  //         inputLocation: { latitude, longitude, direcction: 'falta' },
+  //       });
+  //       setUserLocation({ latitude, longitude });
+  //       setMarkerPosition({ latitude, longitude });
+  //       setOrigin({
+  //         ...origin,
+  //         latitude,
+  //         longitude,
+  //       });
+  //     } else {
+  //       console.log('Permiso de ubicación denegado');
+  //     }
+  //   };
 
-    getLocation();
-  }, []);
+  //   getLocation();
+  // }, []);
+
+  // useEffect(() => {
+  //   if (mapRef.current) {
+  //     mapRef.current.animateToRegion(
+  //       {
+  //         ...ubication.marketLocation,
+  //         latitudeDelta: ubication.origin.latitudeDelta,
+  //         longitudeDelta: ubication.origin.longitudeDelta,
+  //       },
+  //       1500
+  //     );
+  //   }
+  // }, []);
 
   const handleInputChange = (key: string, value: string) => {
     setFormData((prevFormData) => ({
@@ -214,13 +243,31 @@ export default function HomeScreen() {
                     <View>
                       <GooglePlacesAutocomplete
                         placeholder="Ubicación"
-                        minLength={1}
+                        minLength={3}
+                        GooglePlacesDetailsQuery={{
+                          fields: 'geometry',
+                        }}
+                        enablePoweredByContainer={false}
                         textInputProps={{
+                          value: `${ubication.inputLocation.direcction}`,
                           cursorColor: '#486732',
                           selectionColor: '#486732',
                           placeholderTextColor: '#292929',
-
-                          returnKeyType: 'search',
+                          onChangeText: (text) => {
+                            setUbication({
+                              ...ubication,
+                              inputLocation: {
+                                ...ubication.inputLocation,
+                                direcction: text,
+                              },
+                            });
+                          },
+                          //   if (text.trim() === '') {
+                          //   } else {
+                          //     console.log('Texto ingresado:', text);
+                          //   }
+                          // },
+                          // returnKeyType: 'search',
                         }}
                         styles={{
                           textInputContainer: {
@@ -248,15 +295,30 @@ export default function HomeScreen() {
                           separator: {
                             height: 0.5,
                           },
-                          poweredContainer: {
-                            display: 'none', // Oculta el texto "Powered by Google"
-                          },
                         }}
                         onFail={(err) => console.error(err)}
-                        fetchDetails={false}
+                        fetchDetails={true}
                         disableScroll={true}
-                        onPress={(data, details) => {
-                          console.log('data: ', data, details);
+                        onPress={async (data, details) => {
+                          setUbication({
+                            ...ubication,
+                            marketLocation: {
+                              latitude: details?.geometry.location.lat,
+                              longitude: details?.geometry.location.lng,
+                            },
+                            inputLocation: {
+                              direcction: data.description,
+                              latitude: details?.geometry.location.lat,
+                              longitude: details?.geometry.location.lng,
+                            },
+                          });
+                          // const response = await fetch(
+                          //   `https://maps.googleapis.com/maps/api/geocode/json?latlng=${details?.geometry.location.lat},${details?.geometry.location.lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
+                          // );
+                          // const datatota = await response.json();
+                          // console.log('DATITA: ', datatota.results[4].geometry);
+                          // console.log('Input: ', ubication.inputLocation);
+                          // console.log(ubication);
                         }}
                         query={{
                           key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
@@ -267,14 +329,27 @@ export default function HomeScreen() {
 
                     <View>
                       <MapView
+                        ref={mapRef}
                         style={{ width: width * 0.9, height: 239 }}
                         initialRegion={origin}
+                        region={{
+                          ...ubication.marketLocation,
+                          latitudeDelta: ubication.origin.latitudeDelta,
+                          longitudeDelta: ubication.origin.longitudeDelta,
+                        }}
                       >
                         <Marker
                           draggable
-                          coordinate={userLocation}
+                          coordinate={ubication.marketLocation}
                           onDragEnd={(e) => {
-                            // console.log();
+                            setUbication({
+                              ...ubication,
+                              marketLocation: {
+                                latitude: e.nativeEvent.coordinate.latitude,
+                                longitude: e.nativeEvent.coordinate.longitude,
+                              },
+                            });
+                            console.log('MARKET', e.nativeEvent);
                           }}
                         />
                       </MapView>
