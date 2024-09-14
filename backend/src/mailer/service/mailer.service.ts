@@ -1,10 +1,15 @@
 import { Email } from 'src/mailer/providers/email/email';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, Scope } from '@nestjs/common';
 import { SendEmailDto } from '../dto/send-email.dto';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class MailerService {
-  constructor(private emailProvider: Email) {}
+  constructor(
+    @Inject(REQUEST) private readonly request: Request,
+    private emailProvider: Email,
+  ) {}
   async sendEmail(body: SendEmailDto) {
     try {
       const { from, subjectEmail, sendTo } = body;
@@ -17,8 +22,9 @@ export class MailerService {
   }
 
   getTemplate(body) {
+    const baseUrl = `${this.request.protocol}://${this.request.get('host')}`;
     const template = this.getTemplateFile(body.template);
-    const html = template.fillTemplate(body);
+    const html = template.fillTemplate(body, baseUrl);
     return html;
   }
 
