@@ -21,7 +21,7 @@ const StackLayout = () => {
 
   useLoadLanguage();
 
-  useAuthRedirect();
+  // useAuthRedirect();
 
   if (!fontsLoaded) {
     return null;

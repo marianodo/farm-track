@@ -8,6 +8,10 @@ import {
   Platform,
   Dimensions,
   PermissionsAndroid,
+  Modal,
+  Button,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as Localization from 'expo-localization';
@@ -17,8 +21,8 @@ import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useEffect, useRef, useState } from 'react';
-import DropDown, { Dropdown } from 'react-native-paper-dropdown';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import DropDownPicker from 'react-native-dropdown-picker';
 const { width, height } = Dimensions.get('window');
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
@@ -33,6 +37,30 @@ export default function HomeScreen() {
     tipoProduccion: { value: '', placeholder: 'Tipo de producción' },
     numeroAnimales: { value: '', placeholder: 'Número de animales' },
   });
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState([
+    'italy',
+    'spain',
+    'barcelona',
+    'finland',
+  ]);
+  const [items, setItems] = useState([
+    { label: 'Bovina de carne', value: 'Bovina de carne' },
+    { label: 'Bovina de leche', value: 'Bovina de leche' },
+    { label: 'Porcina', value: 'Porcina' },
+    { label: 'Avícola broile ', value: 'Avícola broile ' },
+    { label: 'Avícola postura', value: 'Avícola postura' },
+    { label: 'Customizada', value: 'Customizada' },
+
+    // { label: 'Italy', value: 'italy' },
+    // { label: 'Rome', value: 'rome', parent: 'italy' },
+
+    // { label: 'Finland', value: 'finland' },
+  ]);
+  const selectedItems = items
+    .filter((item) => value.includes(item.value))
+    .map((item) => item.label)
+    .join(', ');
 
   const [ubication, setUbication] = useState({
     origin: {
@@ -44,33 +72,19 @@ export default function HomeScreen() {
     userLocation: {
       latitude: 0,
       longitude: 0,
+      direction: '',
     },
     inputLocation: {
-      direcction: '',
+      direction: '',
       latitude: 0,
       longitude: 0,
     },
     marketLocation: {
-      latitude: 0,
-      longitude: 0,
+      latitude: -38.416097,
+      longitude: -63.616672,
     },
   });
-  const [origin, setOrigin] = useState({
-    latitude: -38.416097, // Coordenadas de Argentina
-    longitude: -63.616672,
-    latitudeDelta: 10, // Ajusta para mostrar una mayor área de Argentina
-    longitudeDelta: 10,
-  });
-
-  const [userLocation, setUserLocation] = useState({
-    latitude: origin.latitude,
-    longitude: origin.longitude,
-  });
-
-  const [markerPosition, setMarkerPosition] = useState({
-    latitude: origin.latitude,
-    longitude: origin.longitude,
-  });
+  const [modalVisible, setModalVisible] = useState(false);
   const [showDropDown, setShowDropDown] = useState(false); // State to manage dropdown visibility
   const [tipoProduccionValue, setTipoProduccionValue] = useState('');
   const [lang, setLang] = useState<any>('');
@@ -81,73 +95,94 @@ export default function HomeScreen() {
     { label: 'Mixta', value: 'mixta' },
   ];
 
-  const handleOriginChange = (newOrigin) => {
-    setOrigin(newOrigin);
-    setMarkerPosition({
-      latitude: newOrigin.latitude,
-      longitude: newOrigin.longitude,
-    });
+  const onDragEndChange = async (coordinate) => {
+    try {
+      const { latitude, longitude } = coordinate;
+
+      setUbication({
+        ...ubication,
+        marketLocation: {
+          latitude,
+          longitude,
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching geocode data:', error);
+    }
   };
 
-  // useEffect(() => {
-  //   const getLanguage = async () => {
-  //     const lang = await AsyncStorage.getItem('language');
-  //     setLang(lang);
-  //   };
-  //   getLanguage();
-  // }, []);
+  const getLanguage = useCallback(async () => {
+    const lang = await AsyncStorage.getItem('language');
+    if (lang) setLang(lang);
+  }, []);
 
-  // useEffect(() => {
-  //   const getLocation = async () => {
-  //     const { status } = await Location.requestForegroundPermissionsAsync();
-  //     if (status === 'granted') {
-  //       const { coords } = await Location.getCurrentPositionAsync({
-  //         accuracy: Location.Accuracy.High,
-  //         distanceInterval: 10,
-  //       });
-  //       const { latitude, longitude } = coords;
-  //       // const response = await fetch(
-  //       //   `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}`
-  //       // );
-  //       // const data = await response.json();
-  //       // console.log('DATITA: ', data.results[4].formatted_address);
-  //       setUbication({
-  //         ...ubication,
-  //         origin: {
-  //           ...origin,
-  //           latitude,
-  //           longitude,
-  //         },
-  //         marketLocation: { latitude, longitude },
-  //         inputLocation: { latitude, longitude, direcction: 'falta' },
-  //       });
-  //       setUserLocation({ latitude, longitude });
-  //       setMarkerPosition({ latitude, longitude });
-  //       setOrigin({
-  //         ...origin,
-  //         latitude,
-  //         longitude,
-  //       });
-  //     } else {
-  //       console.log('Permiso de ubicación denegado');
-  //     }
-  //   };
+  const getLocation = useCallback(async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
+        const { coords } = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+          distanceInterval: 10,
+        });
+        const { latitude, longitude } = coords;
+        setUbication((prev) => ({
+          ...prev,
+          origin: {
+            ...prev.origin,
+            latitude,
+            longitude,
+          },
+          marketLocation: { latitude, longitude },
+          inputLocation: { latitude, longitude, direction: 'falta' },
+        }));
+      } else {
+        console.log('Permiso de ubicación denegado');
+      }
+    } catch (error) {
+      console.error('Error obteniendo la ubicación:', error);
+    }
+  }, []);
 
-  //   getLocation();
-  // }, []);
+  const setDirection = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ubication.marketLocation.latitude},${ubication.marketLocation.longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 2) {
+        setUbication((prev) => ({
+          ...prev,
+          userLocation: {
+            latitude: prev.marketLocation.latitude,
+            longitude: prev.marketLocation.longitude,
+            direction:
+              data.results[2]?.formatted_address || 'Dirección no encontrada',
+          },
+        }));
+      }
+    } catch (error) {
+      console.error('Error obteniendo dirección:', error);
+    }
+  }, [ubication.marketLocation]);
 
-  // useEffect(() => {
-  //   if (mapRef.current) {
-  //     mapRef.current.animateToRegion(
-  //       {
-  //         ...ubication.marketLocation,
-  //         latitudeDelta: ubication.origin.latitudeDelta,
-  //         longitudeDelta: ubication.origin.longitudeDelta,
-  //       },
-  //       1500
-  //     );
-  //   }
-  // }, []);
+  useEffect(() => {
+    getLanguage();
+    getLocation();
+  }, [getLanguage, getLocation]);
+
+  useEffect(() => {
+    if (ubication.marketLocation) {
+      mapRef.current.animateToRegion(
+        {
+          ...ubication.marketLocation,
+          latitudeDelta: ubication.origin.latitudeDelta,
+          longitudeDelta: ubication.origin.longitudeDelta,
+        },
+        1500
+      );
+      setDirection();
+    }
+  }, [ubication.marketLocation, setDirection]);
 
   const handleInputChange = (key: string, value: string) => {
     setFormData((prevFormData) => ({
@@ -158,7 +193,6 @@ export default function HomeScreen() {
       },
     }));
   };
-  const onRegionChange = () => {};
 
   const router = useRouter();
   const { onLogout, authLoading, userName } = useAuthStore((state) => ({
@@ -209,37 +243,22 @@ export default function HomeScreen() {
 
         {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
         <KeyboardAwareScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="always"
+          contentContainerStyle={[
+            styles.scrollContent,
+            { height: open ? rMS(700) : null },
+          ]}
           style={{ flexGrow: 1 }}
           extraScrollHeight={20}
+          scrollEnabled={!open}
         >
           <View style={styles.formContainer}>
-            {/* Aquí los TextInputs */}
+            {/* TextInputs */}
             {Object.keys(formData).map((key: string) => {
               const input = formData[key];
-              // Verifica si es el campo "tipoProduccion" para renderizar el Dropdown
-              if (key === 'tipoProduccion') {
-                return (
-                  <TextInput
-                    key={key}
-                    mode="flat"
-                    placeholder={input.placeholder}
-                    value={input.value}
-                    onChangeText={(value) => handleInputChange(key, value)}
-                    activeOutlineColor="transparent"
-                    outlineColor="#F1F1F1"
-                    cursorColor="#486732"
-                    selectionColor={
-                      Platform.OS == 'ios' ? '#486732' : '#486732'
-                    }
-                    style={styles.input}
-                  />
-                );
-              }
               if (key === 'ubicacion') {
                 return (
-                  <View key={key}>
+                  <View key={key} style={{ marginBottom: 10 }}>
                     <View>
                       <GooglePlacesAutocomplete
                         placeholder="Ubicación"
@@ -249,25 +268,11 @@ export default function HomeScreen() {
                         }}
                         enablePoweredByContainer={false}
                         textInputProps={{
-                          value: `${ubication.inputLocation.direcction}`,
+                          value: `${ubication.userLocation.direction}`,
                           cursorColor: '#486732',
                           selectionColor: '#486732',
                           placeholderTextColor: '#292929',
-                          onChangeText: (text) => {
-                            setUbication({
-                              ...ubication,
-                              inputLocation: {
-                                ...ubication.inputLocation,
-                                direcction: text,
-                              },
-                            });
-                          },
-                          //   if (text.trim() === '') {
-                          //   } else {
-                          //     console.log('Texto ingresado:', text);
-                          //   }
-                          // },
-                          // returnKeyType: 'search',
+                          editable: false,
                         }}
                         styles={{
                           textInputContainer: {
@@ -306,19 +311,7 @@ export default function HomeScreen() {
                               latitude: details?.geometry.location.lat,
                               longitude: details?.geometry.location.lng,
                             },
-                            inputLocation: {
-                              direcction: data.description,
-                              latitude: details?.geometry.location.lat,
-                              longitude: details?.geometry.location.lng,
-                            },
                           });
-                          // const response = await fetch(
-                          //   `https://maps.googleapis.com/maps/api/geocode/json?latlng=${details?.geometry.location.lat},${details?.geometry.location.lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
-                          // );
-                          // const datatota = await response.json();
-                          // console.log('DATITA: ', datatota.results[4].geometry);
-                          // console.log('Input: ', ubication.inputLocation);
-                          // console.log(ubication);
                         }}
                         query={{
                           key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
@@ -331,7 +324,7 @@ export default function HomeScreen() {
                       <MapView
                         ref={mapRef}
                         style={{ width: width * 0.9, height: 239 }}
-                        initialRegion={origin}
+                        initialRegion={ubication.origin}
                         region={{
                           ...ubication.marketLocation,
                           latitudeDelta: ubication.origin.latitudeDelta,
@@ -342,14 +335,7 @@ export default function HomeScreen() {
                           draggable
                           coordinate={ubication.marketLocation}
                           onDragEnd={(e) => {
-                            setUbication({
-                              ...ubication,
-                              marketLocation: {
-                                latitude: e.nativeEvent.coordinate.latitude,
-                                longitude: e.nativeEvent.coordinate.longitude,
-                              },
-                            });
-                            console.log('MARKET', e.nativeEvent);
+                            onDragEndChange(e.nativeEvent.coordinate);
                           }}
                         />
                       </MapView>
@@ -358,7 +344,54 @@ export default function HomeScreen() {
                 );
               }
 
-              // Verifica si es el campo "numeroAnimales" para hacer que acepte solo números
+              if (key === 'tipoProduccion') {
+                return (
+                  <DropDownPicker
+                    placeholder="Select type of production"
+                    placeholderStyle={{
+                      fontSize: width * 0.04,
+                      fontFamily: 'Pro-Regular',
+                      color: '#292929',
+                      paddingLeft: rMS(4),
+                    }}
+                    style={styles.input}
+                    dropDownContainerStyle={{
+                      marginTop: 4,
+                      backgroundColor: '#fafafa',
+                      borderColor: '#dadada',
+                      borderRadius: 20,
+                      borderTopStartRadius: 12,
+                      borderTopEndRadius: 12,
+                    }}
+                    key={key}
+                    listMode="SCROLLVIEW"
+                    zIndex={open ? 1 : 0}
+                    zIndexInverse={open ? 1 : 0}
+                    arrowIconStyle={{ tintColor: '#486732' }}
+                    open={open}
+                    value={value}
+                    items={items}
+                    setOpen={setOpen}
+                    setValue={setValue}
+                    setItems={setItems}
+                    multiple={true}
+                    mode="BADGE"
+                    badgeDotColors={[
+                      '#e76f51',
+                      '#00b4d8',
+                      '#e9c46a',
+                      '#e76f51',
+                      '#8ac926',
+                      '#00b4d8',
+                      '#e9c46a',
+                    ]}
+                    dropDownDirection="BOTTOM"
+                    onOpen={() => setOpen(true)}
+                    onClose={() => setOpen(false)}
+                  />
+                );
+              }
+
               if (key === 'numeroAnimales') {
                 return (
                   <TextInput
@@ -382,11 +415,11 @@ export default function HomeScreen() {
                 );
               }
 
-              // Renderiza otros inputs
               return (
                 <TextInput
                   key={key}
                   mode="outlined"
+                  placeholderTextColor="#292929"
                   placeholder={input.placeholder}
                   value={input.value}
                   onChangeText={(value) => handleInputChange(key, value)}
@@ -414,6 +447,18 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: 'white',
@@ -463,16 +508,24 @@ const styles = StyleSheet.create({
   },
   input: {
     alignSelf: 'center',
+    justifyContent: 'center',
     marginVertical: height * 0.01,
     width: width * 0.9,
     height: height * 0.07,
     borderWidth: 1,
     fontSize: width * 0.04,
     fontFamily: 'Pro-Regular',
-    color: '#486732',
+    color: '#292929',
     borderColor: '#F1F1F1',
     backgroundColor: '#F1F1F1',
     borderRadius: 8,
+  },
+  inputText: {
+    marginLeft: height * 0.02,
+    marginRight: height * 0.02,
+    fontSize: width * 0.04,
+    fontFamily: 'Pro-Regular',
+    color: '#292929',
   },
   fixedButtonContainer: {
     paddingHorizontal: 20,
