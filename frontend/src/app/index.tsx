@@ -273,6 +273,14 @@ const Page = () => {
               <Text>push</Text>
             </Pressable>
             <Pressable
+              onPress={() => router.push('/createField')}
+              style={({ pressed }) => ({
+                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
+              })}
+            >
+              <Text>crear campo</Text>
+            </Pressable>
+            <Pressable
               onPress={() => changeLanguage('es-ES')}
               style={({ pressed }) => ({
                 opacity: pressed || language === 'es-ES' ? 1 : 0.5,
