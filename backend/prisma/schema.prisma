@@ -26,8 +26,26 @@ model User {
   is_verified        Boolean  @default(false)
   role               Role     @default(USER)
   verification_token String?
+  fields             Field[]
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
 
   @@index([created_at, updated_at])
+}
+
+model Field {
+  id                String   @id @default(uuid())
+  name              String
+  description       String?
+  location          String?  
+  latitude          Int?
+  longitude         Int?
+  production_type   String?
+  number_of_animals Int?
+  userId            String
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  @@unique([name, userId])
 }
