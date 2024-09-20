@@ -18,10 +18,8 @@ export class FieldRepository {
       const newField = await this.db.field.create({
         data: createFieldDto,
       });
-      console.log(newField);
       return newField;
     } catch (error) {
-      console.log('EL ERROR: ', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         // Manejar error de unicidad (código P2002)
         if (error.code === 'P2002') {
@@ -77,6 +75,7 @@ export class FieldRepository {
       });
       return fieldsFound;
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while retrieving field.',
       );

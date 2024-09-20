@@ -38,8 +38,8 @@ model Field {
   name              String
   description       String?
   location          String?  
-  latitude          Int?
-  longitude         Int?
+  latitude          Float?
+  longitude         Float?
   production_type   String?
   number_of_animals Int?
   userId            String
