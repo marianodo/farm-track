@@ -78,8 +78,8 @@ export default function HomeScreen() {
     longitude: ubication.userLocation.longitude,
     production_type: value,
     number_of_animals: inputsData.number_of_animals.value,
-    // userId: userId,
-    userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
+    userId: userId,
+    // userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
   };
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
@@ -92,27 +92,9 @@ export default function HomeScreen() {
       value: 'posture_poultry',
     },
     { label: t('typeProductionText.customized'), value: 'customized' },
-
-    // { label: 'Italy', value: 'italy' },
-    // { label: 'Rome', value: 'rome', parent: 'italy' },
-
-    // { label: 'Finland', value: 'finland' },
   ]);
-  // const selectedItems = items
-  //   .filter((item) => value.includes(item.value))
-  //   .map((item) => item.label)
-  //   .join(', ');
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [showDropDown, setShowDropDown] = useState(false); // State to manage dropdown visibility
-  const [production_typeValue, setproduction_typeValue] = useState('');
   const [lang, setLang] = useState<any>('');
-
-  const productionOptions = [
-    { label: 'Agrícola', value: 'agricola' },
-    { label: 'Ganadera', value: 'ganadera' },
-    { label: 'Mixta', value: 'mixta' },
-  ];
 
   const onDragEndChange = async (coordinate) => {
     try {
@@ -269,9 +251,6 @@ export default function HomeScreen() {
     }
   };
 
-  console.log('Data para enviar al form', formData);
-  console.log('Inputs Data', inputsData);
-
   if (authLoading) {
     return <Loader />;
   }
@@ -322,7 +301,7 @@ export default function HomeScreen() {
           ]}
           style={{ flexGrow: 1 }}
           extraScrollHeight={20}
-          scrollEnabled={!open}
+          scrollEnabled={Platform.OS === 'ios' ? true : !open}
         >
           <View style={styles.formContainer}>
             {/* TextInputs */}

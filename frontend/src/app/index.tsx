@@ -264,7 +264,7 @@ const Page = () => {
             <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
           </TouchableOpacity>
           <View style={styles.flagsContainer}>
-            <Pressable
+            {/* <Pressable
               onPress={() => router.push('/home')}
               style={({ pressed }) => ({
                 opacity: pressed || language === 'es-ES' ? 1 : 0.5,
@@ -279,7 +279,7 @@ const Page = () => {
               })}
             >
               <Text>crear campo</Text>
-            </Pressable>
+            </Pressable> */}
             <Pressable
               onPress={() => changeLanguage('es-ES')}
               style={({ pressed }) => ({

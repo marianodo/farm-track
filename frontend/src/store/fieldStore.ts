@@ -43,7 +43,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
     set({ fieldLoading: true });
     try {
       await axiosInstance.post('/fields', field);
-      const userId = '4ff153da-4f34-45dd-b78e-c61ca621bfb6';
+      const userId = useAuthStore.getState().userId;
       set({ fieldLoading: false });
       useFieldStore.getState().getFieldsByUser(userId);
     } catch (error: any) {
@@ -62,10 +62,11 @@ const useFieldStore = create<FieldState>((set: any) => ({
   onDelete: async (id: string) => {
     try {
       await axiosInstance.delete(`fields/${id}`);
-      //   const userId = useAuthStore.getState().userId;
-      const userId = '4ff153da-4f34-45dd-b78e-c61ca621bfb6';
+      const userId = useAuthStore.getState().userId;
       if (userId) {
         // Vuelve a obtener los campos del usuario para actualizar el estado
+        const fields = useFieldStore.getState().fieldsByUserId;
+        if (fields?.length === 0) set({ fieldsByUserId: null });
         useFieldStore.getState().getFieldsByUser(userId);
       }
     } catch (error) {

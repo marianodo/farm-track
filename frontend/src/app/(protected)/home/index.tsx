@@ -4,7 +4,9 @@ import {
   FlatList,
   Image,
   ImageBackground,
+  Platform,
   Pressable,
+  SafeAreaView,
   StyleSheet,
   View,
 } from 'react-native';
@@ -77,27 +79,37 @@ export default function HomeScreen() {
 
   useEffect(() => {
     console.log('entre useeffect');
-    // getFieldsByUser('4ff153da-4f34-45dd-b78e-c61ca621bfb6');
-    if (!fieldsByUserId?.length) {
-      // Solo llama a `getFieldsByUser` si `fieldsByUserId` está vacío
-      getFieldsByUser('4ff153da-4f34-45dd-b78e-c61ca621bfb6');
-    }
-  }, [fieldsByUserId, getFieldsByUser]); // Dependiendo del tamaño de `fieldsByUserId`
 
-  console.log('FIELDS:', fieldsByUserId);
+    if (!fieldsByUserId?.length) {
+      getFieldsByUser(userId);
+    }
+  }, [fieldsByUserId, getFieldsByUser]);
+
   // if (fieldLoading) {
   //   return <Loader />;
   // }
 
   return (
     <View style={styles.titleContainer}>
-      <IconButton
-        style={styles.floatingButton}
-        icon="plus"
-        iconColor="#FFF"
-        onPress={() => router.push('/createField')}
-        size={rS(24)}
-      />
+      {Platform.OS === 'ios' ? (
+        <SafeAreaView style={{ position: 'absolute', zIndex: 99999 }}>
+          <IconButton
+            style={styles.floatingButton}
+            icon="plus"
+            iconColor="#FFF"
+            onPress={() => router.push('/createField')}
+            size={rS(24)}
+          />
+        </SafeAreaView>
+      ) : (
+        <IconButton
+          style={styles.floatingButton}
+          icon="plus"
+          iconColor="#FFF"
+          onPress={() => router.push('/createField')}
+          size={rS(24)}
+        />
+      )}
       {/* header */}
       <ImageBackground
         source={require('../../../../assets/images/tabs/tabs-header.png')}
