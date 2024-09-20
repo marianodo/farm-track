@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import useAuthStore, { axiosInstance } from './authStore';
 
-interface Field {
+export interface Field {
   id: string;
   name: string;
   description?: string;
@@ -28,10 +28,11 @@ interface FieldState {
   fieldLoading: boolean;
   createField: (field: Omit<FiledWithUserId, 'id'>) => void;
   onDelete: (id: string) => void;
-  onUpdate: (field: Partial<Field>) => void;
+  onUpdate: (id: string, field: Partial<Field>) => void;
   getAllFields: () => void;
   getFieldsByUser: (id: string | null) => void;
   getFieldById: (id: string) => void;
+  resetDetail: () => void;
 }
 
 const useFieldStore = create<FieldState>((set: any) => ({
@@ -73,14 +74,38 @@ const useFieldStore = create<FieldState>((set: any) => ({
       console.log('error onDelete Field', error);
     }
   },
-  onUpdate: (field: Partial<Field>) => {},
+  onUpdate: async (id: string, field: Partial<Field>) => {
+    set({ fieldLoading: true });
+
+    try {
+      set({ fieldLoading: true });
+      await axiosInstance.patch(`/fields/${id}`, field);
+      const userId = useAuthStore.getState().userId;
+      useFieldStore.getState().getFieldsByUser(userId);
+      set({ fieldLoading: false });
+    } catch (error: any) {
+      set({ fieldLoading: false });
+
+      // Maneja los errores
+      console.log('error onUpdate Field:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error updating field');
+      }
+    }
+  },
   getAllFields: () => {},
   getFieldsByUser: async (id: string | null) => {
     set({ fieldLoading: true });
     try {
       const response = await axiosInstance.get(`/fields/byUserId/${id}`);
       set({
-        fieldsByUserId: response.data,
+        fieldsByUserId: response.data.length ? response.data : [],
         fieldLoading: false,
       });
     } catch (error) {
@@ -88,7 +113,24 @@ const useFieldStore = create<FieldState>((set: any) => ({
       console.log('error getFieldByUser:', error);
     }
   },
-  getFieldById: (id: string) => {},
+  getFieldById: async (id: string) => {
+    set({ fieldLoading: true });
+    try {
+      const response = await axiosInstance.get(`/fields/${id}`);
+      set({
+        fieldDetail: response.data,
+        fieldLoading: false,
+      });
+    } catch (error) {
+      set({ fieldLoading: false });
+      console.log('error getFieldById:', error);
+    }
+  },
+  resetDetail: () => {
+    set({
+      fieldDetail: null,
+    });
+  },
 }));
 
 export default useFieldStore;

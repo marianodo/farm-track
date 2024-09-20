@@ -7,8 +7,8 @@ declare module 'expo-router' {
   export namespace ExpoRouter {
     export interface __routes<T extends string = string> extends Record<string, unknown> {
       StaticRoutes: `` | `/` | `/(protected)` | `/_sitemap` | `/createField` | `/home` | `/indexA` | `/objects` | `/recoveryPassword` | `/register` | `/variables`;
-      DynamicRoutes: never;
-      DynamicRouteTemplate: never;
+      DynamicRoutes: `/editField/${Router.SingleRoutePart<T>}`;
+      DynamicRouteTemplate: `/editField/[id]`;
     }
   }
 }

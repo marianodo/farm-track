@@ -47,6 +47,10 @@ const StackLayout = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="editField/[id]"
+                options={{ headerShown: false }} // Puedes personalizar el header
+              />
+              <Stack.Screen
                 name="createField/index"
                 options={{ headerShown: false }}
               />

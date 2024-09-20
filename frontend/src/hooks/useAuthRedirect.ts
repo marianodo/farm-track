@@ -10,7 +10,9 @@ export const useAuthRedirect = () => {
   const router = useRouter();
   useEffect(() => {
     const inAuthGroup =
-      segments[0] === '(protected)' || segments[0] === 'createField';
+      segments[0] === '(protected)' ||
+      segments[0] === 'createField' ||
+      segments[0] === 'editField';
     if (token == null && inAuthGroup) {
       router.replace('/');
     } else if (token !== null && !inAuthGroup) {

@@ -29,7 +29,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
 
-export default function HomeScreen() {
+export default function createField() {
   const router = useRouter();
   const { userId, authLoading } = useAuthStore((state) => ({
     userId: state.userId,
@@ -64,11 +64,27 @@ export default function HomeScreen() {
     },
   });
   const [inputsData, setInputsData] = useState({
-    nameField: { value: '', placeholder: 'Nombre del campo' },
-    description: { value: '', placeholder: 'Descripción' },
-    ubication: { value: '', placeholder: 'Ubicación', lat: 0, lng: 0 },
-    production_type: { placeholder: 'Tipo de producción' },
-    number_of_animals: { value: 0, placeholder: 'Número de animales' },
+    nameField: {
+      value: '',
+      placeholder: t('detailField.fieldNamePlaceHolder'),
+    },
+    description: {
+      value: '',
+      placeholder: t('detailField.fieldDescriptionPlaceHolder'),
+    },
+    ubication: {
+      value: '',
+      placeholder: t('detailField.fieldUbicationPlaceHolder'),
+      lat: 0,
+      lng: 0,
+    },
+    production_type: {
+      placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
+    },
+    number_of_animals: {
+      value: 0,
+      placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
+    },
   });
   const formData: Omit<FiledWithUserId, 'id'> = {
     name: inputsData.nameField.value,
@@ -212,38 +228,6 @@ export default function HomeScreen() {
   const handlePress = async () => {
     try {
       await createField(formData);
-      setInputsData({
-        nameField: {
-          value: '',
-          placeholder: t('detailField.fieldNamePlaceHolder'),
-        },
-        description: {
-          value: '',
-          placeholder: t('detailField.fieldDescriptionPlaceHolder'),
-        },
-        ubication: {
-          value: '',
-          placeholder: t('detailField.fieldUbicationPlaceHolder'),
-          lat: 0,
-          lng: 0,
-        },
-        production_type: {
-          placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
-        },
-        number_of_animals: {
-          value: 0,
-          placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
-        },
-      });
-      // setUbication((prev) => ({
-      //   ...prev,
-      //   userLocation: {
-      //     latitude: 0,
-      //     longitude: 0,
-      //     direction: '',
-      //   },
-      // }));
-      setValue('');
       alert('Field created successfully');
       router.back();
     } catch (error: any) {

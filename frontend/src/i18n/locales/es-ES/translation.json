@@ -45,7 +45,12 @@
   "fieldView": {
     "greeting": "Hola",
     "welcome": "Bienvenido de nuevo",
-    "fieldText": "Campos"
+    "fieldText": "Campos",
+    "editButton": "Editar",
+    "deleteButton": "Eliminar",
+    "deleteAlertText": "Cancelar",
+    "deleteAlertTitle": "Desea eliminar el",
+    "deleteAlertSubTitle": "Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer"
   },
   "detailField": {
     "newFieldText": "Nuevo campo",
@@ -56,7 +61,9 @@
     "fieldTypeProductionPlaceHolder": "Tipo de producción",
     "fieldNumberOfAnimalsPlaceHolder": "Numero de animales",
     "createFieldText": "Crear campo",
-    "goBackText": "Volver"
+    "goBackText": "Volver",
+    "updateFieldText": "Actualizar campo",
+    "fieldText": "Campo: "
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovina de carne",
@@ -64,7 +71,8 @@
     "swine": "Porcina",
     "broil_poultry": "Avicola broile",
     "posture_poultry": "Avicola postura",
-    "customized": "Customizada"
+    "customized": "Customizada",
+    "NoType": "Sin tipo"
   },
   "recoveryPasswordView": {
     "title": "Restablece tu",

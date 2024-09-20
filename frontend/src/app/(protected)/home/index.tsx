@@ -47,14 +47,13 @@ export default function HomeScreen() {
     onLogout!();
   };
 
-  const deleteButtonAlert = (id: string) =>
+  const deleteButtonAlert = (id: string, name: string) =>
     Alert.alert(
-      '¿Desea eliminar el "Campo Maravilla"?',
-      'Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer',
+      `¿${t('fieldView.deleteAlertTitle')} "${name}"?`,
+      `${t('fieldView.deleteAlertSubTitle')}`,
       [
         {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
+          text: `${t('fieldView.deleteAlertText')}`,
           style: 'cancel',
         },
         { text: 'OK', onPress: () => onDelete(id) },
@@ -63,31 +62,28 @@ export default function HomeScreen() {
 
   const renderRightActions = (progress: any, dragX: any, field: any) => (
     <View style={styles.rightActions}>
-      <Pressable style={styles.editButton} onPress={() => console.log(field)}>
+      <Pressable
+        style={styles.editButton}
+        onPress={() => router.push(`/editField/${field.id}`)}
+      >
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>Editar</Text>
+        <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(field.id)}
+        onPress={() => deleteButtonAlert(field.id, field.name)}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>Eliminar</Text>
+        <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
       </Pressable>
     </View>
   );
 
   useEffect(() => {
-    console.log('entre useeffect');
-
-    if (!fieldsByUserId?.length) {
+    if (fieldsByUserId === null) {
       getFieldsByUser(userId);
     }
   }, [fieldsByUserId, getFieldsByUser]);
-
-  // if (fieldLoading) {
-  //   return <Loader />;
-  // }
 
   return (
     <View style={styles.titleContainer}>
@@ -137,7 +133,7 @@ export default function HomeScreen() {
               icon={require('../../../../assets/images/profile.png')}
               iconColor="#fff"
               size={rMV(24)}
-              onPress={() => console.log('Pressed')}
+              onPress={() => onLogoutPressed()}
               style={{ marginLeft: rMS(-10) }}
             />
             <IconButton
@@ -329,7 +325,9 @@ export default function HomeScreen() {
                       />
                       <View>
                         <Text style={styles.fieldText}>
-                          {t(`typeProductionText.${field.production_type}`)}
+                          {field.production_type
+                            ? t(`typeProductionText.${field.production_type}`)
+                            : t(`typeProductionText.NoType`)}
                         </Text>
                       </View>
                     </View>

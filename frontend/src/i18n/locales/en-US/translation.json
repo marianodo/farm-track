@@ -45,7 +45,12 @@
   "fieldView": {
     "greeting": "Hi",
     "welcome": "Welcome back",
-    "fieldText": "Fields"
+    "fieldText": "Fields",
+    "editButton": "Edit",
+    "deleteButton": "Delete",
+    "deleteAlertText": "Cancel",
+    "deleteAlertTitle": "You want to delete the",
+    "deleteAlertSubTitle": "If you delete this field, all related pens and reports will be deleted. This action cannot be undone"
   },
   "detailField": {
     "newFieldText": "New field",
@@ -56,7 +61,9 @@
     "fieldTypeProductionPlaceHolder": "Production type",
     "fieldNumberOfAnimalsPlaceHolder": "Number of animals",
     "createFieldText": "Create field",
-    "goBackText": "Go back"
+    "goBackText": "Go back",
+    "updateFieldText": "Update field",
+    "fieldText": "Field: "
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",
@@ -64,7 +71,8 @@
     "swine": "Swine",
     "broil_poultry": "Broil poultry",
     "posture_poultry": "Posture poultry",
-    "customized": "Customized"
+    "customized": "Customized",
+    "NoType": "Without type"
   },
   "recoveryPasswordView": {
     "title": "Reset your",
