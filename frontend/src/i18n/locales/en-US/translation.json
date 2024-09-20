@@ -1,59 +1,78 @@
 {
-    "language": "Language",
-    "formErrors": {
-        "required": {
-            "null": "This field is required and cannot contain only spaces.",
-            "startsWithABlankSpace": "This field cannot begin with a blank space."
-        },
-        "minLength": {
-            "firstString": "Must have at least",
-            "secondString": "characters."
-        },
-        "email":{
-            "invalid": "The email format is not valid."
-        },
-        "matchPassword": "Passwords do not match"
+  "language": "Language",
+  "formErrors": {
+    "required": {
+      "null": "This field is required and cannot contain only spaces.",
+      "startsWithABlankSpace": "This field cannot begin with a blank space."
     },
-    "tabs": {
-        "home": "home",
-        "objects": "objects",
-        "attributes": "attributes"
+    "minLength": {
+      "firstString": "Must have at least",
+      "secondString": "characters."
     },
-    "loginView": {
-        "title": "Welcome",
-        "title2": "to FarmTrack",
-        "subtitle": "Sign in to your account",
-        "emailPlaceHolder": "Email",
-        "passwordPlaceHolder": "Password",
-        "forgotPasswordPlaceHolder": "¿Forgot your password?",
-        "loginText": "Login",
-        "noAccountText": "¿Don't you have an account yet?",
-        "signUpText": "Sign up",
-        "errorLogin": "Wrong username or password!"
+    "email": {
+      "invalid": "The email format is not valid."
     },
-    "registerView": {
-        "title": "Register",
-        "subtitle": "Create your new account",
-        "namePlaceHolder": "Full name",
-        "emailPlaceHolder": "Email",
-        "passwordPlaceHolder": "Password",
-        "confirmPasswordPlaceHolder": "Confirm Password",
-        "signUpText": "Sign up",
-        "alreadyHaveAccountText": "¿Already have an account?",
-        "loginText": "Login"
-    },
-    "fieldView": {
-        "greeting": "Hi",
-        "welcome": "Welcome back",
-        "fieldText": "Fields"
-    },
-    "recoveryPasswordView": {
-        "title": "Reset your",
-        "title2": "password",
-        "subtitle": "Choose a new password for your account",
-        "newPasswordPlaceHolder": "New password",
-        "ConfirmNewPasswordPlaceHolder": "Confirm password",
-        "ChangePasswordText": "Change password",
-        "BackToStartText": "Back to start"
-    }
+    "matchPassword": "Passwords do not match"
+  },
+  "tabs": {
+    "home": "home",
+    "objects": "objects",
+    "attributes": "attributes"
+  },
+  "loginView": {
+    "title": "Welcome",
+    "title2": "to FarmTrack",
+    "subtitle": "Sign in to your account",
+    "emailPlaceHolder": "Email",
+    "passwordPlaceHolder": "Password",
+    "forgotPasswordPlaceHolder": "¿Forgot your password?",
+    "loginText": "Login",
+    "noAccountText": "¿Don't you have an account yet?",
+    "signUpText": "Sign up",
+    "errorLogin": "Wrong username or password!"
+  },
+  "registerView": {
+    "title": "Register",
+    "subtitle": "Create your new account",
+    "namePlaceHolder": "Full name",
+    "emailPlaceHolder": "Email",
+    "passwordPlaceHolder": "Password",
+    "confirmPasswordPlaceHolder": "Confirm Password",
+    "signUpText": "Sign up",
+    "alreadyHaveAccountText": "¿Already have an account?",
+    "loginText": "Login"
+  },
+  "fieldView": {
+    "greeting": "Hi",
+    "welcome": "Welcome back",
+    "fieldText": "Fields"
+  },
+  "detailField": {
+    "newFieldText": "New field",
+    "detailFieldText": "Field details",
+    "fieldNamePlaceHolder": "Field name",
+    "fieldDescriptionPlaceHolder": "Description",
+    "fieldUbicationPlaceHolder": "Location",
+    "fieldTypeProductionPlaceHolder": "Production type",
+    "fieldNumberOfAnimalsPlaceHolder": "Number of animals",
+    "createFieldText": "Create field",
+    "goBackText": "Go back"
+  },
+  "typeProductionText": {
+    "bovine_of_meat": "Bovine of meat",
+    "bovine_of_milk": "Bovine of milk",
+    "swine": "Swine",
+    "broil_poultry": "Broil poultry",
+    "posture_poultry": "Posture poultry",
+    "customized": "Customized"
+  },
+  "recoveryPasswordView": {
+    "title": "Reset your",
+    "title2": "password",
+    "subtitle": "Choose a new password for your account",
+    "newPasswordPlaceHolder": "New password",
+    "ConfirmNewPasswordPlaceHolder": "Confirm password",
+    "ChangePasswordText": "Change password",
+    "BackToStartText": "Back to start"
+  }
 }

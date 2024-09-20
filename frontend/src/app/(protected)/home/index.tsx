@@ -8,6 +8,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import Loader from '@/components/Loader';
 import { useAuth } from '@/context/AuthContext';
@@ -15,24 +16,36 @@ import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
+import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
+import useFieldStore from '@/store/fieldStore';
+import { useEffect } from 'react';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { onLogout, role, deleted, authLoading, userName } = useAuthStore(
-    (state) => ({
+  const { onLogout, userId, role, deleted, authLoading, userName } =
+    useAuthStore((state) => ({
       role: state.role,
+      userId: state.userId,
       userName: state.username,
       onLogout: state.onLogout,
       deleted: state.deleted,
       authLoading: state.authLoading,
-    })
-  );
+    }));
+
+  const { fieldLoading, fieldsByUserId, getFieldsByUser, onDelete } =
+    useFieldStore((state) => ({
+      fieldLoading: state.fieldLoading,
+      fieldsByUserId: state.fieldsByUserId,
+      getFieldsByUser: state.getFieldsByUser,
+      onDelete: state.onDelete,
+    }));
+
   const { t } = useTranslation();
   const onLogoutPressed = () => {
     onLogout!();
   };
 
-  const deleteBUttonAlert = () =>
+  const deleteButtonAlert = (id: string) =>
     Alert.alert(
       '¿Desea eliminar el "Campo Maravilla"?',
       'Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer',
@@ -42,7 +55,7 @@ export default function HomeScreen() {
           onPress: () => console.log('Cancel Pressed'),
           style: 'cancel',
         },
-        { text: 'OK', onPress: () => console.log('OK Pressed') },
+        { text: 'OK', onPress: () => onDelete(id) },
       ]
     );
 
@@ -52,58 +65,29 @@ export default function HomeScreen() {
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>Editar</Text>
       </Pressable>
-      <Pressable style={styles.deleteButton} onPress={deleteBUttonAlert}>
+      <Pressable
+        style={styles.deleteButton}
+        onPress={() => deleteButtonAlert(field.id)}
+      >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>Eliminar</Text>
       </Pressable>
     </View>
   );
 
-  if (authLoading) {
-    return <Loader />;
-  }
+  useEffect(() => {
+    console.log('entre useeffect');
+    // getFieldsByUser('4ff153da-4f34-45dd-b78e-c61ca621bfb6');
+    if (!fieldsByUserId?.length) {
+      // Solo llama a `getFieldsByUser` si `fieldsByUserId` está vacío
+      getFieldsByUser('4ff153da-4f34-45dd-b78e-c61ca621bfb6');
+    }
+  }, [fieldsByUserId, getFieldsByUser]); // Dependiendo del tamaño de `fieldsByUserId`
 
-  const fields = [
-    {
-      name: 'Campo A',
-      locality: 'Localidad 1',
-      typeOfProduction: 'bovina_carne',
-    },
-    {
-      name: 'Campo B',
-      locality: 'Localidad 2',
-      typeOfProduction: 'bovina_leche',
-    },
-    {
-      name: 'Campo C',
-      locality: 'Localidad 3',
-      typeOfProduction: 'porcina',
-    },
-    {
-      name: 'Campo D',
-      locality: 'Localidad 3',
-      typeOfProduction: 'avicola_broile',
-    },
-    {
-      name: 'Campo F',
-      locality: 'Localidad 3',
-      typeOfProduction: 'avicola_postura',
-    },
-    {
-      name: 'Campo G',
-      locality: 'Localidad 3',
-      typeOfProduction: 'customizada',
-    },
-  ];
-
-  const typeOfProductionImages: Record<string, any> = {
-    bovina_carne: require('../../../../assets/images/typeOfProduction/bovina_carne.png'),
-    bovina_leche: require('../../../../assets/images/typeOfProduction/bovina_leche.png'),
-    porcina: require('../../../../assets/images/typeOfProduction/porcina.png'),
-    avicola_broile: require('../../../../assets/images/typeOfProduction/avicola.png'),
-    avicola_postura: require('../../../../assets/images/typeOfProduction/avicola_postura.png'),
-    customizada: require('../../../../assets/images/typeOfProduction/custom_option.png'),
-  };
+  console.log('FIELDS:', fieldsByUserId);
+  // if (fieldLoading) {
+  //   return <Loader />;
+  // }
 
   return (
     <View style={styles.titleContainer}>
@@ -181,7 +165,6 @@ export default function HomeScreen() {
       <View
         style={{
           backgroundColor: 'white',
-
           width: '100%',
           height: '100%',
           top: rMS(-50),
@@ -200,7 +183,15 @@ export default function HomeScreen() {
         >
           {t('fieldView.fieldText')}
         </Text>
-        {!fields.length ? (
+        {fieldLoading ? (
+          <ActivityIndicator
+            style={{
+              marginTop: '60%',
+            }}
+            animating={true}
+            color="#486732"
+          />
+        ) : !fieldsByUserId?.length ? (
           <View
             style={{
               width: '100%',
@@ -244,7 +235,7 @@ export default function HomeScreen() {
           <View style={styles.spacer}>
             <FlatList
               style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-              data={fields}
+              data={fieldsByUserId}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item: field, index }) => (
                 <Swipeable
@@ -267,13 +258,14 @@ export default function HomeScreen() {
                     >
                       <Text
                         style={{
-                          textAlign: 'center',
+                          textAlign: 'left',
                           fontSize: 18,
+                          paddingLeft: 6,
                           fontWeight: 'bold',
                           fontFamily: 'Pro-Regular',
                         }}
                       >
-                        Nombre: {field.name}
+                        {field.name}
                       </Text>
                       <View
                         style={{
@@ -281,8 +273,10 @@ export default function HomeScreen() {
                           flexDirection: 'row',
                           justifyContent: 'flex-start',
                           alignItems: 'center',
-                          gap: rMS(12),
+                          gap: rMS(6),
                           marginBottom: rMS(12),
+
+                          width: rS(178),
                         }}
                       >
                         <Image
@@ -294,22 +288,36 @@ export default function HomeScreen() {
                           }}
                           resizeMode="contain"
                         />
-                        <Text>{field.locality}</Text>
+                        <Text
+                          style={{ width: rS(158) }}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {field.location}
+                        </Text>
                       </View>
                     </View>
-                    <View style={{ width: rS(120) }}>
+                    <View
+                      style={{
+                        width: rS(110),
+                      }}
+                    >
                       <Image
-                        source={typeOfProductionImages[field.typeOfProduction]}
+                        source={
+                          typeOfProductionImages[
+                            field?.production_type ?? 'defaultImage'
+                          ]
+                        }
                         style={{
-                          width: rMS(48),
-                          height: rMS(48),
+                          width: rMS(44),
+                          height: rMS(44),
                           alignSelf: 'center',
                         }}
                         resizeMode="contain"
                       />
                       <View>
                         <Text style={styles.fieldText}>
-                          {field.typeOfProduction}
+                          {t(`typeProductionText.${field.production_type}`)}
                         </Text>
                       </View>
                     </View>
@@ -347,6 +355,7 @@ const styles = StyleSheet.create({
   },
   fieldText: {
     textAlign: 'center',
+    marginTop: rMS(2),
     fontSize: 16,
     fontFamily: 'Pro-Regular',
   },

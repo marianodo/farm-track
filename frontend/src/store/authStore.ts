@@ -13,6 +13,7 @@ export enum Role {
 
 interface AuthState {
   authenticated: boolean | null;
+  userId: string | null;
   username: string | null;
   email: string | null;
   token: string | null;
@@ -26,6 +27,7 @@ interface AuthState {
 
 const useAuthStore = create<AuthState>((set: any) => ({
   authenticated: null,
+  userId: null,
   username: null,
   email: null,
   token: null,
@@ -49,6 +51,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
 
       set({
         authenticated: decodedToken.isVerified,
+        userId: decodedToken.userId,
         username: decodedToken.username,
         email: decodedToken.email,
         role: decodedToken.role,
@@ -71,6 +74,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
       await SecureStore.deleteItemAsync('refreshToken');
       setTimeout(() => {
         set({
+          userId: null,
           authLoading: false,
           authenticated: false,
           username: null,
@@ -136,7 +140,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
   },
 }));
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL,
   headers: { 'Content-Type': 'application/json' },
 });

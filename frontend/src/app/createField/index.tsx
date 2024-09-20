@@ -14,7 +14,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import * as Location from 'expo-location';
-import * as Localization from 'expo-localization';
+// import * as Localization from 'expo-localization';
 import { rMS, rV } from '@/styles/responsive';
 import Loader from '@/components/Loader';
 import useAuthStore from '@/store/authStore';
@@ -27,41 +27,20 @@ const { width, height } = Dimensions.get('window');
 import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const { userId, authLoading } = useAuthStore((state) => ({
+    userId: state.userId,
+    authLoading: state.authLoading,
+  }));
+  const { createField } = useFieldStore((state) => ({
+    createField: state.createField,
+  }));
+  const { t } = useTranslation();
   const mapRef = useRef(null);
-  const [formData, setFormData] = useState({
-    nombreCampo: { value: '', placeholder: 'Nombre del campo' },
-    descripcion: { value: '', placeholder: 'Descripción' },
-    ubicacion: { value: '', placeholder: 'Ubicación', lat: 0, lng: 0 },
-    tipoProduccion: { value: '', placeholder: 'Tipo de producción' },
-    numeroAnimales: { value: '', placeholder: 'Número de animales' },
-  });
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState([
-    'italy',
-    'spain',
-    'barcelona',
-    'finland',
-  ]);
-  const [items, setItems] = useState([
-    { label: 'Bovina de carne', value: 'Bovina de carne' },
-    { label: 'Bovina de leche', value: 'Bovina de leche' },
-    { label: 'Porcina', value: 'Porcina' },
-    { label: 'Avícola broile ', value: 'Avícola broile ' },
-    { label: 'Avícola postura', value: 'Avícola postura' },
-    { label: 'Customizada', value: 'Customizada' },
-
-    // { label: 'Italy', value: 'italy' },
-    // { label: 'Rome', value: 'rome', parent: 'italy' },
-
-    // { label: 'Finland', value: 'finland' },
-  ]);
-  const selectedItems = items
-    .filter((item) => value.includes(item.value))
-    .map((item) => item.label)
-    .join(', ');
-
+  const [value, setValue] = useState<string | undefined>();
   const [ubication, setUbication] = useState({
     origin: {
       latitude: -38.416097, // Coordenadas de Argentina
@@ -84,9 +63,49 @@ export default function HomeScreen() {
       longitude: -63.616672,
     },
   });
+  const [inputsData, setInputsData] = useState({
+    nameField: { value: '', placeholder: 'Nombre del campo' },
+    description: { value: '', placeholder: 'Descripción' },
+    ubication: { value: '', placeholder: 'Ubicación', lat: 0, lng: 0 },
+    production_type: { placeholder: 'Tipo de producción' },
+    number_of_animals: { value: 0, placeholder: 'Número de animales' },
+  });
+  const formData: Omit<FiledWithUserId, 'id'> = {
+    name: inputsData.nameField.value,
+    description: inputsData.description.value,
+    location: ubication.userLocation.direction,
+    latitude: ubication.userLocation.latitude,
+    longitude: ubication.userLocation.longitude,
+    production_type: value,
+    number_of_animals: inputsData.number_of_animals.value,
+    // userId: userId,
+    userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
+  };
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
+    { label: t('typeProductionText.bovine_of_meat'), value: 'bovine_of_meat' },
+    { label: t('typeProductionText.swine'), value: 'swine' },
+    { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
+    {
+      label: t('typeProductionText.posture_poultry'),
+      value: 'posture_poultry',
+    },
+    { label: t('typeProductionText.customized'), value: 'customized' },
+
+    // { label: 'Italy', value: 'italy' },
+    // { label: 'Rome', value: 'rome', parent: 'italy' },
+
+    // { label: 'Finland', value: 'finland' },
+  ]);
+  // const selectedItems = items
+  //   .filter((item) => value.includes(item.value))
+  //   .map((item) => item.label)
+  //   .join(', ');
+
   const [modalVisible, setModalVisible] = useState(false);
   const [showDropDown, setShowDropDown] = useState(false); // State to manage dropdown visibility
-  const [tipoProduccionValue, setTipoProduccionValue] = useState('');
+  const [production_typeValue, setproduction_typeValue] = useState('');
   const [lang, setLang] = useState<any>('');
 
   const productionOptions = [
@@ -98,14 +117,28 @@ export default function HomeScreen() {
   const onDragEndChange = async (coordinate) => {
     try {
       const { latitude, longitude } = coordinate;
-
-      setUbication({
-        ...ubication,
-        marketLocation: {
-          latitude,
-          longitude,
-        },
-      });
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ubication.marketLocation.latitude},${ubication.marketLocation.longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 2) {
+        setUbication((prev) => ({
+          ...prev,
+          userLocation: {
+            latitude: prev.marketLocation.latitude,
+            longitude: prev.marketLocation.longitude,
+            direction:
+              data.results[2]?.formatted_address || 'Dirección no encontrada',
+          },
+        }));
+        setUbication({
+          ...ubication,
+          marketLocation: {
+            latitude,
+            longitude,
+          },
+        });
+      }
     } catch (error) {
       console.error('Error fetching geocode data:', error);
     }
@@ -185,22 +218,59 @@ export default function HomeScreen() {
   }, [ubication.marketLocation, setDirection]);
 
   const handleInputChange = (key: string, value: string) => {
-    setFormData((prevFormData) => ({
-      ...prevFormData,
+    setInputsData((previnputsData) => ({
+      ...previnputsData,
       [key]: {
-        ...prevFormData[key],
+        ...previnputsData[key],
         value: value,
       },
     }));
   };
 
-  const router = useRouter();
-  const { onLogout, authLoading, userName } = useAuthStore((state) => ({
-    userName: state.username,
-    onLogout: state.onLogout,
-    authLoading: state.authLoading,
-  }));
-  const { t } = useTranslation();
+  const handlePress = async () => {
+    try {
+      await createField(formData);
+      setInputsData({
+        nameField: {
+          value: '',
+          placeholder: t('detailField.fieldNamePlaceHolder'),
+        },
+        description: {
+          value: '',
+          placeholder: t('detailField.fieldDescriptionPlaceHolder'),
+        },
+        ubication: {
+          value: '',
+          placeholder: t('detailField.fieldUbicationPlaceHolder'),
+          lat: 0,
+          lng: 0,
+        },
+        production_type: {
+          placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
+        },
+        number_of_animals: {
+          value: 0,
+          placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
+        },
+      });
+      // setUbication((prev) => ({
+      //   ...prev,
+      //   userLocation: {
+      //     latitude: 0,
+      //     longitude: 0,
+      //     direction: '',
+      //   },
+      // }));
+      setValue('');
+      alert('Field created successfully');
+      router.back();
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  console.log('Data para enviar al form', formData);
+  console.log('Inputs Data', inputsData);
 
   if (authLoading) {
     return <Loader />;
@@ -229,17 +299,19 @@ export default function HomeScreen() {
               style={{ marginHorizontal: 0 }}
               onPress={() => router.back()}
             />
-            <Text style={styles.greeting}>Volver</Text>
+            <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
           </View>
           <View>
-            <Text style={styles.welcome}>{t('fieldView.welcome')}</Text>
+            <Text style={styles.welcome}>{t('detailField.newFieldText')}</Text>
           </View>
         </View>
       </ImageBackground>
 
       {/* contenedor contenido campo */}
       <View style={styles.contentContainer}>
-        <Text style={styles.fieldTitle}>{t('fieldView.fieldText')}</Text>
+        <Text style={styles.fieldTitle}>
+          {t('detailField.detailFieldText')}
+        </Text>
 
         {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
         <KeyboardAwareScrollView
@@ -254,9 +326,9 @@ export default function HomeScreen() {
         >
           <View style={styles.formContainer}>
             {/* TextInputs */}
-            {Object.keys(formData).map((key: string) => {
-              const input = formData[key];
-              if (key === 'ubicacion') {
+            {Object.keys(inputsData).map((key: string) => {
+              const input = inputsData[key];
+              if (key === 'ubication') {
                 return (
                   <View key={key} style={{ marginBottom: 10 }}>
                     <View>
@@ -344,10 +416,12 @@ export default function HomeScreen() {
                 );
               }
 
-              if (key === 'tipoProduccion') {
+              if (key === 'production_type') {
                 return (
                   <DropDownPicker
-                    placeholder="Select type of production"
+                    placeholder={t(
+                      'detailField.fieldTypeProductionPlaceHolder'
+                    )}
                     placeholderStyle={{
                       fontSize: width * 0.04,
                       fontFamily: 'Pro-Regular',
@@ -374,7 +448,7 @@ export default function HomeScreen() {
                     setOpen={setOpen}
                     setValue={setValue}
                     setItems={setItems}
-                    multiple={true}
+                    // multiple={true}
                     mode="BADGE"
                     badgeDotColors={[
                       '#e76f51',
@@ -392,7 +466,7 @@ export default function HomeScreen() {
                 );
               }
 
-              if (key === 'numeroAnimales') {
+              if (key === 'number_of_animals') {
                 return (
                   <TextInput
                     key={key}
@@ -437,8 +511,10 @@ export default function HomeScreen() {
 
         {/* Botón fijo */}
         <View style={styles.fixedButtonContainer}>
-          <Pressable style={styles.button}>
-            <Text style={styles.buttonText}>Crear campo</Text>
+          <Pressable onPress={handlePress} style={styles.button}>
+            <Text style={styles.buttonText}>
+              {t('detailField.createFieldText')}
+            </Text>
           </Pressable>
         </View>
       </View>

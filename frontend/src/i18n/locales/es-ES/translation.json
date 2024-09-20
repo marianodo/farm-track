@@ -1,60 +1,78 @@
 {
-    "language": "Lenguaje",
-    "formErrors": {
-        "required": {
-            "null": "Este campo es obligatorio y no puede contener solo espacios.",
-            "startsWithABlankSpace": "Este campo no puede comenzar con un espacio en blanco."
-        },
-        "minLength": {
-            "firstString": "Debe tener al menos",
-            "secondString": "caracteres."
-        },
-        "email":{
-            "invalid": "El formato del correo electrónico no es válido."
-        },
-        "matchPassword": "Las contraseñas no coinciden"
+  "language": "Lenguaje",
+  "formErrors": {
+    "required": {
+      "null": "Este campo es obligatorio y no puede contener solo espacios.",
+      "startsWithABlankSpace": "Este campo no puede comenzar con un espacio en blanco."
     },
-     "tabs": {
-        "home": "Inicio",
-        "objects": "Objectos",
-        "attributes": "Attributos"
+    "minLength": {
+      "firstString": "Debe tener al menos",
+      "secondString": "caracteres."
     },
-    "loginView": {
-        "title": "Bienvenido",
-        "title2": "a FarmTrack",
-        "subtitle": "Inicia sesión en tu cuenta",
-        "emailPlaceHolder": "Correo electrónico",
-        "passwordPlaceHolder": "Contraseña",
-        "forgotPasswordPlaceHolder": "¿Olvidaste tu contraseña?",
-        "loginText": "Iniciar sesión",
-        "noAccountText": "¿Aun no tienes una cuenta?",
-        "signUpText": "Registrarse",
-         "errorLogin": "usuario o contraseña incorrecta!"
-
+    "email": {
+      "invalid": "El formato del correo electrónico no es válido."
     },
-    "registerView": {
-        "title": "Registro",
-        "subtitle": "Crear tu nueva cuenta",
-        "namePlaceHolder": "Nombre completo",
-        "emailPlaceHolder": "Correo electrónico",
-        "passwordPlaceHolder": "Contraseña",
-        "confirmPasswordPlaceHolder": "Confirmar contraseña",
-        "signUpText": "Registrarse",
-        "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
-        "loginText": "Iniciar sesión"
-    },
-    "fieldView": {
-        "greeting": "Hola",
-        "welcome": "Bienvenido de nuevo",
-        "fieldText": "Campos"
-    },
-    "recoveryPasswordView": {
-        "title": "Restablece tu",
-        "title2": "contraseña",
-        "subtitle": "Elige una nueva contraseña para tu cuenta",
-        "newPasswordPlaceHolder": "Nueva contraseña",
-        "ConfirmNewPasswordPlaceHolder": "Confirmar contraseña",
-        "ChangePasswordText": "Cambiar contraseña",
-        "BackToStartText": "Volver al Inicio"
-    }
+    "matchPassword": "Las contraseñas no coinciden"
+  },
+  "tabs": {
+    "home": "Inicio",
+    "objects": "Objectos",
+    "attributes": "Attributos"
+  },
+  "loginView": {
+    "title": "Bienvenido",
+    "title2": "a FarmTrack",
+    "subtitle": "Inicia sesión en tu cuenta",
+    "emailPlaceHolder": "Correo electrónico",
+    "passwordPlaceHolder": "Contraseña",
+    "forgotPasswordPlaceHolder": "¿Olvidaste tu contraseña?",
+    "loginText": "Iniciar sesión",
+    "noAccountText": "¿Aun no tienes una cuenta?",
+    "signUpText": "Registrarse",
+    "errorLogin": "usuario o contraseña incorrecta!"
+  },
+  "registerView": {
+    "title": "Registro",
+    "subtitle": "Crear tu nueva cuenta",
+    "namePlaceHolder": "Nombre completo",
+    "emailPlaceHolder": "Correo electrónico",
+    "passwordPlaceHolder": "Contraseña",
+    "confirmPasswordPlaceHolder": "Confirmar contraseña",
+    "signUpText": "Registrarse",
+    "alreadyHaveAccountText": "¿Ya tienes una cuenta?",
+    "loginText": "Iniciar sesión"
+  },
+  "fieldView": {
+    "greeting": "Hola",
+    "welcome": "Bienvenido de nuevo",
+    "fieldText": "Campos"
+  },
+  "detailField": {
+    "newFieldText": "Nuevo campo",
+    "detailFieldText": "Detalles del campo",
+    "fieldNamePlaceHolder": "Nombre del campo",
+    "fieldDescriptionPlaceHolder": "Descripción",
+    "fieldUbicationPlaceHolder": "Ubicación",
+    "fieldTypeProductionPlaceHolder": "Tipo de producción",
+    "fieldNumberOfAnimalsPlaceHolder": "Numero de animales",
+    "createFieldText": "Crear campo",
+    "goBackText": "Volver"
+  },
+  "typeProductionText": {
+    "bovine_of_meat": "Bovina de carne",
+    "bovine_of_milk": "Bovina de leche",
+    "swine": "Porcina",
+    "broil_poultry": "Avicola broile",
+    "posture_poultry": "Avicola postura",
+    "customized": "Customizada"
+  },
+  "recoveryPasswordView": {
+    "title": "Restablece tu",
+    "title2": "contraseña",
+    "subtitle": "Elige una nueva contraseña para tu cuenta",
+    "newPasswordPlaceHolder": "Nueva contraseña",
+    "ConfirmNewPasswordPlaceHolder": "Confirmar contraseña",
+    "ChangePasswordText": "Cambiar contraseña",
+    "BackToStartText": "Volver al Inicio"
+  }
 }

@@ -1,4 +1,5 @@
 export type FieldWithoutMeta = {
+  id: string;
   name: string;
   description?: string;
   location?: string;

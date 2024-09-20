@@ -65,6 +65,7 @@ export class FieldRepository {
       const fieldsFound = await this.db.field.findMany({
         where: { userId },
         select: {
+          id: true,
           name: true,
           description: true,
           location: true,
