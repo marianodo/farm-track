@@ -75,14 +75,8 @@ export class FieldRepository {
           number_of_animals: true,
         },
       });
-      if (fieldsFound.length === 0) {
-        throw new NotFoundException(`Field with ID ${userId} not found`);
-      }
       return fieldsFound;
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
       throw new InternalServerErrorException(
         'An unexpected error occurred while retrieving field.',
       );
