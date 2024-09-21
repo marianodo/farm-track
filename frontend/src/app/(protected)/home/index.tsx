@@ -88,9 +88,8 @@ export default function HomeScreen() {
   return (
     <View style={styles.titleContainer}>
       {Platform.OS === 'ios' ? (
-        <SafeAreaView style={{ position: 'absolute', zIndex: 99999 }}>
+        <SafeAreaView style={styles.floatingButton}>
           <IconButton
-            style={styles.floatingButton}
             icon="plus"
             iconColor="#FFF"
             onPress={() => router.push('/createField')}
@@ -372,7 +371,7 @@ const styles = StyleSheet.create({
   floatingButton: {
     position: 'absolute',
     fontWeight: 'bold',
-    zIndex: 1,
+    zIndex: 99999,
     bottom: 20,
     right: 15,
     width: rMS(56),
