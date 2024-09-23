@@ -16,7 +16,7 @@ import { rMS, rS, rV } from '@/styles/responsive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Language } from '@/components/Language';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import Loader from '@/components/Loader';
 
 const { width, height } = Dimensions.get('window');
 const Page = () => {
+  const router = useRouter();
   const { onLogin, authLoading } = useAuthStore((state) => ({
     onLogin: state.onLogin,
     authLoading: state.authLoading,
@@ -263,6 +264,22 @@ const Page = () => {
             <Text style={styles.buttonText}>{t('loginView.loginText')}</Text>
           </TouchableOpacity>
           <View style={styles.flagsContainer}>
+            {/* <Pressable
+              onPress={() => router.push('/home')}
+              style={({ pressed }) => ({
+                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
+              })}
+            >
+              <Text>push</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => router.push('/createField')}
+              style={({ pressed }) => ({
+                opacity: pressed || language === 'es-ES' ? 1 : 0.5,
+              })}
+            >
+              <Text>crear campo</Text>
+            </Pressable> */}
             <Pressable
               onPress={() => changeLanguage('es-ES')}
               style={({ pressed }) => ({

@@ -32,9 +32,9 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home/index"
         options={{
-          title: t('tabs.home') ,
+          title: t('tabs.home'),
           tabBarIcon: ({ focused }) => (
             <Image
               source={
@@ -48,10 +48,11 @@ export default function TabLayout() {
           ),
         }}
       />
+      {/* <Tabs.Screen name="createField" options={{ href: null }} /> */}
       <Tabs.Screen
         name="objects/index"
         options={{
-          title:t('tabs.objects'),
+          title: t('tabs.objects'),
           tabBarIcon: ({ focused }) => (
             <Image
               source={

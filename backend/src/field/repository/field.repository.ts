@@ -18,10 +18,8 @@ export class FieldRepository {
       const newField = await this.db.field.create({
         data: createFieldDto,
       });
-      console.log(newField);
       return newField;
     } catch (error) {
-      console.log('EL ERROR: ', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         // Manejar error de unicidad (código P2002)
         if (error.code === 'P2002') {
@@ -65,6 +63,7 @@ export class FieldRepository {
       const fieldsFound = await this.db.field.findMany({
         where: { userId },
         select: {
+          id: true,
           name: true,
           description: true,
           location: true,
@@ -74,14 +73,9 @@ export class FieldRepository {
           number_of_animals: true,
         },
       });
-      if (fieldsFound.length === 0) {
-        throw new NotFoundException(`Field with ID ${userId} not found`);
-      }
       return fieldsFound;
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
+      console.log(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while retrieving field.',
       );

@@ -14,7 +14,7 @@ import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Image, StyleSheet, View } from 'react-native';
 import useAuthStore from '@/store/authStore';
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 const StackLayout = () => {
   const { fontsLoaded } = useLoadFonts();
   const colorScheme = useColorScheme();
@@ -28,24 +28,37 @@ const StackLayout = () => {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <PaperProvider>
-        <SafeAreaView style={{ flex: 1 }}>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="recoveryPassword/index"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="register/index"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen name="(protected)" options={{ headerShown: false }} />
-          </Stack>
-        </SafeAreaView>
-      </PaperProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <PaperProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            <Stack>
+              <Stack.Screen
+                name="(protected)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="recoveryPassword/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="register/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="editField/[id]"
+                options={{ headerShown: false }} // Puedes personalizar el header
+              />
+              <Stack.Screen
+                name="createField/index"
+                options={{ headerShown: false }}
+              />
+            </Stack>
+          </SafeAreaView>
+        </PaperProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 };
 
