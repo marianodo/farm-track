@@ -50,7 +50,8 @@
     "deleteButton": "Eliminar",
     "deleteAlertText": "Cancelar",
     "deleteAlertTitle": "Desea eliminar el",
-    "deleteAlertSubTitle": "Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer"
+    "deleteAlertSubTitle": "Si elimina este campo, se borraran todos los corrales y reportes relacionados. Esta acción no se puede deshacer",
+    "dontFieldMessage": "Aún no has creado ningún campo. Por favor, añade uno desde el boton'+'para comenzar."
   },
   "detailField": {
     "newFieldText": "Nuevo campo",
@@ -64,6 +65,12 @@
     "goBackText": "Volver",
     "updateFieldText": "Actualizar campo",
     "fieldText": "Campo: "
+  },
+  "objectView": {
+    "dontObjectMessage": "Aún no has creado ningún objeto. Por favor, añade uno desde el boton'+'para comenzar.",
+    "dontFieldMessage": "Recuerda que para crear el primer objeto debe existir al menos un campo.",
+    "title": "Crea y organiza objetos",
+    "objectText": "Objetos"
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovina de carne",

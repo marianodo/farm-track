@@ -232,8 +232,7 @@ export default function HomeScreen() {
                   fontSize: rMS(10),
                 }}
               >
-                Aún no has creado ningún campo.Por favor,añade uno desde el
-                boton'+'para comenzar.
+                {t('fieldView.dontFieldMessage')}
               </Text>
             </View>
           </View>
