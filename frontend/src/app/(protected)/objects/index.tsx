@@ -729,7 +729,7 @@ export default function HomeScreen() {
                       rippleColor="#436d22"
                     >
                       <Text style={styles.buttonText}>
-                        {t('objectView.createButtonText')}
+                        {t('objectView.updateButtonText')}
                       </Text>
                     </Button>
                   </View>
