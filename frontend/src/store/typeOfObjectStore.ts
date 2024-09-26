@@ -31,12 +31,26 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   createTypeOfObject: async (object: MyTypeOfObject): Promise<void> => {
     set({ typeOfObjectsLoading: true });
     try {
-      await axiosInstance.post('/objects', object);
-      const userId = useAuthStore.getState().userId;
+      await axiosInstance.post('/type-of-objects', object);
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ typeOfObjectsLoading: false });
-      if (userId) {
-        useTypeOfObjectStore.getState().getTypeOfObjectById(userId);
+    } catch (error: any) {
+      set({ typeOfObjectsLoading: false });
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        console.log(error.response.data.message);
+      } else {
+        console.log('Error creating object');
       }
+    }
+  },
+  onDelete: async (id: string) => {
+    try {
+      await axiosInstance.delete(`/type-of-objects/${id}`);
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
       if (
@@ -46,31 +60,15 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error creating object');
+        throw new Error('Error updating object');
       }
-    }
-  },
-  onDelete: async (id: string) => {
-    try {
-      await axiosInstance.delete(`/objects/${id}`);
-      const userId = useAuthStore.getState().userId;
-      if (userId) {
-        const objects = useTypeOfObjectStore.getState().typeOfObjects;
-        if (objects?.length === 0) set({ typeOfObjects: null });
-        useTypeOfObjectStore.getState().getTypeOfObjectById(userId);
-      }
-    } catch (error) {
-      console.log('error onDelete Object', error);
     }
   },
   onUpdate: async (id: string, object: Partial<MyTypeOfObject>) => {
     set({ typeOfObjectsLoading: true });
     try {
-      await axiosInstance.patch(`/objects/${id}`, object);
-      const userId = useAuthStore.getState().userId;
-      if (userId) {
-        useTypeOfObjectStore.getState().getTypeOfObjectById(userId);
-      }
+      await axiosInstance.patch(`/type-of-objects/${id}`, object);
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
@@ -90,8 +88,11 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
     set({ typeOfObjectsLoading: true });
     try {
       const response = await axiosInstance.get('/type-of-objects');
+      const sortedData = response.data.sort(
+        (a: MyTypeOfObject, b: MyTypeOfObject) => a.name.localeCompare(b.name)
+      );
       set({
-        typeOfObjects: response.data.length ? response.data : [],
+        typeOfObjects: sortedData.length ? sortedData : [],
         typeOfObjectsLoading: false,
       });
     } catch (error) {

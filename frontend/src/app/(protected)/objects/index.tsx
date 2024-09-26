@@ -1,64 +1,163 @@
-import { IconButton, Modal, Portal, Text, TextInput } from 'react-native-paper';
+import {
+  Badge,
+  Button,
+  Divider,
+  IconButton,
+  Modal,
+  Text,
+  TextInput,
+} from 'react-native-paper';
 import {
   Alert,
   FlatList,
-  Image,
   ImageBackground,
   Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
   View,
-  Animated,
-  Easing,
+  Image,
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
-import Loader from '@/components/Loader';
 import { useAuth } from '@/context/AuthContext';
 import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Swipeable } from 'react-native-gesture-handler';
-import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
+import {
+  Swipeable,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
 import { useEffect, useState, useRef } from 'react';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
+import { useValidationRules } from '@/utils/validation/validationRules';
+import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
+
+interface ListItemProps {
+  item: any;
+  index: number;
+  isExpanded: boolean;
+  toggleExpand: (index: number) => void;
+}
 
 export default function HomeScreen() {
+  const { required, minLength, email } = useValidationRules();
+  const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
-  const [inputValue, setInputValue] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
-  const animatedHeight = useRef(new Animated.Value(rMS(60))).current;
+  const [inputValue, setInputValue] = useState<Record<string, any>>({
+    name: '',
+  });
+  const [editInputValue, setEditInputValue] = useState<Record<string, any>>({
+    name: '',
+  });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalEditVisible, setIsModalEditVisible] = useState(false);
   const { role, userName } = useAuthStore((state) => ({
     role: state.role,
 
     userName: state.username,
   }));
-  const [expandedItems, setExpandedItems] = useState({});
+  const [objectId, setObjectId] = useState(null);
+  const [expandedItems, setExpandedItems] = useState<number[]>([]);
 
   const toggleExpand = (index: number) => {
-    // Alterna el estado expandido del elemento en el índice dado
-    setExpandedItems((prevState) => {
-      const isExpanded = !prevState[index]; // Invertir el estado de expansión
-      const newHeight = isExpanded ? rMS(120) : rMS(60); // Define la nueva altura según el estado
+    setExpandedItems((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
 
-      // Ejecuta la animación con la altura calculada
-      Animated.timing(animatedHeight, {
-        toValue: newHeight,
-        duration: 300,
-        easing: Easing.linear,
-        useNativeDriver: false,
-      }).start();
+  const handleInputChange = (name: string, value: string, type?: string) => {
+    if (type === 'edit') {
+      setEditInputValue({
+        ...editInputValue,
+        [name]: value,
+      });
+      Object.keys(editInputValue).forEach((key) => {
+        validateField(key, 'edit');
+      });
+    } else {
+      setInputValue({
+        ...inputValue,
+        [name]: value,
+      });
+      Object.keys(inputValue).forEach((key) => {
+        validateField(key);
+      });
+    }
+  };
 
-      // Retorna el nuevo estado con el índice actualizado
-      return {
-        ...prevState,
-        [index]: isExpanded, // Alterna solo el índice seleccionado
-      };
+  const validateField = (name: string, type?: string) => {
+    if (type === 'edit') {
+      const value = editInputValue[name];
+      let fieldErrors: string[] | null = null;
+
+      switch (name) {
+        case 'name':
+          fieldErrors = validateInput(value, [minLength(2)], t);
+          break;
+      }
+
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: fieldErrors,
+      }));
+    } else {
+      const value = inputValue[name];
+      let fieldErrors: string[] | null = null;
+
+      switch (name) {
+        case 'name':
+          fieldErrors = validateInput(value, [minLength(2)], t);
+          break;
+      }
+
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: fieldErrors,
+      }));
+    }
+  };
+
+  const updateVariableSubmit = async () => {
+    Object.keys(editInputValue).forEach((key) => {
+      validateField(key, 'edit');
     });
+    errors.name = errors.name = validateInput(
+      editInputValue.name,
+      [minLength(2)],
+      t
+    );
+    if (!Object.values(errors).some((error) => error !== null) && objectId) {
+      await onUpdate(objectId, editInputValue);
+      setErrors({});
+    } else {
+      return;
+    }
+  };
+
+  const onSubmit = async () => {
+    Object.keys(inputValue).forEach((key) => {
+      validateField(key);
+    });
+    errors.name = errors.name = validateInput(
+      inputValue.name,
+      [minLength(2)],
+      t
+    );
+    console.log(errors);
+    if (!Object.values(errors).some((error) => error !== null)) {
+      await createTypeOfObject(inputValue);
+      setErrors({});
+    } else {
+      return;
+    }
   };
 
   const {
@@ -94,7 +193,7 @@ export default function HomeScreen() {
           text: `${t('fieldView.deleteAlertText')}`,
           style: 'cancel',
         },
-        { text: 'OK', onPress: () => onDelete(id) },
+        { text: 'OK', onPress: async () => await onDelete(id) },
       ]
     );
 
@@ -102,7 +201,13 @@ export default function HomeScreen() {
     <View style={styles.rightActions}>
       <Pressable
         style={styles.editButton}
-        onPress={() => router.push(`/editField/${field.id}`)}
+        onPress={() => {
+          setEditInputValue({
+            name: field.name,
+          });
+          setObjectId(field.id);
+          setIsModalEditVisible(true);
+        }}
       >
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
@@ -117,6 +222,130 @@ export default function HomeScreen() {
     </View>
   );
 
+  const ListItem: React.FC<ListItemProps> = ({
+    item,
+    index,
+    isExpanded,
+    toggleExpand,
+  }) => {
+    const animatedStyle = useAnimatedStyle(() => {
+      const animatedHeight = isExpanded
+        ? withTiming(100, {
+            duration: 3000,
+            easing: Easing.out(Easing.linear),
+          })
+        : withTiming(0, {
+            duration: 3000,
+            easing: Easing.out(Easing.linear),
+          });
+      return {
+        marginTop: -20,
+        height: animatedHeight,
+        backgroundColor: '#f0f0f0',
+      };
+    }, [isExpanded]);
+
+    return (
+      <Swipeable
+        key={index}
+        enabled={!isExpanded} // Elimina el swipe si está expandido
+        renderRightActions={(progress, dragX) =>
+          renderRightActions(progress, dragX, item)
+        }
+        containerStyle={{
+          backgroundColor: '#3A5228',
+          marginBottom: 10,
+          borderRadius: 10,
+        }}
+      >
+        <TouchableWithoutFeedback
+          key={index}
+          onPress={
+            item.variables.length > 0 ? () => toggleExpand(index) : () => {}
+          }
+        >
+          <View style={styles.fieldContainer}>
+            <Text
+              style={{
+                paddingBottom: rMS(8),
+                fontSize: rMS(17),
+                paddingLeft: 6,
+                fontWeight: 'bold',
+                fontFamily: 'Pro-Regular',
+              }}
+            >
+              {item?.name}
+            </Text>
+            {item.variables.length > 0 && isExpanded ? (
+              <View style={{ paddingBottom: rMS(8) }}>
+                <Image
+                  source={require('../../../../assets/images/tabs/variables-selected.png')}
+                  style={{
+                    width: rMS(22),
+                    height: rMS(22),
+                    alignSelf: 'center',
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : item.variables.length > 0 && !isExpanded ? (
+              <View style={{ paddingBottom: rMS(8) }}>
+                <Image
+                  source={require('../../../../assets/images/tabs/variables-unselected.png')}
+                  style={{
+                    width: rMS(22),
+                    height: rMS(22),
+                    alignSelf: 'center',
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : null}
+          </View>
+        </TouchableWithoutFeedback>
+        {/* Mostrar información cuando se expande */}
+
+        <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
+          <Divider
+            style={{
+              backgroundColor: '#486732',
+              height: 1,
+            }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              paddingHorizontal: rMS(10),
+              paddingTop: rMS(8),
+              gap: rMS(4),
+            }}
+          >
+            {item.variables.map((variable: any, index: number) => {
+              return (
+                <Badge
+                  key={index}
+                  style={{
+                    paddingHorizontal: rMS(7),
+                    height: rMS(24),
+                    borderRadius: rMS(20),
+                    backgroundColor: '#486732',
+                    fontFamily: 'Pro-Regular',
+                    fontSize: rMS(12),
+                  }}
+                >
+                  {variable.name}
+                </Badge>
+              );
+            })}
+          </View>
+        </Animated.View>
+      </Swipeable>
+    );
+  };
+
   useEffect(() => {
     if (fieldsByUserId !== null && typeOfObjects === null) {
       getAllTypeOfObjects();
@@ -127,6 +356,8 @@ export default function HomeScreen() {
     <View style={styles.titleContainer}>
       {Array.isArray(fieldsByUserId) &&
         fieldsByUserId.length > 0 &&
+        !isModalVisible &&
+        !isModalEditVisible &&
         (Platform.OS === 'ios' ? (
           <SafeAreaView style={styles.floatingButton}>
             <IconButton
@@ -321,118 +552,224 @@ export default function HomeScreen() {
             <FlatList
               style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
               data={typeOfObjects}
-              keyExtractor={(item, index) => index.toString()}
-              renderItem={({ item: typeOfObjects, index }) => (
-                <Swipeable
-                  // enabled={false}
-                  renderRightActions={(progress, dragX) =>
-                    renderRightActions(progress, dragX, typeOfObjects)
-                  }
-                  containerStyle={{
-                    backgroundColor: '#3A5228',
-                    height: animatedHeight,
-                    marginBottom: 10,
-                    borderRadius: 10,
-                  }}
-                >
-                  <Pressable onPress={() => toggleExpand(index)}>
-                    <View key={index} style={styles.fieldContainer}>
-                      <View
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            textAlign: 'left',
-                            fontSize: 18,
-                            paddingLeft: 6,
-                            fontWeight: 'bold',
-                            fontFamily: 'Pro-Regular',
-                          }}
-                        >
-                          NAME
-                        </Text>
-                        <View
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'row',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center',
-                            gap: rMS(6),
-                            marginBottom: rMS(12),
-
-                            width: rS(178),
-                          }}
-                        >
-                          <Text
-                            style={{ width: rS(158) }}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            LOCATION
-                          </Text>
-                        </View>
-                      </View>
-                      <View
-                        style={{
-                          width: rS(110),
-                        }}
-                      >
-                        <Text>IMAGE</Text>
-                        <View>
-                          <Text style={styles.fieldText}>TYPE</Text>
-                        </View>
-                      </View>
-                    </View>
-                    {/* Mostrar información adicional cuando esté expandido */}
-                    {expandedItems[index] && (
-                      <View style={{ marginTop: 10 }}>
-                        <Text>Variable 1</Text>
-                        <Text>Variable 2</Text>
-                        {/* Agrega más variables según sea necesario */}
-                      </View>
-                    )}
-                  </Pressable>
-                </Swipeable>
-              )}
+              keyExtractor={(item, index) => `${item.name}${index}`}
+              renderItem={({ item, index }) => {
+                const isExpanded = expandedItems.includes(index);
+                return (
+                  <ListItem
+                    item={item}
+                    index={index}
+                    isExpanded={isExpanded}
+                    toggleExpand={toggleExpand}
+                  />
+                );
+              }}
             />
           </View>
         )}
       </View>
-      {/* Modal */}
-      <Portal>
-        <Modal
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          // onBackButtonPress={() => setIsModalVisible(false)}
-          style={styles.modal}
-        >
-          <View style={styles.modalContent}>
+      {/* Modal Edit */}
+      <Modal
+        visible={isModalEditVisible}
+        onDismiss={() => setIsModalEditVisible(false)}
+        style={[styles.modal, { margin: 'auto' }]}
+      >
+        <View style={styles.modalContent}>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 20,
+              paddingBottom: 0,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                fontWeight: 'bold',
+                fontSize: rMS(17),
+              }}
+            >
+              Nuevo Objeto
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                // fontWeight: 'bold',
+                fontSize: rMS(13),
+              }}
+            >
+              Ingrese el nombre del objeto a crear.
+            </Text>
+          </View>
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
             <TextInput
+              mode="outlined"
+              activeOutlineColor="transparent"
+              textColor="#486732"
+              cursorColor="#486732"
+              placeholderTextColor="#96A59A"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+              selectionHandleColor="#486732"
               placeholder="Nombre del objeto"
-              value={inputValue}
-              onChangeText={setInputValue}
+              outlineColor="#F1F1F1"
+              value={editInputValue.name}
+              onChangeText={(text) => handleInputChange('name', text, 'edit')}
               style={styles.modalInput}
             />
+          </View>
+          {errors.name && (
+            <Text
+              style={{
+                color: 'red',
+                textAlign: 'center',
+                fontSize: rS(11),
+                marginBottom: 12,
+              }}
+            >
+              {errors.name[0]}
+            </Text>
+          )}
+          <View
+            style={{
+              width: '100%',
+              alignSelf: 'center',
+            }}
+          >
+            <Divider style={{ backgroundColor: '#486732' }} />
             <View style={styles.modalButtons}>
-              <Pressable
-                onPress={() => setIsModalVisible(false)}
+              <Button
+                onPress={() => {
+                  setErrors({});
+                  setIsModalEditVisible(false);
+                }}
                 style={styles.cancelButton}
+                rippleColor="#436d22"
               >
                 <Text style={styles.buttonText}>Cancelar</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => console.log('creado')}
+              </Button>
+              <View
+                style={{
+                  height: '100%',
+                  width: 0.5,
+                  backgroundColor: '#486732',
+                }}
+              />
+              <Button
+                onPress={() => updateVariableSubmit()}
                 style={styles.createButton}
+                rippleColor="#436d22"
               >
                 <Text style={styles.buttonText}>Crear</Text>
-              </Pressable>
+              </Button>
             </View>
           </View>
-        </Modal>
-      </Portal>
+        </View>
+      </Modal>
+
+      {/* Modal */}
+      <Modal
+        visible={isModalVisible}
+        onDismiss={() => setIsModalVisible(false)}
+        style={styles.modal}
+      >
+        <View style={styles.modalContent}>
+          <View
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: 20,
+              paddingBottom: 0,
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                fontWeight: 'bold',
+                fontSize: rMS(17),
+              }}
+            >
+              Nuevo Objeto
+            </Text>
+            <Text
+              style={{
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                // fontWeight: 'bold',
+                fontSize: rMS(13),
+              }}
+            >
+              Ingrese el nombre del objeto a crear.
+            </Text>
+          </View>
+          <View style={{ alignItems: 'center', marginTop: 20 }}>
+            <TextInput
+              mode="outlined"
+              activeOutlineColor="transparent"
+              textColor="#486732"
+              cursorColor="#486732"
+              placeholderTextColor="#96A59A"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+              selectionHandleColor="#486732"
+              placeholder="Nombre del objeto"
+              outlineColor="#F1F1F1"
+              value={inputValue.name}
+              onChangeText={(text) => handleInputChange('name', text)}
+              style={styles.modalInput}
+            />
+            {errors.name && (
+              <Text
+                style={{
+                  color: 'red',
+                  textAlign: 'center',
+                  fontSize: rS(11),
+                  marginBottom: 12,
+                }}
+              >
+                {errors.name[0]}
+              </Text>
+            )}
+          </View>
+          <View
+            style={{
+              width: '100%',
+              alignSelf: 'center',
+            }}
+          >
+            <Divider style={{ backgroundColor: '#486732' }} />
+            <View style={styles.modalButtons}>
+              <Button
+                onPress={() => {
+                  setErrors({});
+                  setInputValue({ name: '' });
+                  setIsModalVisible(false);
+                }}
+                style={styles.cancelButton}
+                rippleColor="#436d22"
+              >
+                <Text style={styles.buttonText}>Cancelar</Text>
+              </Button>
+              <View
+                style={{
+                  height: '100%',
+                  width: 0.5,
+                  backgroundColor: '#486732',
+                }}
+              />
+              <Button
+                onPress={() => onSubmit()}
+                style={styles.createButton}
+                rippleColor="#436d22"
+              >
+                <Text style={styles.buttonText}>Crear</Text>
+              </Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -450,10 +787,10 @@ const styles = StyleSheet.create({
   fieldContainer: {
     display: 'flex',
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    height: rMS(98),
+    height: rMS(68),
     marginBottom: 10,
-    paddingVertical: 10,
     paddingHorizontal: 10,
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
@@ -503,23 +840,18 @@ const styles = StyleSheet.create({
   },
   editButton: {
     display: 'flex',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 10,
+    paddingBottom: rMS(52),
     backgroundColor: '#3A5228',
-    height: rMS(98),
     width: 68,
   },
   deleteButton: {
     display: 'flex',
-    justifyContent: 'center',
+
     alignItems: 'center',
-    paddingBottom: 10,
+    paddingBottom: rMS(52),
     backgroundColor: '#B82E2E',
-    height: rMS(98),
     width: 68,
-    borderBottomRightRadius: 10,
-    borderTopRightRadius: 10,
   },
   archiveButton: {
     backgroundColor: '#2196F3',
@@ -537,39 +869,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: rMS(270),
+    backgroundColor: '#EBF2ED',
   },
   modalInput: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    width: rMS(238),
+    height: rMV(32),
+    borderWidth: 1.1,
+    borderColor: '#96A59A',
     marginBottom: 20,
-    paddingHorizontal: 10,
     paddingVertical: 5,
+    borderRadius: 6,
   },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   cancelButton: {
-    backgroundColor: '#f5f5f5',
-    padding: 10,
+    padding: 5,
     borderRadius: 5,
     flex: 1,
     marginRight: 10,
     alignItems: 'center',
   },
   createButton: {
-    backgroundColor: '#4CAF50',
-    padding: 10,
+    padding: 5,
     borderRadius: 5,
     flex: 1,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'Pro-Regular',
+    color: '#486732',
+    fontWeight: '600',
+    fontSize: rMS(17),
   },
 });
