@@ -50,7 +50,8 @@
     "deleteButton": "Delete",
     "deleteAlertText": "Cancel",
     "deleteAlertTitle": "You want to delete the",
-    "deleteAlertSubTitle": "If you delete this field, all related pens and reports will be deleted. This action cannot be undone"
+    "deleteAlertSubTitle": "If you delete this field, all related pens and reports will be deleted. This action cannot be undone",
+    "dontFieldMessage": "You haven't created any fields yet. Please add one from the '+' button to get started."
   },
   "detailField": {
     "newFieldText": "New field",
@@ -64,6 +65,21 @@
     "goBackText": "Go back",
     "updateFieldText": "Update field",
     "fieldText": "Field: "
+  },
+  "objectView": {
+    "dontObjectMessage": "You haven't created any objects yet. Please add one from the '+' button to get started.",
+    "dontFieldMessage": "Remember that to create the first object, at least one field must exist.",
+    "title": "Create and organize objects",
+    "objectText": "Objects",
+    "cancelButtonText": "Cancel",
+    "createButtonText": "Create",
+    "updateButtonText": "Update",
+    "placeHolderModal": "Object name",
+    "modalTitle": "New object",
+    "modalEditTitle": "Edit object",
+    "modalEditSubtitle": "Enter the new name of the object.",
+    "modalSubtitle": "Enter the name of the object to create.",
+    "deleteAlertTitle": "Do you want to delete the object"
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",

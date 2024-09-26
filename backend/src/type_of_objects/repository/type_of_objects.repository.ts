@@ -96,8 +96,27 @@ export class TypeOfObjectsRepository {
 
   async findAll() {
     try {
-      const objects = await this.db.typeOfObject.findMany();
-      return objects;
+      const objects = await this.db.typeOfObject.findMany({
+        include: {
+          variables: {
+            include: {
+              variable: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return objects.map((object) => ({
+        ...object,
+        variables: object.variables.map((e) => ({
+          id: e.variable.id,
+          name: e.variable.name,
+        })),
+      }));
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

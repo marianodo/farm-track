@@ -8,6 +8,13 @@ export type ValidationRule = (
 export const useValidationRules = () => {
   const { t } = useTranslation();
 
+  const startsWithABlankSpace: ValidationRule = (value) => {
+    if (value.startsWith(' ')) {
+      return t('formErrors.required.startsWithABlankSpace');
+    }
+    return null;
+  };
+
   const required: ValidationRule = (value) => {
     const trimmedValue = value.trim();
 
@@ -46,5 +53,6 @@ export const useValidationRules = () => {
     minLength,
     email,
     matchPassword,
+    startsWithABlankSpace,
   };
 };
