@@ -33,7 +33,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
     try {
       await axiosInstance.post('/type-of-objects', object);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
-      set({ typeOfObjectsLoading: false });
+      set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
       if (
@@ -69,7 +69,8 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
     try {
       await axiosInstance.patch(`/type-of-objects/${id}`, object);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
-      set({ typeOfObjectsLoading: false });
+
+      set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
       console.log('error onUpdate Object:', error);

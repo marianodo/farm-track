@@ -17,6 +17,9 @@ import {
   StyleSheet,
   View,
   Image,
+  KeyboardAvoidingView,
+  Keyboard,
+  KeyboardEvent,
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
@@ -45,10 +48,11 @@ interface ListItemProps {
   index: number;
   isExpanded: boolean;
   toggleExpand: (index: number) => void;
+  setExpandedItems: (items: number[]) => void;
 }
 
 export default function HomeScreen() {
-  const { required, minLength, email } = useValidationRules();
+  const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
   const [inputValue, setInputValue] = useState<Record<string, any>>({
@@ -100,7 +104,11 @@ export default function HomeScreen() {
 
       switch (name) {
         case 'name':
-          fieldErrors = validateInput(value, [minLength(2)], t);
+          fieldErrors = validateInput(
+            value,
+            [startsWithABlankSpace, minLength(2)],
+            t
+          );
           break;
       }
 
@@ -114,7 +122,11 @@ export default function HomeScreen() {
 
       switch (name) {
         case 'name':
-          fieldErrors = validateInput(value, [minLength(2)], t);
+          fieldErrors = validateInput(
+            value,
+            [startsWithABlankSpace, minLength(2)],
+            t
+          );
           break;
       }
 
@@ -131,12 +143,14 @@ export default function HomeScreen() {
     });
     errors.name = errors.name = validateInput(
       editInputValue.name,
-      [minLength(2)],
+      [startsWithABlankSpace, minLength(2)],
       t
     );
     if (!Object.values(errors).some((error) => error !== null) && objectId) {
       await onUpdate(objectId, editInputValue);
       setErrors({});
+      setExpandedItems([]);
+      setIsModalEditVisible(false);
     } else {
       return;
     }
@@ -148,18 +162,43 @@ export default function HomeScreen() {
     });
     errors.name = errors.name = validateInput(
       inputValue.name,
-      [minLength(2)],
+      [startsWithABlankSpace, minLength(2)],
       t
     );
     console.log(errors);
     if (!Object.values(errors).some((error) => error !== null)) {
       await createTypeOfObject(inputValue);
       setErrors({});
+      setExpandedItems([]);
+      setInputValue({ name: '' });
+      setIsModalVisible(false);
     } else {
       return;
     }
   };
 
+  // Dentro de tu componente HomeScreen
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
   const {
     typeOfObjects,
     typeOfObjectsLoading,
@@ -185,17 +224,13 @@ export default function HomeScreen() {
   const { t } = useTranslation();
 
   const deleteButtonAlert = (id: string, name: string) =>
-    Alert.alert(
-      `¿${t('fieldView.deleteAlertTitle')} "${name}"?`,
-      `${t('fieldView.deleteAlertSubTitle')}`,
-      [
-        {
-          text: `${t('fieldView.deleteAlertText')}`,
-          style: 'cancel',
-        },
-        { text: 'OK', onPress: async () => await onDelete(id) },
-      ]
-    );
+    Alert.alert(`${t('objectView.deleteAlertTitle')} '${name}'?`, undefined, [
+      {
+        text: `${t('fieldView.deleteAlertText')}`,
+        style: 'cancel',
+      },
+      { text: 'OK', onPress: async () => await onDelete(id) },
+    ]);
 
   const renderRightActions = (progress: any, dragX: any, field: any) => (
     <View style={styles.rightActions}>
@@ -227,6 +262,7 @@ export default function HomeScreen() {
     index,
     isExpanded,
     toggleExpand,
+    setExpandedItems,
   }) => {
     const animatedStyle = useAnimatedStyle(() => {
       const animatedHeight = isExpanded
@@ -261,7 +297,14 @@ export default function HomeScreen() {
         <TouchableWithoutFeedback
           key={index}
           onPress={
-            item.variables.length > 0 ? () => toggleExpand(index) : () => {}
+            item.variables.length > 0
+              ? () => {
+                  Keyboard.dismiss;
+                  toggleExpand(index);
+                }
+              : () => {
+                  Keyboard.dismiss;
+                }
           }
         >
           <View style={styles.fieldContainer}>
@@ -330,7 +373,6 @@ export default function HomeScreen() {
                   style={{
                     paddingHorizontal: rMS(7),
                     height: rMS(24),
-                    borderRadius: rMS(20),
                     backgroundColor: '#486732',
                     fontFamily: 'Pro-Regular',
                     fontSize: rMS(12),
@@ -555,12 +597,15 @@ export default function HomeScreen() {
               keyExtractor={(item, index) => `${item.name}${index}`}
               renderItem={({ item, index }) => {
                 const isExpanded = expandedItems.includes(index);
+                console.log(isExpanded);
+                console.log(index);
                 return (
                   <ListItem
                     item={item}
                     index={index}
                     isExpanded={isExpanded}
                     toggleExpand={toggleExpand}
+                    setExpandedItems={setExpandedItems}
                   />
                 );
               }}
@@ -574,152 +619,61 @@ export default function HomeScreen() {
         onDismiss={() => setIsModalEditVisible(false)}
         style={[styles.modal, { margin: 'auto' }]}
       >
-        <View style={styles.modalContent}>
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 20,
-              paddingBottom: 0,
-            }}
-          >
-            <Text
+        <KeyboardAvoidingView
+          style={{
+            flex: 1,
+            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
+            alignItems: 'center',
+          }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={100}
+        >
+          <View style={styles.modalContent}>
+            <View
               style={{
-                fontFamily: 'Pro-Regular',
-                color: '#292929',
-                fontWeight: 'bold',
-                fontSize: rMS(17),
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 20,
+                paddingBottom: 0,
               }}
             >
-              Nuevo Objeto
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'Pro-Regular',
-                color: '#292929',
-                // fontWeight: 'bold',
-                fontSize: rMS(13),
-              }}
-            >
-              Ingrese el nombre del objeto a crear.
-            </Text>
-          </View>
-          <View style={{ alignItems: 'center', marginTop: 20 }}>
-            <TextInput
-              mode="outlined"
-              activeOutlineColor="transparent"
-              textColor="#486732"
-              cursorColor="#486732"
-              placeholderTextColor="#96A59A"
-              selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-              selectionHandleColor="#486732"
-              placeholder="Nombre del objeto"
-              outlineColor="#F1F1F1"
-              value={editInputValue.name}
-              onChangeText={(text) => handleInputChange('name', text, 'edit')}
-              style={styles.modalInput}
-            />
-          </View>
-          {errors.name && (
-            <Text
-              style={{
-                color: 'red',
-                textAlign: 'center',
-                fontSize: rS(11),
-                marginBottom: 12,
-              }}
-            >
-              {errors.name[0]}
-            </Text>
-          )}
-          <View
-            style={{
-              width: '100%',
-              alignSelf: 'center',
-            }}
-          >
-            <Divider style={{ backgroundColor: '#486732' }} />
-            <View style={styles.modalButtons}>
-              <Button
-                onPress={() => {
-                  setErrors({});
-                  setIsModalEditVisible(false);
-                }}
-                style={styles.cancelButton}
-                rippleColor="#436d22"
-              >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </Button>
-              <View
+              <Text
                 style={{
-                  height: '100%',
-                  width: 0.5,
-                  backgroundColor: '#486732',
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  fontWeight: 'bold',
+                  fontSize: rMS(17),
                 }}
-              />
-              <Button
-                onPress={() => updateVariableSubmit()}
-                style={styles.createButton}
-                rippleColor="#436d22"
               >
-                <Text style={styles.buttonText}>Crear</Text>
-              </Button>
+                {t('objectView.modalEditTitle')}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  // fontWeight: 'bold',
+                  fontSize: rMS(13),
+                }}
+              >
+                {t('objectView.modalEditSubtitle')}
+              </Text>
             </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Modal */}
-      <Modal
-        visible={isModalVisible}
-        onDismiss={() => setIsModalVisible(false)}
-        style={styles.modal}
-      >
-        <View style={styles.modalContent}>
-          <View
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: 20,
-              paddingBottom: 0,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: 'Pro-Regular',
-                color: '#292929',
-                fontWeight: 'bold',
-                fontSize: rMS(17),
-              }}
-            >
-              Nuevo Objeto
-            </Text>
-            <Text
-              style={{
-                fontFamily: 'Pro-Regular',
-                color: '#292929',
-                // fontWeight: 'bold',
-                fontSize: rMS(13),
-              }}
-            >
-              Ingrese el nombre del objeto a crear.
-            </Text>
-          </View>
-          <View style={{ alignItems: 'center', marginTop: 20 }}>
-            <TextInput
-              mode="outlined"
-              activeOutlineColor="transparent"
-              textColor="#486732"
-              cursorColor="#486732"
-              placeholderTextColor="#96A59A"
-              selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-              selectionHandleColor="#486732"
-              placeholder="Nombre del objeto"
-              outlineColor="#F1F1F1"
-              value={inputValue.name}
-              onChangeText={(text) => handleInputChange('name', text)}
-              style={styles.modalInput}
-            />
+            <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <TextInput
+                mode="outlined"
+                activeOutlineColor="transparent"
+                textColor="#486732"
+                cursorColor="#486732"
+                placeholderTextColor="#96A59A"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+                selectionHandleColor="#486732"
+                placeholder={`${t('objectView.placeHolderModal')}`}
+                outlineColor="#F1F1F1"
+                value={editInputValue.name}
+                onChangeText={(text) => handleInputChange('name', text, 'edit')}
+                style={styles.modalInput}
+              />
+            </View>
             {errors.name && (
               <Text
                 style={{
@@ -732,43 +686,187 @@ export default function HomeScreen() {
                 {errors.name[0]}
               </Text>
             )}
-          </View>
-          <View
-            style={{
-              width: '100%',
-              alignSelf: 'center',
-            }}
-          >
-            <Divider style={{ backgroundColor: '#486732' }} />
-            <View style={styles.modalButtons}>
-              <Button
-                onPress={() => {
-                  setErrors({});
-                  setInputValue({ name: '' });
-                  setIsModalVisible(false);
-                }}
-                style={styles.cancelButton}
-                rippleColor="#436d22"
-              >
-                <Text style={styles.buttonText}>Cancelar</Text>
-              </Button>
-              <View
-                style={{
-                  height: '100%',
-                  width: 0.5,
-                  backgroundColor: '#486732',
-                }}
-              />
-              <Button
-                onPress={() => onSubmit()}
-                style={styles.createButton}
-                rippleColor="#436d22"
-              >
-                <Text style={styles.buttonText}>Crear</Text>
-              </Button>
+            <View
+              style={{
+                width: '100%',
+                alignSelf: 'center',
+              }}
+            >
+              {typeOfObjectsLoading ? (
+                <ActivityIndicator
+                  style={{
+                    paddingVertical: '10%',
+                  }}
+                  animating={true}
+                  color="#486732"
+                />
+              ) : (
+                <>
+                  <Divider style={{ backgroundColor: '#486732' }} />
+                  <View style={styles.modalButtons}>
+                    <Button
+                      onPress={() => {
+                        setErrors({});
+                        setIsModalEditVisible(false);
+                      }}
+                      style={styles.cancelButton}
+                      rippleColor="#436d22"
+                    >
+                      <Text style={styles.buttonText}>
+                        {t('objectView.cancelButtonText')}
+                      </Text>
+                    </Button>
+                    <View
+                      style={{
+                        height: '100%',
+                        width: 0.5,
+                        backgroundColor: '#486732',
+                      }}
+                    />
+                    <Button
+                      onPress={() => updateVariableSubmit()}
+                      style={styles.createButton}
+                      rippleColor="#436d22"
+                    >
+                      <Text style={styles.buttonText}>
+                        {t('objectView.createButtonText')}
+                      </Text>
+                    </Button>
+                  </View>
+                </>
+              )}
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Modal */}
+      <Modal
+        visible={isModalVisible}
+        onDismiss={() => setIsModalVisible(false)}
+        style={styles.modal}
+      >
+        <KeyboardAvoidingView
+          style={{
+            flex: 1,
+            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
+            alignItems: 'center',
+          }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={100}
+        >
+          <View style={styles.modalContent}>
+            <View
+              style={{
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 20,
+                paddingBottom: 0,
+              }}
+            >
+              <Text
+                style={{
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  fontWeight: 'bold',
+                  fontSize: rMS(17),
+                }}
+              >
+                {t('objectView.modalTitle')}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  // fontWeight: 'bold',
+                  fontSize: rMS(13),
+                }}
+              >
+                {t('objectView.modalSubtitle')}
+              </Text>
+            </View>
+            <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <TextInput
+                mode="outlined"
+                activeOutlineColor="transparent"
+                textColor="#486732"
+                cursorColor="#486732"
+                placeholderTextColor="#96A59A"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
+                selectionHandleColor="#486732"
+                placeholder={`${t('objectView.placeHolderModal')}`}
+                outlineColor="#F1F1F1"
+                value={inputValue.name}
+                onChangeText={(text) => handleInputChange('name', text)}
+                style={styles.modalInput}
+              />
+              {errors.name && (
+                <Text
+                  style={{
+                    color: 'red',
+                    textAlign: 'center',
+                    fontSize: rS(11),
+                    marginBottom: 12,
+                  }}
+                >
+                  {errors.name[0]}
+                </Text>
+              )}
+            </View>
+            <View
+              style={{
+                width: '100%',
+                alignSelf: 'center',
+              }}
+            >
+              {typeOfObjectsLoading ? (
+                <ActivityIndicator
+                  style={{
+                    paddingVertical: '10%',
+                  }}
+                  animating={true}
+                  color="#486732"
+                />
+              ) : (
+                <>
+                  <Divider style={{ backgroundColor: '#486732' }} />
+                  <View style={styles.modalButtons}>
+                    <Button
+                      onPress={() => {
+                        setErrors({});
+                        setInputValue({ name: '' });
+                        setIsModalVisible(false);
+                      }}
+                      style={styles.cancelButton}
+                      rippleColor="#436d22"
+                    >
+                      <Text style={styles.buttonText}>
+                        {t('objectView.cancelButtonText')}
+                      </Text>
+                    </Button>
+                    <View
+                      style={{
+                        height: '100%',
+                        width: 0.5,
+                        backgroundColor: '#486732',
+                      }}
+                    />
+                    <Button
+                      onPress={() => onSubmit()}
+                      style={styles.createButton}
+                      rippleColor="#436d22"
+                    >
+                      <Text style={styles.buttonText}>
+                        {' '}
+                        {t('objectView.createButtonText')}
+                      </Text>
+                    </Button>
+                  </View>
+                </>
+              )}
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

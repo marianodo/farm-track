@@ -70,7 +70,16 @@
     "dontObjectMessage": "You haven't created any objects yet. Please add one from the '+' button to get started.",
     "dontFieldMessage": "Remember that to create the first object, at least one field must exist.",
     "title": "Create and organize objects",
-    "objectText": "Objects"
+    "objectText": "Objects",
+    "cancelButtonText": "Cancel",
+    "createButtonText": "Create",
+    "updateButtonText": "Update",
+    "placeHolderModal": "Object name",
+    "modalTitle": "New object",
+    "modalEditTitle": "Edit object",
+    "modalEditSubtitle": "Enter the new name of the object.",
+    "modalSubtitle": "Enter the name of the object to create.",
+    "deleteAlertTitle": "Do you want to delete the object"
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",
