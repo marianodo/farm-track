@@ -21,6 +21,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
 import { useEffect } from 'react';
+import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -79,11 +80,24 @@ export default function HomeScreen() {
     </View>
   );
 
+  const { typeOfObjects, getAllTypeOfObjects } = useTypeOfObjectStore(
+    (state: any) => ({
+      typeOfObjects: state.typeOfObjects,
+      getAllTypeOfObjects: state.getAllTypeOfObjects,
+    })
+  );
+
   useEffect(() => {
     if (fieldsByUserId === null) {
       getFieldsByUser(userId);
     }
   }, [fieldsByUserId, getFieldsByUser]);
+
+  useEffect(() => {
+    if (fieldsByUserId !== null && typeOfObjects === null) {
+      getAllTypeOfObjects();
+    }
+  }, [typeOfObjects, getAllTypeOfObjects, fieldsByUserId]);
 
   return (
     <View style={styles.titleContainer}>
@@ -224,12 +238,16 @@ export default function HomeScreen() {
                 icon={'alert-circle-outline'}
                 iconColor="#487632"
                 size={rMS(20)}
+                style={{ margin: 0 }}
               />
               <Text
                 style={{
                   color: '#487632',
                   fontFamily: 'Pro-Regular',
                   fontSize: rMS(10),
+                  flexShrink: 1,
+                  flexWrap: 'wrap',
+                  textAlign: 'center',
                 }}
               >
                 {t('fieldView.dontFieldMessage')}

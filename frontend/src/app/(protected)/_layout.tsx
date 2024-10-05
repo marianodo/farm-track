@@ -67,7 +67,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="variables/index"
+        name="attributes"
         options={{
           title: t('tabs.attributes'),
           tabBarIcon: ({ focused }) => (

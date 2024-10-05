@@ -21,9 +21,9 @@ import {
   Keyboard,
   KeyboardEvent,
 } from 'react-native';
+import { Href } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
-import { useAuth } from '@/context/AuthContext';
 import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +32,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import Animated, {
@@ -42,6 +42,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
+import useVariableStore from '@/store/variableStore';
 
 interface ListItemProps {
   item: any;
@@ -51,7 +52,7 @@ interface ListItemProps {
   setExpandedItems: (items: number[]) => void;
 }
 
-export default function ObjectScreen() {
+export default function AttributeScreen() {
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
@@ -165,9 +166,8 @@ export default function ObjectScreen() {
       [startsWithABlankSpace, minLength(2)],
       t
     );
-    console.log(errors);
     if (!Object.values(errors).some((error) => error !== null)) {
-      await createTypeOfObject(inputValue);
+      await createVariable(inputValue);
       setErrors({});
       setExpandedItems([]);
       setInputValue({ name: '' });
@@ -200,19 +200,19 @@ export default function ObjectScreen() {
     };
   }, []);
   const {
-    typeOfObjects,
-    typeOfObjectsLoading,
-    createTypeOfObject,
+    variables,
+    variablesLoading,
+    createVariable,
     onDelete,
     onUpdate,
-    getAllTypeOfObjects,
-  } = useTypeOfObjectStore((state: any) => ({
-    typeOfObjects: state.typeOfObjects,
-    typeOfObjectsLoading: state.typeOfObjectsLoading,
-    createTypeOfObject: state.createTypeOfObject,
+    getAllVariables,
+  } = useVariableStore((state: any) => ({
+    variables: state.variables,
+    variablesLoading: state.variablesLoading,
+    createVariable: state.createVariable,
     onDelete: state.onDelete,
     onUpdate: state.onUpdate,
-    getAllTypeOfObjects: state.getAllTypeOfObjects,
+    getAllVariables: state.getAllVariables,
   }));
 
   const { fieldLoading, fieldsByUserId } = useFieldStore((state) => ({
@@ -224,32 +224,30 @@ export default function ObjectScreen() {
   const { t } = useTranslation();
 
   const deleteButtonAlert = (id: string, name: string) =>
-    Alert.alert(`${t('objectView.deleteAlertTitle')} '${name}'?`, undefined, [
-      {
-        text: `${t('fieldView.deleteAlertText')}`,
-        style: 'cancel',
-      },
-      { text: 'OK', onPress: async () => await onDelete(id) },
-    ]);
+    Alert.alert(
+      `${t('attributeView.deleteAlertTitle')} '${name}'?`,
+      undefined,
+      [
+        {
+          text: `${t('fieldView.deleteAlertText')}`,
+          style: 'cancel',
+        },
+        { text: 'OK', onPress: async () => await onDelete(id) },
+      ]
+    );
 
-  const renderRightActions = (progress: any, dragX: any, object: any) => (
+  const renderRightActions = (progress: any, dragX: any, attribute: any) => (
     <View style={styles.rightActions}>
       <Pressable
         style={styles.editButton}
-        onPress={() => {
-          setEditInputValue({
-            name: object.name,
-          });
-          setObjectId(object.id);
-          setIsModalEditVisible(true);
-        }}
+        onPress={() => router.push(`/attributes/edit/${attribute.id}`)}
       >
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(object.id, object.name)}
+        onPress={() => deleteButtonAlert(attribute.id, attribute.name)}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -297,7 +295,7 @@ export default function ObjectScreen() {
         <TouchableWithoutFeedback
           key={index}
           onPress={
-            item.variables.length > 0
+            item.type_of_objects.length > 0
               ? () => {
                   Keyboard.dismiss;
                   toggleExpand(index);
@@ -307,7 +305,7 @@ export default function ObjectScreen() {
                 }
           }
         >
-          <View style={styles.objectContainer}>
+          <View style={styles.attributeContainer}>
             <Text
               style={{
                 paddingBottom: rMS(8),
@@ -319,10 +317,10 @@ export default function ObjectScreen() {
             >
               {item?.name}
             </Text>
-            {item.variables.length > 0 && isExpanded ? (
+            {item.type_of_objects.length > 0 && isExpanded ? (
               <View style={{ paddingBottom: rMS(8) }}>
                 <Image
-                  source={require('../../../../assets/images/tabs/variables-selected.png')}
+                  source={require('../../../../assets/images/tabs/object-selected.png')}
                   style={{
                     width: rMS(22),
                     height: rMS(22),
@@ -331,10 +329,10 @@ export default function ObjectScreen() {
                   resizeMode="contain"
                 />
               </View>
-            ) : item.variables.length > 0 && !isExpanded ? (
+            ) : item.type_of_objects.length > 0 && !isExpanded ? (
               <View style={{ paddingBottom: rMS(8) }}>
                 <Image
-                  source={require('../../../../assets/images/tabs/variables-unselected.png')}
+                  source={require('../../../../assets/images/tabs/object-unselected.png')}
                   style={{
                     width: rMS(22),
                     height: rMS(22),
@@ -367,7 +365,7 @@ export default function ObjectScreen() {
               width: '100%',
             }}
           >
-            {item.variables.map((variable: any, index: number) => {
+            {item.type_of_objects.map((variable: any, index: number) => {
               return (
                 <Badge
                   key={index}
@@ -377,6 +375,8 @@ export default function ObjectScreen() {
                     backgroundColor: '#486732',
                     fontFamily: 'Pro-Regular',
                     fontSize: rMS(12),
+                    marginRight: rMS(4), // Add margin to ensure proper spacing
+                    marginBottom: rMS(4), // Add margin to ensure proper spacing
                   }}
                 >
                   {variable.name}
@@ -390,10 +390,10 @@ export default function ObjectScreen() {
   };
 
   useEffect(() => {
-    if (fieldsByUserId !== null && typeOfObjects === null) {
-      getAllTypeOfObjects();
+    if (fieldsByUserId !== null && variables === null) {
+      getAllVariables();
     }
-  }, [typeOfObjects, getAllTypeOfObjects, fieldsByUserId]);
+  }, [variables, getAllVariables, fieldsByUserId]);
 
   return (
     <View style={styles.titleContainer}>
@@ -415,7 +415,7 @@ export default function ObjectScreen() {
             style={styles.floatingButton}
             icon="plus"
             iconColor="#FFF"
-            onPress={() => setIsModalVisible(true)}
+            onPress={() => router.push('/attributes/create')}
             size={rS(24)}
           />
         ))}
@@ -477,7 +477,7 @@ export default function ObjectScreen() {
                 fontWeight: 'bold',
               }}
             >
-              {t('objectView.title')}
+              {t('attributeView.title')}
             </Text>
           </View>
         </View>
@@ -502,9 +502,9 @@ export default function ObjectScreen() {
             fontFamily: 'Pro-Regular',
           }}
         >
-          {t('objectView.objectText')}
+          {t('attributeView.attributeText')}
         </Text>
-        {typeOfObjectsLoading ? (
+        {variablesLoading ? (
           <ActivityIndicator
             style={{
               marginTop: '60%',
@@ -550,11 +550,11 @@ export default function ObjectScreen() {
                   textAlign: 'center',
                 }}
               >
-                {t('objectView.dontFieldMessage')}
+                {t('attributeView.dontObjectMessage')}
               </Text>
             </View>
           </View>
-        ) : !typeOfObjects?.length ? (
+        ) : !variables?.length ? (
           <View
             style={{
               width: '100%',
@@ -592,7 +592,7 @@ export default function ObjectScreen() {
                   textAlign: 'center',
                 }}
               >
-                {t('objectView.dontObjectMessage')}
+                {t('attributeView.dontAttributeMessage')}
               </Text>
             </View>
           </View>
@@ -601,7 +601,7 @@ export default function ObjectScreen() {
           <View style={styles.spacer}>
             <FlatList
               style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-              data={typeOfObjects}
+              data={variables}
               keyExtractor={(item, index) => `${item.name}${index}`}
               renderItem={({ item, index }) => {
                 const isExpanded = expandedItems.includes(index);
@@ -698,7 +698,7 @@ export default function ObjectScreen() {
                 alignSelf: 'center',
               }}
             >
-              {typeOfObjectsLoading ? (
+              {variablesLoading ? (
                 <ActivityIndicator
                   style={{
                     paddingVertical: '10%',
@@ -825,7 +825,7 @@ export default function ObjectScreen() {
                 alignSelf: 'center',
               }}
             >
-              {typeOfObjectsLoading ? (
+              {variablesLoading ? (
                 <ActivityIndicator
                   style={{
                     paddingVertical: '10%',
@@ -888,7 +888,7 @@ const styles = StyleSheet.create({
   spacer: {
     height: '72%',
   },
-  objectContainer: {
+  attributeContainer: {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
