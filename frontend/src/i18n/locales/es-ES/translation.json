@@ -12,7 +12,20 @@
     "email": {
       "invalid": "El formato del correo electrónico no es válido."
     },
-    "matchPassword": "Las contraseñas no coinciden"
+    "matchPassword": "Las contraseñas no coinciden",
+    "range": {
+      "minGreaterThanMax": "El valor mínimo no puede ser mayor o igual que el valor máximo.",
+      "minOptimoInvalid": "El valor mínimo óptimo debe ser mayor que el valor mínimo y menor que el valor máximo.",
+      "maxOptimoInvalid": "El valor máximo óptimo debe ser mayor que el valor mínimo óptimo y menor que el valor máximo.",
+      "minOptimoGreaterThanMaxOptimo": "El valor mínimo óptimo debe ser menor que el valor máximo óptimo.",
+      "maxOptimoLessThanMinOptimo": "El valor máximo óptimo debe ser mayor que el valor mínimo óptimo.",
+      "minMaxInvalid": "Tanto el valor minimo como el maximo deben ser mayor a 0.",
+      "invalidCategoricalLength": "Minimo deben haber 2 valores definidos",
+      "invalidTypeObjectLength": "Debes seleccionar al menos un tipo de objeto"
+    },
+    "granularity": {
+      "invalid": "El valor de granularidad debe ser un número positivo."
+    }
   },
   "tabs": {
     "home": "Inicio",
@@ -80,6 +93,49 @@
     "modalEditSubtitle": "Ingrese el nuevo nombre del objeto.",
     "modalSubtitle": "Ingrese el nombre del objeto a crear.",
     "deleteAlertTitle": "Quieres eliminar el objeto"
+  },
+  "attributeView": {
+    "dontAttributeMessage": "Aún no has creado ninguna variable. Por favor, añade una desde el botón '+' para comenzar.",
+    "dontObjectMessage": "Recuerda que para crear la primera variable debe existir al menos un objeto.",
+    "title": "Crea y asigna variables",
+    "createAttributeTextTitle": "Nueva variable",
+    "updateVariableTextButton": "Actualizar variable",
+    "editAttributeTextTitle": "Editar variable",
+    "formOkText": "Variable creada exitosamente.",
+    "formUpdateOkText": "Variable actualizada exitosamente.",
+    "unsavedChangesTitle": "Cambios no guardados",
+    "unsavedChangesMessage": "Si vuelves ahora, se perderan todos tus cambios. ¿Estás seguro de que deseas volver?",
+    "formErrorText": "Error al enviar el formulario. Por favor complete todos los campos correctamente.",
+    "attributeText": "Variables",
+    "createAttributeText": "Variable",
+    "createPlaceHolderName": "Nombre de la variable",
+    "createPlaceHolderTypeOfObject": "Tipo de objeto",
+    "createPlaceHolderVariableType": "Tipo de variable",
+    "createPlaceHolderDefaultValues": "Valores por defecto",
+    "createPlaceHolderExampleDefaultValues": "Ejemplo: Verdadero",
+    "createPlaceHolderOptimalValues": "Valores óptimos",
+    "createTextGranularity": "Granularidad",
+    "createTextDefinedValues": "Valores definidos",
+    "createPlaceHolderGranularity": "Ingrese un valor",
+    "createPlaceHolderMinValue": "Minimo",
+    "createPlaceHolderMaxValue": "Máximo",
+    "createVariableTextButton": "Crear variable",
+    "mayusType": {
+      "NUMBER": "Numérica",
+      "CATEGORICAL": "Categórica"
+    },
+    "NUMBER": "numérica",
+    "CATEGORICAL": "categórica",
+    "cancelButtonText": "Quedarse y seguir editando",
+    "leaveButtonText": "Volver y perder cambios",
+    "createButtonText": "Crear",
+    "updateButtonText": "actualizar",
+    "placeHolderModal": "Nombre de la variable",
+    "modalTitle": "Nuevo atributo",
+    "modalEditTitle": "Editar atributo",
+    "modalEditSubtitle": "Ingrese el nuevo nombre del atributo.",
+    "modalSubtitle": "Ingrese el nombre del atributo a crear.",
+    "deleteAlertTitle": "¿Quieres eliminar la variable"
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovina de carne",

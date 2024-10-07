@@ -12,7 +12,20 @@
     "email": {
       "invalid": "The email format is not valid."
     },
-    "matchPassword": "Passwords do not match"
+    "matchPassword": "Passwords do not match",
+    "range": {
+      "minGreaterThanMax": "The minimum value cannot be greater than or equal to the maximum value.",
+      "minOptimoInvalid": "The optimal minimum value must be greater than the minimum value and less than the maximum value.",
+      "maxOptimoInvalid": "The optimal maximum value must be greater than the optimal minimum value and less than the maximum value.",
+      "minOptimoGreaterThanMaxOptimo": "The optimal minimum value must be less than the optimal maximum value.",
+      "maxOptimoLessThanMinOptimo": "The optimal maximum value must be greater than the optimal minimum value.",
+      "minMaxInvalid": "Both the minimum and maximum value must be greater than 0.",
+      "invalidCategoricalLength": "There must be at least 2 defined values.",
+      "invalidTypeObjectLength": "You must select at least one object type."
+    },
+    "granularity": {
+      "invalid": "The granularity value must be a positive number."
+    }
   },
   "tabs": {
     "home": "home",
@@ -79,7 +92,50 @@
     "modalEditTitle": "Edit object",
     "modalEditSubtitle": "Enter the new name of the object.",
     "modalSubtitle": "Enter the name of the object to create.",
-    "deleteAlertTitle": "Do you want to delete the object"
+    "deleteAlertTitle": "¿Do you want to delete the object"
+  },
+  "attributeView": {
+    "dontAttributeMessage": "You haven't created any variables yet. Please add one from the '+' button to get started.",
+    "dontObjectMessage": "Remember that to create the first variable, at least one object must exist.",
+    "title": "Create and assign variables",
+    "createAttributeTextTitle": "New variable",
+    "editAttributeTextTitle": "Edit variable",
+    "updateVariableTextButton": "Update variable",
+    "formOkText": "Variable created successfully.",
+    "formUpdateOkText": "Variable updated successfully.",
+    "unsavedChangesTitle": "Unsaved changes",
+    "unsavedChangesMessage": "If you go back now, all your changes will be lost. Are you sure you want to come back?",
+    "formErrorText": "Form submission failed. Please fill all field correctly.",
+    "attributeText": "Variables",
+    "createAttributeText": "Variable",
+    "createPlaceHolderName": "Variable name",
+    "createPlaceHolderTypeOfObject": "Object type",
+    "createPlaceHolderVariableType": "Variable type",
+    "createPlaceHolderDefaultValues": "Default values",
+    "createPlaceHolderExampleDefaultValues": "Example: True",
+    "createPlaceHolderOptimalValues": "Optimal values",
+    "createTextGranularity": "Granularity",
+    "createTextDefinedValues": "Defined values",
+    "createPlaceHolderGranularity": "Enter a value",
+    "createPlaceHolderMinValue": "Minimum",
+    "createPlaceHolderMaxValue": "Maximum",
+    "createVariableTextButton": "Create variable",
+    "mayusType": {
+      "NUMBER": "Numerical",
+      "CATEGORICAL": "Categorical"
+    },
+    "NUMBER": "numerical",
+    "CATEGORICAL": "categorical",
+    "cancelButtonText": "Stay and keep editing",
+    "leaveButtonText": "Go back and lose changes",
+    "createButtonText": "Create",
+    "updateButtonText": "Update",
+    "placeHolderModal": "A Variable name",
+    "modalTitle": "New attribute",
+    "modalEditTitle": "Edit attribute",
+    "modalEditSubtitle": "Enter the new name of the attribute.",
+    "modalSubtitle": "Enter the name of the attribute to create.",
+    "deleteAlertTitle": "Do you want to delete the variable"
   },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",

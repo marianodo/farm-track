@@ -33,11 +33,11 @@ const StackLayout = () => {
         <PaperProvider>
           <SafeAreaView style={{ flex: 1 }}>
             <Stack>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen
                 name="(protected)"
                 options={{ headerShown: false }}
               />
-              <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen
                 name="recoveryPassword/index"
                 options={{ headerShown: false }}

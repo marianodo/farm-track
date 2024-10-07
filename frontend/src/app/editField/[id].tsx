@@ -126,7 +126,6 @@ export default function EditField() {
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
       );
       const data = await response.json();
-      console.log(data.results[2]?.formatted_address);
       if (data.results) {
         setFieldData({
           ...fieldData,
