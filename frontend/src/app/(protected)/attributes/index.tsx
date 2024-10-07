@@ -3,7 +3,6 @@ import {
   Button,
   Divider,
   IconButton,
-  Modal,
   Text,
   TextInput,
 } from 'react-native-paper';
@@ -62,8 +61,7 @@ export default function AttributeScreen() {
   const [editInputValue, setEditInputValue] = useState<Record<string, any>>({
     name: '',
   });
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModalEditVisible, setIsModalEditVisible] = useState(false);
+
   const { role, userName } = useAuthStore((state) => ({
     role: state.role,
 
@@ -151,7 +149,6 @@ export default function AttributeScreen() {
       await onUpdate(objectId, editInputValue);
       setErrors({});
       setExpandedItems([]);
-      setIsModalEditVisible(false);
     } else {
       return;
     }
@@ -171,7 +168,6 @@ export default function AttributeScreen() {
       setErrors({});
       setExpandedItems([]);
       setInputValue({ name: '' });
-      setIsModalVisible(false);
     } else {
       return;
     }
@@ -219,6 +215,10 @@ export default function AttributeScreen() {
     fieldLoading: state.fieldLoading,
     fieldsByUserId: state.fieldsByUserId,
     onDelete: state.onDelete,
+  }));
+
+  const { typeOfObjects } = useTypeOfObjectStore((state) => ({
+    typeOfObjects: state.typeOfObjects,
   }));
 
   const { t } = useTranslation();
@@ -390,23 +390,24 @@ export default function AttributeScreen() {
   };
 
   useEffect(() => {
-    if (fieldsByUserId !== null && variables === null) {
+    if (
+      (fieldsByUserId !== null && variables === null) ||
+      typeOfObjects === null
+    ) {
       getAllVariables();
     }
-  }, [variables, getAllVariables, fieldsByUserId]);
+  }, [variables, getAllVariables, fieldsByUserId, typeOfObjects]);
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(fieldsByUserId) &&
-        fieldsByUserId.length > 0 &&
-        !isModalVisible &&
-        !isModalEditVisible &&
+      {Array.isArray(typeOfObjects) &&
+        typeOfObjects.length > 0 &&
         (Platform.OS === 'ios' ? (
           <SafeAreaView style={styles.floatingButton}>
             <IconButton
               icon="plus"
               iconColor="#FFF"
-              onPress={() => setIsModalVisible(true)}
+              onPress={() => router.push('/attributes/create')}
               size={rS(24)}
             />
           </SafeAreaView>
@@ -512,7 +513,7 @@ export default function AttributeScreen() {
             animating={true}
             color="#486732"
           />
-        ) : !fieldsByUserId?.length ? (
+        ) : !typeOfObjects?.length ? (
           <View
             style={{
               width: '100%',
@@ -619,261 +620,6 @@ export default function AttributeScreen() {
           </View>
         )}
       </View>
-      {/* Modal Edit */}
-      <Modal
-        visible={isModalEditVisible}
-        onDismiss={() => setIsModalEditVisible(false)}
-        style={[styles.modal, { margin: 'auto' }]}
-      >
-        <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
-            alignItems: 'center',
-          }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={100}
-        >
-          <View style={styles.modalContent}>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: 20,
-                paddingBottom: 0,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'Pro-Regular',
-                  color: '#292929',
-                  fontWeight: 'bold',
-                  fontSize: rMS(17),
-                }}
-              >
-                {t('objectView.modalEditTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: 'Pro-Regular',
-                  color: '#292929',
-                  // fontWeight: 'bold',
-                  fontSize: rMS(13),
-                }}
-              >
-                {t('objectView.modalEditSubtitle')}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'center', marginTop: 20 }}>
-              <TextInput
-                mode="outlined"
-                activeOutlineColor="transparent"
-                textColor="#486732"
-                cursorColor="#486732"
-                placeholderTextColor="#96A59A"
-                selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-                selectionHandleColor="#486732"
-                placeholder={`${t('objectView.placeHolderModal')}`}
-                outlineColor="#F1F1F1"
-                value={editInputValue.name}
-                onChangeText={(text) => handleInputChange('name', text, 'edit')}
-                style={styles.modalInput}
-              />
-            </View>
-            {errors.name && (
-              <Text
-                style={{
-                  color: 'red',
-                  textAlign: 'center',
-                  fontSize: rS(11),
-                  marginBottom: 12,
-                }}
-              >
-                {errors.name[0]}
-              </Text>
-            )}
-            <View
-              style={{
-                width: '100%',
-                alignSelf: 'center',
-              }}
-            >
-              {variablesLoading ? (
-                <ActivityIndicator
-                  style={{
-                    paddingVertical: '10%',
-                  }}
-                  animating={true}
-                  color="#486732"
-                />
-              ) : (
-                <>
-                  <Divider style={{ backgroundColor: '#486732' }} />
-                  <View style={styles.modalButtons}>
-                    <Button
-                      onPress={() => {
-                        setErrors({});
-                        setIsModalEditVisible(false);
-                      }}
-                      style={styles.cancelButton}
-                      rippleColor="#436d22"
-                    >
-                      <Text style={styles.buttonText}>
-                        {t('objectView.cancelButtonText')}
-                      </Text>
-                    </Button>
-                    <View
-                      style={{
-                        height: '100%',
-                        width: 0.5,
-                        backgroundColor: '#486732',
-                      }}
-                    />
-                    <Button
-                      onPress={() => updateVariableSubmit()}
-                      style={styles.createButton}
-                      rippleColor="#436d22"
-                    >
-                      <Text style={styles.buttonText}>
-                        {t('objectView.updateButtonText')}
-                      </Text>
-                    </Button>
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
-
-      {/* Modal */}
-      <Modal
-        visible={isModalVisible}
-        onDismiss={() => setIsModalVisible(false)}
-        style={styles.modal}
-      >
-        <KeyboardAvoidingView
-          style={{
-            flex: 1,
-            justifyContent: isKeyboardVisible ? 'flex-start' : 'center',
-            alignItems: 'center',
-          }}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={100}
-        >
-          <View style={styles.modalContent}>
-            <View
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                padding: 20,
-                paddingBottom: 0,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: 'Pro-Regular',
-                  color: '#292929',
-                  fontWeight: 'bold',
-                  fontSize: rMS(17),
-                }}
-              >
-                {t('objectView.modalTitle')}
-              </Text>
-              <Text
-                style={{
-                  fontFamily: 'Pro-Regular',
-                  color: '#292929',
-                  // fontWeight: 'bold',
-                  fontSize: rMS(13),
-                }}
-              >
-                {t('objectView.modalSubtitle')}
-              </Text>
-            </View>
-            <View style={{ alignItems: 'center', marginTop: 20 }}>
-              <TextInput
-                mode="outlined"
-                activeOutlineColor="transparent"
-                textColor="#486732"
-                cursorColor="#486732"
-                placeholderTextColor="#96A59A"
-                selectionColor={Platform.OS == 'ios' ? '#486732' : '#9cdfa3'}
-                selectionHandleColor="#486732"
-                placeholder={`${t('objectView.placeHolderModal')}`}
-                outlineColor="#F1F1F1"
-                value={inputValue.name}
-                onChangeText={(text) => handleInputChange('name', text)}
-                style={styles.modalInput}
-              />
-              {errors.name && (
-                <Text
-                  style={{
-                    color: 'red',
-                    textAlign: 'center',
-                    fontSize: rS(11),
-                    marginBottom: 12,
-                  }}
-                >
-                  {errors.name[0]}
-                </Text>
-              )}
-            </View>
-            <View
-              style={{
-                width: '100%',
-                alignSelf: 'center',
-              }}
-            >
-              {variablesLoading ? (
-                <ActivityIndicator
-                  style={{
-                    paddingVertical: '10%',
-                  }}
-                  animating={true}
-                  color="#486732"
-                />
-              ) : (
-                <>
-                  <Divider style={{ backgroundColor: '#486732' }} />
-                  <View style={styles.modalButtons}>
-                    <Button
-                      onPress={() => {
-                        setErrors({});
-                        setInputValue({ name: '' });
-                        setIsModalVisible(false);
-                      }}
-                      style={styles.cancelButton}
-                      rippleColor="#436d22"
-                    >
-                      <Text style={styles.buttonText}>
-                        {t('objectView.cancelButtonText')}
-                      </Text>
-                    </Button>
-                    <View
-                      style={{
-                        height: '100%',
-                        width: 0.5,
-                        backgroundColor: '#486732',
-                      }}
-                    />
-                    <Button
-                      onPress={() => onSubmit()}
-                      style={styles.createButton}
-                      rippleColor="#436d22"
-                    >
-                      <Text style={styles.buttonText}>
-                        {' '}
-                        {t('objectView.createButtonText')}
-                      </Text>
-                    </Button>
-                  </View>
-                </>
-              )}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 }
@@ -961,28 +707,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Pro-Regular',
     fontSize: 11.2,
-  },
-  modal: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    borderRadius: 10,
-    width: rMS(270),
-    backgroundColor: '#EBF2ED',
-  },
-  modalInput: {
-    width: rMS(238),
-    height: rMV(32),
-    borderWidth: 1.1,
-    borderColor: '#96A59A',
-    marginBottom: 20,
-    paddingVertical: 5,
-    borderRadius: 6,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
   cancelButton: {
     padding: 5,
