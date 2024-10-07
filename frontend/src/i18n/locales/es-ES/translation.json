@@ -131,10 +131,10 @@
     "createButtonText": "Crear",
     "updateButtonText": "actualizar",
     "placeHolderModal": "Nombre de la variable",
-    "modalTitle": "New attribute",
-    "modalEditTitle": "Edit attribute",
-    "modalEditSubtitle": "Enter the new name of the attribute.",
-    "modalSubtitle": "Enter the name of the attribute to create.",
+    "modalTitle": "Nuevo atributo",
+    "modalEditTitle": "Editar atributo",
+    "modalEditSubtitle": "Ingrese el nuevo nombre del atributo.",
+    "modalSubtitle": "Ingrese el nombre del atributo a crear.",
     "deleteAlertTitle": "¿Quieres eliminar la variable"
   },
   "typeProductionText": {

@@ -130,7 +130,7 @@
     "leaveButtonText": "Go back and lose changes",
     "createButtonText": "Create",
     "updateButtonText": "Update",
-    "placeHolderModal": "AVariable name",
+    "placeHolderModal": "A Variable name",
     "modalTitle": "New attribute",
     "modalEditTitle": "Edit attribute",
     "modalEditSubtitle": "Enter the new name of the attribute.",
