@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
+import useTypeOfObjectStore from './typeOfObjectStore';
 
 export interface TypeOfObject {
   id: number;
@@ -41,6 +42,7 @@ const useVariableStore = create<VariableState>((set) => ({
     try {
       await axiosInstance.post('/variables', variable);
       useVariableStore.getState().getAllVariables();
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ variablesLoading: false });
     } catch (error: any) {
       set({ variablesLoading: false });
@@ -51,6 +53,7 @@ const useVariableStore = create<VariableState>((set) => ({
     try {
       await axiosInstance.delete(`/variables/${id}`);
       useVariableStore.getState().getAllVariables();
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
     } catch (error: any) {
       set({ variablesLoading: false });
       console.error('Error deleting variable:', error);
@@ -61,6 +64,7 @@ const useVariableStore = create<VariableState>((set) => ({
     try {
       await axiosInstance.patch(`/variables/${id}`, variable);
       useVariableStore.getState().getAllVariables();
+      useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ variablesLoading: false });
     } catch (error: any) {
       set({ variablesLoading: false });
