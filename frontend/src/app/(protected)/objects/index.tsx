@@ -42,6 +42,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
+import useVariableStore from '@/store/variableStore';
 
 interface ListItemProps {
   item: any;
@@ -52,6 +53,11 @@ interface ListItemProps {
 }
 
 export default function ObjectScreen() {
+  const { variables, variableLoading } = useVariableStore((state: any) => ({
+    variables: state.variables,
+    variableLoading: state.variableLoading,
+  }));
+
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
@@ -393,6 +399,7 @@ export default function ObjectScreen() {
     if (fieldsByUserId !== null && typeOfObjects === null) {
       getAllTypeOfObjects();
     }
+    setExpandedItems([]);
   }, [typeOfObjects, getAllTypeOfObjects, fieldsByUserId]);
 
   return (
