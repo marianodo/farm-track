@@ -438,6 +438,7 @@ const EditAttribute: React.FC = () => {
           {/* contenido scroll  */}
           <View style={styles.spacer}>
             <KeyboardAwareScrollView
+              keyboardShouldPersistTaps="handled"
               enableOnAndroid
               extraHeight={10}
               extraScrollHeight={30}

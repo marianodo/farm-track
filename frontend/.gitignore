@@ -8,3 +8,7 @@ expo-env.d.ts
 
 #env file
 .env
+
+# Expo
+.expo/**
+.expo/types/router.d.ts
