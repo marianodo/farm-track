@@ -12,6 +12,7 @@ import {
   Button,
   TouchableOpacity,
   TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import * as Location from 'expo-location';
 // import * as Localization from 'expo-localization';
@@ -271,6 +272,7 @@ export default function createField() {
       </ImageBackground>
 
       {/* contenedor contenido campo */}
+
       <View style={styles.contentContainer}>
         <Text style={styles.fieldTitle}>
           {t('detailField.detailFieldText')}
@@ -278,7 +280,8 @@ export default function createField() {
 
         {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
         <KeyboardAwareScrollView
-          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.scrollContent,
             { height: open ? rMS(700) : null },
@@ -295,63 +298,81 @@ export default function createField() {
                 return (
                   <View key={key} style={{ marginBottom: 10 }}>
                     <View>
-                      <GooglePlacesAutocomplete
-                        placeholder="Ubicación"
-                        minLength={3}
-                        GooglePlacesDetailsQuery={{
-                          fields: 'geometry',
-                        }}
-                        enablePoweredByContainer={false}
-                        textInputProps={{
-                          value: `${ubication.userLocation.direction}`,
-                          cursorColor: '#486732',
-                          selectionColor: '#486732',
-                          placeholderTextColor: '#292929',
-                          editable: false,
-                        }}
-                        styles={{
-                          textInputContainer: {
-                            alignSelf: 'center',
-                            marginVertical: height * 0.01,
-                            width: width * 0.9,
-                            height: height * 0.07,
-                            borderWidth: 1,
-                            borderColor: '#F1F1F1',
-                            borderRadius: 8,
-                          },
-                          textInput: {
-                            height: '100%',
-                            fontSize: width * 0.04,
-                            fontFamily: 'Pro-Regular',
-                            color: 'black',
-                            backgroundColor: '#F1F1F1',
-                            paddingHorizontal: 16,
-                          },
-
-                          listView: {
-                            zIndex: 10,
-                          },
-                          description: { color: 'black' },
-                          separator: {
-                            height: 0.5,
-                          },
-                        }}
-                        onFail={(err) => console.error(err)}
-                        fetchDetails={true}
-                        disableScroll={true}
-                        onPress={async (data, details) => {
-                          setUbication({
-                            ...ubication,
-                            marketLocation: {
-                              latitude: details?.geometry.location.lat,
-                              longitude: details?.geometry.location.lng,
+                      {/* <GooglePlacesAutocomplete
+                          placeholder="Ubicación"
+                          minLength={3}
+                          GooglePlacesDetailsQuery={{
+                            fields: 'geometry',
+                          }}
+                          enablePoweredByContainer={false}
+                          textInputProps={{
+                            value: `${ubication.userLocation.direction}`,
+                            cursorColor: '#486732',
+                            selectionColor: '#486732',
+                            placeholderTextColor: '#292929',
+                            editable: false,
+                          }}
+                          styles={{
+                            textInputContainer: {
+                              alignSelf: 'center',
+                              marginVertical: height * 0.01,
+                              width: width * 0.9,
+                              height: height * 0.07,
+                              borderWidth: 1,
+                              borderColor: '#F1F1F1',
+                              borderRadius: 8,
                             },
-                          });
-                        }}
-                        query={{
-                          key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
-                          language: lang,
-                        }}
+                            textInput: {
+                              height: '100%',
+                              fontSize: width * 0.04,
+                              fontFamily: 'Pro-Regular',
+                              color: 'black',
+                              backgroundColor: '#F1F1F1',
+                              paddingHorizontal: 16,
+                            },
+
+                            listView: {
+                              zIndex: 10,
+                            },
+                            description: { color: 'black' },
+                            separator: {
+                              height: 0.5,
+                            },
+                          }}
+                          onFail={(err) => console.error(err)}
+                          fetchDetails={true}
+                          // disableScroll={true}
+                          onPress={async (data, details) => {
+                            setUbication({
+                              ...ubication,
+                              marketLocation: {
+                                latitude: details?.geometry.location.lat,
+                                longitude: details?.geometry.location.lng,
+                              },
+                            });
+                          }}
+                          query={{
+                            key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+                            language: lang,
+                          }}
+                        /> */}
+                      <TextInput
+                        mode="outlined"
+                        placeholderTextColor="#292929"
+                        placeholder={t('detailField.fieldUbicationPlaceHolder')}
+                        value={ubication.userLocation.direction ?? ''}
+                        onChangeText={(value) =>
+                          handleInputChange('location', value)
+                        }
+                        editable={false}
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        cursorColor="#486732"
+                        selectionColor={
+                          Platform.OS == 'ios' ? '#486732' : '#486732'
+                        }
+                        selection={{ start: 0, end: 0 }}
+                        style={styles.input}
                       />
                     </View>
 
@@ -402,8 +423,10 @@ export default function createField() {
                     }}
                     key={key}
                     listMode="SCROLLVIEW"
-                    zIndex={open ? 1 : 0}
-                    zIndexInverse={open ? 1 : 0}
+                    zIndex={open ? (Platform.OS === 'ios' ? 9999 : 1) : 0}
+                    zIndexInverse={
+                      open ? (Platform.OS === 'ios' ? 9999 : 1) : 0
+                    }
                     arrowIconStyle={{ tintColor: '#486732' }}
                     open={open}
                     value={value}

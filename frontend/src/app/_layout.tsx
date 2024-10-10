@@ -54,6 +54,11 @@ const StackLayout = () => {
                 name="createField/index"
                 options={{ headerShown: false }}
               />
+              <Stack.Screen name="pen/index" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="pen/createPen/index"
+                options={{ headerShown: false }}
+              />
             </Stack>
           </SafeAreaView>
         </PaperProvider>

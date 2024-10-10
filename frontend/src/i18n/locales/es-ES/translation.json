@@ -137,6 +137,31 @@
     "modalSubtitle": "Ingrese el nombre del atributo a crear.",
     "deleteAlertTitle": "¿Quieres eliminar la variable"
   },
+  "penView": {
+    "penText": "Corrales",
+    "createPenTextTitle": "Nuevo corral",
+    "createPenTextDetail": "Detalles del corral",
+    "dontPenMessage": "Aún no has creado ningún corral. Por favor, añade uno desde el botón '+' para comenzar.",
+    "title": "Crea y organiza corrales",
+    "createPenTextButton": "Crear corral",
+    "deleteAlertTitle": "¿Desea eliminar el corral",
+    "deleteAlertSubTitle": "Si elimina este corral, se borrarán todos los reportes relacionados. Esta acción no se puede deshacer.",
+    "deleteButtonAlertText": "Eliminar",
+    "cancelButtonAlertText": "Cancelar",
+    "penNamePlaceHolder": "Nombre del corral",
+    "penObjectsPlaceHolder": "Objetos del corral",
+    "penObjectSelectsPlaceHolder": "Objetos seleccionados"
+  },
+  "reportsView": {
+    "reportsText": "Reportes",
+    "dontPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
+    "dontReportMessage": "Aún no has creado ningún reporte. Por favor añade uno desde el botón '+' para comenzar.",
+    "title": "Gestiona reportes",
+    "deleteAlertTitle": "¿Desea eliminar el reporte",
+    "deleteAlertSubTitle": "Si elimina este reporte, se borrarán todas las mediciones relacionadas. Esta acción no se puede deshacer.",
+    "deleteButtonAlertText": "Eliminar",
+    "cancelButtonAlertText": "Cancelar"
+  },
   "typeProductionText": {
     "bovine_of_meat": "Bovina de carne",
     "bovine_of_milk": "Bovina de leche",

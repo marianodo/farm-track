@@ -238,7 +238,8 @@ export default function EditField() {
 
             {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
             <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="always"
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
               contentContainerStyle={[
                 styles.scrollContent,
                 { height: open ? rMS(700) : null },

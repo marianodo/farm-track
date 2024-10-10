@@ -137,6 +137,31 @@
     "modalSubtitle": "Enter the name of the attribute to create.",
     "deleteAlertTitle": "Do you want to delete the variable"
   },
+  "penView": {
+    "penText": "Pens",
+    "createPenTextTitle": "New pen",
+    "createPenTextDetail": "Pen details",
+    "dontPenMessage": "You haven't created any pens yet. Please add one from the '+' button to get started.",
+    "title": "Create and organize pens",
+    "createPenTextButton": "Create pen",
+    "deleteAlertTitle": "¿Do you want to delete the pen",
+    "deleteAlertSubTitle": "If you delete this pen, all related reports will be deleted. This action cannot be undone",
+    "deleteButtonAlertText": "Delete",
+    "cancelButtonAlertText": "Cancel",
+    "penNamePlaceHolder": "Pen name",
+    "penObjectsPlaceHolder": "Pen objects",
+    "penObjectSelectsPlaceHolder": "Selected objects"
+  },
+  "reportsView": {
+    "reportsText": "Reports",
+    "dontPenMessage": "Remember that to create the first report there must be at least one corral.",
+    "dontReportMessage": "You haven't created any reports yet. Please add one from the '+' button to get started.",
+    "title": "Manage reports",
+    "deleteAlertTitle": "¿Do you want to delete the report",
+    "deleteAlertSubTitle": "If you delete this report, all related data will be deleted. This action cannot be undone",
+    "deleteButtonAlertText": "Delete",
+    "cancelButtonAlertText": "Cancel"
+  },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",
     "bovine_of_milk": "Bovine of milk",

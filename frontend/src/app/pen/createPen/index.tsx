@@ -1,8 +1,13 @@
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import { rMS, rMV, rV } from '@/styles/responsive';
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
+import React, {
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from '@react-navigation/native';
 import styles from './styles';
 import {
   Platform,
@@ -12,13 +17,15 @@ import {
   StyleSheet,
   ImageBackground,
   Dimensions,
-  Alert,
   BackHandler,
+  Alert,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 const { width } = Dimensions.get('window');
@@ -56,8 +63,7 @@ type FormDataError = {
   type_of_object_ids: string | null;
 };
 
-const EditAttribute: React.FC = () => {
-  const { attributeId }: { attributeId: string } = useLocalSearchParams();
+const CreateAttribute: React.FC = () => {
   const {
     validateRangeOrGranularity,
     validateCategoricalValue,
@@ -70,33 +76,39 @@ const EditAttribute: React.FC = () => {
     defaultValue: null,
     type_of_object_ids: null,
   });
+  const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
-  const {
-    variablesLoading,
-    resetDetail,
-    getVariableById,
-    variableById,
-    onUpdate,
-  } = useVariableStore((state: any) => ({
-    variablesLoading: state.variablesLoading,
-    resetDetail: state.resetDetail,
-    getVariableById: state.getVariableById,
-    variableById: state.variableById,
-    onUpdate: state.onUpdate,
-  }));
+  const { createVariable, variablesLoading } = useVariableStore(
+    (state: any) => ({
+      createVariable: state.createVariable,
+      variablesLoading: state.variablesLoading,
+    })
+  );
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [itemsValue, setItemsValue] = useState<number[] | undefined>(undefined);
-  const [categoricalValue, setCategoricalValue] = useState<string | null>();
+  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
+  const [categoricalValue, setCategoricalValue] = useState<string[] | null>(
+    null
+  );
   const [items, setItems] = useState<Item[]>([]);
+  console.log('items', itemsValue);
+
   const [formData, setFormData] = useState<FormData>({
-    name: variableById?.name ?? null,
-    type: variableById?.type ?? null,
-    defaultValue: variableById?.defaultValue ?? null,
-    type_of_object_ids: variableById?.type_of_object_ids ?? null,
+    name: null,
+    type: null,
+    defaultValue: {
+      value: {
+        min: 0,
+        max: 0,
+        optimal_min: 0,
+        optimal_max: 0,
+        granularity: 0,
+      },
+    },
+    type_of_object_ids: null,
   });
 
   const validateForm = () => {
@@ -129,7 +141,6 @@ const EditAttribute: React.FC = () => {
   };
 
   useEffect(() => {
-    getVariableById(attributeId);
     if (items.length === 0 && typeOfObjects) {
       typeOfObjects.map((type: any) => {
         setItems((prev) => [
@@ -141,29 +152,33 @@ const EditAttribute: React.FC = () => {
         ]);
       });
     }
-
-    return () => resetDetail();
-  }, [attributeId]);
-
-  useEffect(() => {
-    if (variableById) {
-      setFormData({
-        name: variableById.name ?? null,
-        type: variableById.type ?? null,
-        defaultValue: variableById.defaultValue ?? null,
-        type_of_object_ids: variableById.type_of_object_ids ?? null,
-      });
-      setItemsValue(
-        variableById.type_of_objects.map(
-          (item: { id: number; name: string }) => item.id
-        )
-      );
-    }
-  }, [variableById]);
+  }, []);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     const updatedFormData = { ...formData, [field]: inputValue };
     switch (field) {
+      case 'type':
+        updatedFormData.defaultValue = null;
+        if (inputValue === 'NUMBER') {
+          updatedFormData.defaultValue = {
+            value: {
+              min: '',
+              max: '',
+              optimal_min: '',
+              optimal_max: '',
+              granularity: '',
+            },
+          };
+        } else if (inputValue === 'CATEGORICAL') {
+          updatedFormData.defaultValue = {
+            value: [],
+          };
+        }
+        setError({
+          ...error,
+          defaultValue: null,
+        });
+        break;
       case 'type_of_object_ids':
         setError((prevError) => ({
           ...prevError,
@@ -287,8 +302,8 @@ const EditAttribute: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm()) {
       try {
-        await onUpdate(attributeId, formData);
-        alert(t('attributeView.formUpdateOkText'));
+        await createVariable(formData);
+        alert(t('attributeView.formOkText'));
         setFormData({
           name: null,
           type: null,
@@ -378,7 +393,7 @@ const EditAttribute: React.FC = () => {
       {/* header */}
       <View style={{ flex: 1, width: '100%', height: 900 }}>
         <ImageBackground
-          source={require('../../../../../assets/images/objects-bg-image.png')}
+          source={require('../../../../assets/images/penAndReport-bg-image.png')}
           style={{ height: rV(174), width: '100%', zIndex: 0 }}
           resizeMode="cover"
         >
@@ -401,7 +416,7 @@ const EditAttribute: React.FC = () => {
             </View>
             <View>
               <Text style={styles.welcome}>
-                {t('attributeView.editAttributeTextTitle')}
+                {t('penView.createPenTextTitle')}
               </Text>
             </View>
           </View>
@@ -429,11 +444,7 @@ const EditAttribute: React.FC = () => {
               fontFamily: 'Pro-Regular',
             }}
           >
-            {formData?.type !== null
-              ? `${t('attributeView.createAttributeText')} ${t(
-                  `attributeView.${formData?.type}`
-                )}`
-              : t('attributeView.createAttributeText')}
+            {t('penView.createPenTextDetail')}
           </Text>
           {/* contenido scroll  */}
           <View style={styles.spacer}>
@@ -451,8 +462,7 @@ const EditAttribute: React.FC = () => {
                 <TextInput
                   mode="outlined"
                   placeholderTextColor="#292929"
-                  placeholder={t('attributeView.createPlaceHolderName')}
-                  value={formData.name ?? ''}
+                  placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
                   autoCapitalize="words"
                   activeOutlineColor="transparent"
@@ -465,7 +475,7 @@ const EditAttribute: React.FC = () => {
                   <Text style={styles.errorText}>{error?.name}</Text>
                 )}
                 <DropDownPicker
-                  placeholder={t('attributeView.createPlaceHolderTypeOfObject')}
+                  placeholder={t('penView.penObjectsPlaceHolder')}
                   placeholderStyle={{
                     fontSize: width * 0.04,
                     fontFamily: 'Pro-Regular',
@@ -517,241 +527,41 @@ const EditAttribute: React.FC = () => {
                     {error?.type_of_object_ids}
                   </Text>
                 )}
-                {/* diferenciacion de formularios */}
-                {formData?.type !== null && formData?.type === 'NUMBER' ? (
-                  <>
-                    <View style={[styles.input, styles.inputContainerNumber]}>
-                      <Text style={styles.textDefaultValues}>
-                        {t('attributeView.createPlaceHolderDefaultValues')}
-                      </Text>
-                      <View style={styles.row}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMinValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (
-                              formData?.defaultValue?.value as NumericValue
-                            )?.min?.toString() ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'min')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMaxValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (
-                              formData?.defaultValue?.value as NumericValue
-                            )?.max?.toString() ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'max')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                      </View>
-                      {error?.defaultValue?.minMax && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.minMax}
-                        </Text>
-                      )}
-                      <Text style={styles.textOptimalValues}>
-                        {t('attributeView.createPlaceHolderOptimalValues')}
-                      </Text>
-                      <View style={styles.row}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMinValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (
-                              formData?.defaultValue?.value as NumericValue
-                            )?.optimal_min?.toString() ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'optimal_min')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMaxValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (
-                              formData?.defaultValue?.value as NumericValue
-                            )?.optimal_max?.toString() ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'optimal_max')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                      </View>
-                      {error?.defaultValue?.optimalMinMax && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.optimalMinMax}
-                        </Text>
-                      )}
-                      <Text style={styles.textGranularity}>
-                        {t('attributeView.createTextGranularity')}
-                      </Text>
-                      <View style={styles.row}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderGranularity'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (
-                              formData?.defaultValue?.value as NumericValue
-                            )?.granularity?.toString() ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'granularity')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                      </View>
-                      {error?.defaultValue?.granularity && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.granularity}
-                        </Text>
-                      )}
-                    </View>
-                  </>
-                ) : formData?.type !== null &&
-                  formData?.type === 'CATEGORICAL' ? (
-                  <>
-                    <View
-                      style={[styles.input, styles.inputContainerCategorical]}
-                    >
-                      <Text style={styles.textDefaultValues}>
-                        {t('attributeView.createPlaceHolderDefaultValues')}
-                      </Text>
-                      <View style={styles.rowCategorical}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderExampleDefaultValues'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          value={categoricalValue ?? ''}
-                          onChangeText={(value) => setCategoricalValue(value)}
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <Pressable
-                          onPress={() => {
-                            onChangeDefaultValue(categoricalValue, '');
-                            setCategoricalValue(null);
-                          }}
-                          style={styles.pressableButton}
-                        >
-                          <Text style={styles.pressableButtonText}>+</Text>
-                        </Pressable>
-                      </View>
-                      {error?.defaultValue?.categoricalEmpty && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.categoricalEmpty}
-                        </Text>
-                      )}
-                    </View>
 
-                    {formData.defaultValue?.value &&
-                      Array.isArray(formData.defaultValue.value) &&
-                      formData.defaultValue?.value.length > 0 && (
-                        <View
-                          style={[styles.input, styles.definedValuesContainer]}
-                        >
-                          <Text style={styles.definedValuesText}>
-                            {t('attributeView.createTextDefinedValues')}
-                          </Text>
-                          <View style={styles.definedValuesRow}>
-                            {formData.defaultValue.value.length > 0 &&
-                              formData.defaultValue.value.map((item, index) => (
-                                <Pressable
-                                  key={index}
-                                  onPress={() =>
-                                    onChangeDefaultValue(item, 'delete')
-                                  }
-                                >
-                                  <View style={styles.definedValueItem}>
-                                    <Text style={styles.definedValueText}>
-                                      {item}
-                                    </Text>
-                                    <View
-                                      style={styles.definedValueSeparator}
-                                    />
-                                    <Text style={styles.definedValueDeleteText}>
-                                      x
-                                    </Text>
-                                  </View>
-                                </Pressable>
-                              ))}
-                          </View>
-                          {error?.defaultValue?.categorical && (
-                            <Text style={styles.errorText}>
-                              {error?.defaultValue?.categorical}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                  </>
-                ) : null}
+                {true && (
+                  <View style={[styles.input, styles.definedValuesContainer]}>
+                    <Text style={styles.definedValuesText}>
+                      {t('penView.penObjectSelectsPlaceHolder')}
+                    </Text>
+
+                    <View style={styles.definedValuesRow}>
+                      {Array.isArray(itemsValue) &&
+                        itemsValue.length > 0 &&
+                        itemsValue.map((item: string, index: number) => (
+                          <Pressable
+                            key={index}
+                            onPress={() => console.log('touch')}
+                          >
+                            <View style={styles.definedValueItem}>
+                              <Text style={styles.definedValueText}>
+                                {item}
+                              </Text>
+
+                              <View style={styles.definedValueSeparator} />
+                              <Text style={styles.definedValueDeleteText}>
+                                x
+                              </Text>
+                            </View>
+                          </Pressable>
+                        ))}
+                    </View>
+                    {error?.defaultValue?.categorical && (
+                      <Text style={styles.errorText}>
+                        {error?.defaultValue?.categorical}
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
             </KeyboardAwareScrollView>
           </View>
@@ -759,7 +569,7 @@ const EditAttribute: React.FC = () => {
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>
               <Text style={styles.buttonText}>
-                {t('attributeView.updateVariableTextButton')}
+                {t('penView.createPenTextButton')}
               </Text>
             </Pressable>
           </View>
@@ -769,4 +579,4 @@ const EditAttribute: React.FC = () => {
   );
 };
 
-export default EditAttribute;
+export default CreateAttribute;

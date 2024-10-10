@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
-import { useEffect } from 'react';
+import { Fragment, useEffect } from 'react';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 
 export default function HomeScreen() {
@@ -109,15 +109,31 @@ export default function HomeScreen() {
             onPress={() => router.push('/createField')}
             size={rS(24)}
           />
+          <IconButton
+            style={[styles.floatingButton, { left: 15 }]}
+            icon="plus"
+            iconColor="#FFF"
+            onPress={() => router.push('/pen')}
+            size={rS(24)}
+          />
         </SafeAreaView>
       ) : (
-        <IconButton
-          style={styles.floatingButton}
-          icon="plus"
-          iconColor="#FFF"
-          onPress={() => router.push('/createField')}
-          size={rS(24)}
-        />
+        <Fragment>
+          <IconButton
+            style={styles.floatingButton}
+            icon="plus"
+            iconColor="#FFF"
+            onPress={() => router.push('/createField')}
+            size={rS(24)}
+          />
+          <IconButton
+            style={[styles.floatingButton, { left: 15 }]}
+            icon="plus"
+            iconColor="#FFF"
+            onPress={() => router.push('/pen')}
+            size={rS(24)}
+          />
+        </Fragment>
       )}
       {/* header */}
       <ImageBackground
