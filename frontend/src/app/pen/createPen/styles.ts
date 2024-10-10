@@ -10,7 +10,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   spacer: {
-    height: height < 700 ? '66%' : '70%',
+    // flex: 1,
+    height: '64%',
   },
   greeting: {
     color: '#fff',
@@ -232,6 +233,8 @@ const styles = StyleSheet.create({
   },
   definedValuesContainer: {
     height: 'auto',
+    paddingHorizontal: rMS(14),
+    paddingVertical: rMS(10),
     justifyContent: 'flex-start',
   },
   definedValuesText: {

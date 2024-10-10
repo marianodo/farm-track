@@ -89,7 +89,7 @@ const CreateAttribute: React.FC = () => {
   );
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [itemsValue, setItemsValue] = useState<string | undefined>();
+  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
   const [categoricalValue, setCategoricalValue] = useState<string[] | null>(
     null
   );
@@ -530,79 +530,27 @@ const CreateAttribute: React.FC = () => {
 
                 {true && (
                   <View style={[styles.input, styles.definedValuesContainer]}>
-                    <Pressable
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingHorizontal: rMS(14),
-                        paddingTop: rMS(4),
-                        marginBottom: rMS(4),
-                        width: '100%',
-                      }}
-                      onPress={() => {
-                        if (itemsValue && itemsValue.length > 0) {
-                          console.log('touch edit');
-                          setEditObjects(
-                            (prevEditObjects: boolean) => !prevEditObjects
-                          );
-                        }
-                      }}
-                    >
-                      <Text style={styles.definedValuesText}>
-                        {t('penView.penObjectSelectsPlaceHolder')}
-                      </Text>
-                      <IconButton
-                        style={{
-                          borderRadius: 0,
-                          width: 22,
-                          height: 22,
-                        }}
-                        icon={editObjects ? 'pencil' : 'pencil-outline'}
-                        iconColor="#486732"
-                        size={rMS(20)}
-                      />
-                    </Pressable>
-                    <View
-                      style={[
-                        styles.definedValuesRow,
-                        { paddingHorizontal: rMS(14) },
-                      ]}
-                    >
-                      {itemsValue &&
+                    <Text style={styles.definedValuesText}>
+                      {t('penView.penObjectSelectsPlaceHolder')}
+                    </Text>
+
+                    <View style={styles.definedValuesRow}>
+                      {Array.isArray(itemsValue) &&
                         itemsValue.length > 0 &&
-                        itemsValue?.map((item, index) => (
+                        itemsValue.map((item: string, index: number) => (
                           <Pressable
                             key={index}
                             onPress={() => console.log('touch')}
                           >
-                            <View
-                              style={
-                                editObjects
-                                  ? [
-                                      styles.definedValueItem,
-                                      {
-                                        borderStyle: 'dashed',
-                                        borderWidth: 1.2,
-                                        minWidth: rMS(60),
-                                        justifyContent: 'center',
-                                      },
-                                    ]
-                                  : styles.definedValueItem
-                              }
-                            >
+                            <View style={styles.definedValueItem}>
                               <Text style={styles.definedValueText}>
                                 {item}
                               </Text>
-                              {!editObjects && (
-                                <Fragment>
-                                  <View style={styles.definedValueSeparator} />
-                                  <Text style={styles.definedValueDeleteText}>
-                                    x
-                                  </Text>
-                                </Fragment>
-                              )}
+
+                              <View style={styles.definedValueSeparator} />
+                              <Text style={styles.definedValueDeleteText}>
+                                x
+                              </Text>
                             </View>
                           </Pressable>
                         ))}
