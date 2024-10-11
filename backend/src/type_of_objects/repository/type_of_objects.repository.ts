@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -9,6 +8,7 @@ import { Prisma, TypeOfObject } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
+import prismaMiddleware from 'prisma/prisma.extensions';
 
 @Injectable()
 export class TypeOfObjectsRepository {
@@ -162,7 +162,7 @@ export class TypeOfObjectsRepository {
 
   async remove(id: number): Promise<TypeOfObject> {
     try {
-      return await this.db.typeOfObject.delete({
+      return await prismaMiddleware.typeOfObject.delete({
         where: { id },
       });
     } catch (error) {

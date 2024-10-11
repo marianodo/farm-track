@@ -49,6 +49,7 @@ model Field {
   number_of_animals Int?
   userId            String
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pens              Pen[]
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
@@ -61,12 +62,34 @@ model Variable {
   type              VariableType
   defaultValue      Json
   type_of_objects    TypeOfObject_Variable[]
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
 }
-
 model TypeOfObject {
   id                Int   @id @default(autoincrement())
   name              String @unique
   variables         TypeOfObject_Variable[]
+  pens              PenTypeOfObject[]
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
+}
+model Pen {
+  id        Int    @id @default(autoincrement())
+  name      String
+  fieldId   String
+  field     Field  @relation(fields: [fieldId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  type_of_objects     PenTypeOfObject[]
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
+
+  @@unique([name, fieldId])
+
+}
+
+model PenTypeOfObject {
+  penId             Int
+  typeOfObjectId    Int
+  pen               Pen                @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  type_of_object      TypeOfObject       @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([penId, typeOfObjectId])
 }
 
 model TypeOfObject_Variable {
@@ -76,4 +99,16 @@ model TypeOfObject_Variable {
   variable_id     Int
 
   @@id([type_of_object_id, variable_id])
+}
+
+model PenVariableTypeOfObject {
+  penId             Int
+  variableId        Int
+  typeOfObjectId    Int
+  custom_parameters Json
+  pen               Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  variable          Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  type_of_object    TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([penId, variableId, typeOfObjectId])
 }
