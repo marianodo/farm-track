@@ -103,9 +103,14 @@ export class PenRepository {
     }
   }
 
-  async findAll(withFieldsBool: boolean, withObjectsBool: boolean) {
+  async findAllByFieldId(
+    fieldId: string,
+    withFieldsBool: boolean,
+    withObjectsBool: boolean,
+  ) {
     try {
       const pensFound = await this.db.pen.findMany({
+        where: { fieldId },
         include: {
           field: withFieldsBool,
           type_of_objects: withObjectsBool
@@ -122,6 +127,9 @@ export class PenRepository {
             : false,
         },
       });
+      if (!pensFound.length) {
+        throw new NotFoundException(`No pens found with fieldId ${fieldId}`);
+      }
       return pensFound.map((pen) => ({
         ...pen,
         type_of_objects:
@@ -131,7 +139,12 @@ export class PenRepository {
           })) || [],
       }));
     } catch (error) {
-      throw new Error(`Failed to find pens: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to find pens by fieldId ${fieldId}: ${error.message}`,
+      );
     }
   }
 

@@ -28,16 +28,21 @@ export class PenController {
     }
   }
 
-  @Get()
+  @Get(':fieldId')
   @HttpCode(HttpStatus.OK)
   async findAll(
+    @Param('fieldId') fieldId: string,
     @Query('withFields') withFields: string,
     @Query('withObjects') withObjects: string,
   ) {
     try {
       const withFieldsBool = withFields === 'false' ? false : true;
       const withObjectsBool = withObjects === 'false' ? false : true;
-      return await this.penService.findAll(withFieldsBool, withObjectsBool);
+      return await this.penService.findAllByFieldId(
+        fieldId,
+        withFieldsBool,
+        withObjectsBool,
+      );
     } catch (error) {
       throw error;
     }
