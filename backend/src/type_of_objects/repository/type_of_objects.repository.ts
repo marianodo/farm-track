@@ -9,10 +9,14 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import prismaMiddleware from 'prisma/prisma.extensions';
+import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
 
 @Injectable()
 export class TypeOfObjectsRepository {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly penVariableTypeOfObjectRepository: PenVariableTypeOfObjectRepository,
+  ) {}
 
   async create(createTypeOfObjectDto: CreateTypeOfObjectDto) {
     try {
@@ -162,17 +166,32 @@ export class TypeOfObjectsRepository {
 
   async remove(id: number): Promise<TypeOfObject> {
     try {
+      // Verificar si el ID está asociado en el modelo de PenVariableTypeOfObject
+      const penVariableTypeOfObject =
+        await this.penVariableTypeOfObjectRepository.findByTypeOfObjectId(
+          id,
+          false,
+        );
+      if (penVariableTypeOfObject.length > 0) {
+        throw new ConflictException(
+          `Type_of_object with ID ${id} is associated with many tables and cannot be deleted.`,
+        );
+      }
+
       return await prismaMiddleware.typeOfObject.delete({
         where: { id },
       });
     } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2025') {
           throw new NotFoundException(`Type_of_object with ID ${id} not found`);
         }
       }
       throw new InternalServerErrorException(
-        'An unexpected error occurred while updating the type_of_object.',
+        'An unexpected error occurred while deleting the type_of_object.',
       );
     }
   }
