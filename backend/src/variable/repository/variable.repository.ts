@@ -9,6 +9,7 @@ import { Prisma, Variable } from '@prisma/client';
 import { CreateVariableDto } from '../dto/create-variable.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateVariableDto } from '../dto/update-variable.dto';
+import prismaMiddleware from 'prisma/prisma.extensions';
 
 @Injectable()
 export class VariableRepository {
@@ -17,18 +18,16 @@ export class VariableRepository {
   async create(createVariableDto: CreateVariableDto) {
     const { type_of_object_ids, ...variableData } = createVariableDto;
     try {
-      const newVariable = await this.db.variable.create({
+      const newVariable = await prismaMiddleware.variable.create({
         data: {
           ...variableData,
-          type_of_objects: createVariableDto.type_of_object_ids?.length
+          type_of_objects: type_of_object_ids?.length
             ? {
-                create: createVariableDto.type_of_object_ids.map(
-                  (typeOfObjectId) => ({
-                    type_of_object: {
-                      connect: { id: typeOfObjectId },
-                    },
-                  }),
-                ),
+                create: type_of_object_ids.map((typeOfObjectId) => ({
+                  type_of_object: {
+                    connect: { id: typeOfObjectId },
+                  },
+                })),
               }
             : null,
         },
@@ -52,7 +51,7 @@ export class VariableRepository {
           );
         }
       }
-
+      console.log('ERROR:', error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating the variable.',
       );
@@ -84,6 +83,11 @@ export class VariableRepository {
           },
         },
       });
+      if (!variablesFound.length) {
+        throw new NotFoundException(
+          `No variables found for TypeOfObject with ID ${type_of_object_id}`,
+        );
+      }
       return variablesFound.map((variable) => ({
         ...variable,
         type_of_objects: variable.type_of_objects.map((obj) => ({
@@ -92,6 +96,9 @@ export class VariableRepository {
         })),
       }));
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException(
         'An unexpected error occurred while retrieving variable.',
       );

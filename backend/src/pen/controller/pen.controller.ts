@@ -28,7 +28,7 @@ export class PenController {
     }
   }
 
-  @Get(':fieldId')
+  @Get('byField/:fieldId')
   @HttpCode(HttpStatus.OK)
   async findAll(
     @Param('fieldId') fieldId: string,
