@@ -6,49 +6,114 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { PenVariableTypeOfObjectService } from '../service/pen_variable_type-of-object.service';
 import { CreatePenVariableTypeOfObjectDto } from '../dto/create-pen_variable_type-of-object.dto';
 import { UpdatePenVariableTypeOfObjectDto } from '../dto/update-pen_variable_type-of-object.dto';
 
-@Controller('pen-variable-type-of-object')
+@Controller('pens-variables-type-of-objects')
 export class PenVariableTypeOfObjectController {
   constructor(
     private readonly penVariableTypeOfObjectService: PenVariableTypeOfObjectService,
   ) {}
 
+  @HttpCode(HttpStatus.CREATED)
   @Post()
-  create(
+  async create(
     @Body() createPenVariableTypeOfObjectDto: CreatePenVariableTypeOfObjectDto,
   ) {
-    return this.penVariableTypeOfObjectService.create(
-      createPenVariableTypeOfObjectDto,
-    );
+    try {
+      return await this.penVariableTypeOfObjectService.create(
+        createPenVariableTypeOfObjectDto,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 
+  @HttpCode(HttpStatus.OK)
   @Get()
-  findAll() {
-    return this.penVariableTypeOfObjectService.findAll();
+  async findAll() {
+    try {
+      return await this.penVariableTypeOfObjectService.findAll();
+    } catch (error) {
+      throw error;
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.penVariableTypeOfObjectService.findOne(+id);
+  @HttpCode(HttpStatus.OK)
+  @Get(':penId/:variableId/:typeOfObjectId')
+  async findOne(
+    @Param('penId') penId: string,
+    @Param('variableId') variableId: string,
+    @Param('typeOfObjectId') typeOfObjectId: string,
+  ) {
+    try {
+      return await this.penVariableTypeOfObjectService.findOne(
+        +penId,
+        +variableId,
+        +typeOfObjectId,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
+  @HttpCode(HttpStatus.OK)
+  @Patch(':penId/:variableId/:typeOfObjectId')
+  async update(
+    @Param('penId') penId: string,
+    @Param('variableId') variableId: string,
+    @Param('typeOfObjectId') typeOfObjectId: string,
     @Body() updatePenVariableTypeOfObjectDto: UpdatePenVariableTypeOfObjectDto,
   ) {
-    return this.penVariableTypeOfObjectService.update(
-      +id,
-      updatePenVariableTypeOfObjectDto,
-    );
+    try {
+      return await this.penVariableTypeOfObjectService.update(
+        +penId,
+        +variableId,
+        +typeOfObjectId,
+        updatePenVariableTypeOfObjectDto,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.penVariableTypeOfObjectService.remove(+id);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':penId/:variableId/:typeOfObjectId')
+  async remove(
+    @Param('penId') penId: string,
+    @Param('variableId') variableId: string,
+    @Param('typeOfObjectId') typeOfObjectId: string,
+  ) {
+    try {
+      return await this.penVariableTypeOfObjectService.remove(
+        +penId,
+        +variableId,
+        +typeOfObjectId,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('type-of-object/:typeOfObjectId')
+  async findByTypeOfObjectId(
+    @Param('typeOfObjectId') typeOfObjectId: string,
+    @Query('withVariable') withVariable: string,
+  ) {
+    try {
+      const withVariableBool = withVariable === 'false' ? false : true;
+      return await this.penVariableTypeOfObjectService.findByTypeOfObjectId(
+        +typeOfObjectId,
+        withVariableBool,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 }

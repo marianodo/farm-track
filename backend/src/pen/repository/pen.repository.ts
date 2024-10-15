@@ -8,11 +8,16 @@ import {
 import { CreatePenDto } from '../dto/create-pen.dto';
 import { UpdatePenDto } from '../dto/update-pen.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+
 import { Prisma } from '@prisma/client';
+import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
 
 @Injectable()
 export class PenRepository {
-  constructor(private readonly db: PrismaService) {}
+  constructor(
+    private readonly db: PrismaService,
+    private readonly penVariableTypeOfObjectRepository: PenVariableTypeOfObjectRepository,
+  ) {}
 
   async create(createPenDto: CreatePenDto) {
     const { type_of_object_ids, ...penData } = createPenDto;
@@ -38,8 +43,28 @@ export class PenRepository {
         return newPen;
       });
 
+      for (const typeOfObjectId of type_of_object_ids) {
+        // Obtener las variables asociadas a typeOfObjectId
+        const variables = await this.db.typeOfObject_Variable.findMany({
+          where: { type_of_object_id: typeOfObjectId },
+          include: { variable: true },
+        });
+        console.log('VARIABLES', variables);
+
+        // Crear las entradas en pen_variable_type-of-objects
+        for (const { variable } of variables) {
+          console.log('IDDDDDDDDDDD', variable.id);
+          await this.penVariableTypeOfObjectRepository.create({
+            penId: result.id,
+            variableId: variable.id,
+            typeOfObjectId: typeOfObjectId,
+            custom_parameters: variable.defaultValue,
+          });
+        }
+      }
       return result;
     } catch (error) {
+      console.log('error:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         // Manejar error de unicidad (código P2002)
         if (error.code === 'P2002') {
@@ -78,9 +103,14 @@ export class PenRepository {
     }
   }
 
-  async findAll(withFieldsBool: boolean, withObjectsBool: boolean) {
+  async findAllByFieldId(
+    fieldId: string,
+    withFieldsBool: boolean,
+    withObjectsBool: boolean,
+  ) {
     try {
       const pensFound = await this.db.pen.findMany({
+        where: { fieldId },
         include: {
           field: withFieldsBool,
           type_of_objects: withObjectsBool
@@ -97,6 +127,9 @@ export class PenRepository {
             : false,
         },
       });
+      if (!pensFound.length) {
+        throw new NotFoundException(`No pens found with fieldId ${fieldId}`);
+      }
       return pensFound.map((pen) => ({
         ...pen,
         type_of_objects:
@@ -106,7 +139,12 @@ export class PenRepository {
           })) || [],
       }));
     } catch (error) {
-      throw new Error(`Failed to find pens: ${error.message}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new Error(
+        `Failed to find pens by fieldId ${fieldId}: ${error.message}`,
+      );
     }
   }
 
@@ -157,6 +195,14 @@ export class PenRepository {
     const { type_of_object_ids, ...updateData } = updatePenDto;
     try {
       const result = await this.db.$transaction(async (prisma) => {
+        // Obtener las relaciones anteriores
+        const previousTypeOfObjects = await prisma.penTypeOfObject.findMany({
+          where: { penId: id },
+          select: { typeOfObjectId: true },
+        });
+
+        // console.log('Previous Type Of Objects:', previousTypeOfObjects);
+
         // Actualizar el Pen
         const updatedPen = await prisma.pen.update({
           where: { id },
@@ -165,19 +211,87 @@ export class PenRepository {
           },
         });
 
-        // Borrar relaciones anteriores
-        await prisma.penTypeOfObject.deleteMany({
-          where: { penId: id },
-        });
+        // Obtener los type_of_object_ids que no estan en la lista actualizada
+        const typeOfObjectsToDelete = previousTypeOfObjects
+          .map((obj) => obj.typeOfObjectId)
+          .filter((id) => !type_of_object_ids.includes(id));
 
-        // Crear las nuevas asociaciones de type_of_objects si existen
-        if (type_of_object_ids?.length) {
-          await prisma.penTypeOfObject.createMany({
-            data: type_of_object_ids.map((typeOfObjectId) => ({
+        // console.log('Type Of Objects Delete:', typeOfObjectsToDelete);
+
+        // Borrar los registros en pen_variable_type-of-objects para los type_of_object_ids eliminados
+        for (const typeOfObjectId of typeOfObjectsToDelete) {
+          await this.penVariableTypeOfObjectRepository.deleteByPenIdAndTypeOfObjectId(
+            id,
+            typeOfObjectId,
+          );
+          await this.db.penTypeOfObject.deleteMany({
+            where: {
               penId: id,
               typeOfObjectId: typeOfObjectId,
-            })),
+            },
           });
+        }
+        //verficiar si hay type_of_object_ids para agregar
+        if (type_of_object_ids?.length) {
+          // console.log('Type Of Object IDs:', type_of_object_ids);
+          // console.log('Previous Type Of Objects:', previousTypeOfObjects);
+
+          // Obtener los type_of_object_ids que se agregaron
+          const typeOfObjectsToAdd = type_of_object_ids.filter(
+            (typeOfObjectId) => {
+              const exists = previousTypeOfObjects.some(
+                (obj) => obj.typeOfObjectId === typeOfObjectId,
+              );
+              console.log(
+                `Checking if ${typeOfObjectId} exists in previousTypeOfObjects:`,
+                exists,
+              );
+              return !exists;
+            },
+          );
+
+          // console.log('Type Of Objects Add:', typeOfObjectsToAdd);
+          if (typeOfObjectsToAdd.length > 0) {
+            // Crear nuevos registros en pen_variable_type-of-objects para los type_of_object_ids agregados
+            for (const typeOfObjectId of typeOfObjectsToAdd) {
+              // Crear la asociación en penTypeOfObject
+              await this.db.penTypeOfObject.create({
+                data: {
+                  penId: id,
+                  typeOfObjectId: typeOfObjectId,
+                },
+              });
+
+              // Obtener las variables asociadas a typeOfObjectId
+              const variables = await this.db.typeOfObject_Variable.findMany({
+                where: { type_of_object_id: typeOfObjectId },
+                include: { variable: true },
+              });
+
+              for (const { variable } of variables) {
+                // verificar si el registro existe
+                const existingEntry =
+                  await this.db.penVariableTypeOfObject.findUnique({
+                    where: {
+                      penId_variableId_typeOfObjectId: {
+                        penId: id,
+                        variableId: variable.id,
+                        typeOfObjectId: typeOfObjectId,
+                      },
+                    },
+                  });
+
+                if (!existingEntry) {
+                  await this.penVariableTypeOfObjectRepository.create({
+                    penId: id,
+                    variableId: variable.id,
+                    typeOfObjectId: typeOfObjectId,
+                    custom_parameters: variable.defaultValue,
+                  });
+                }
+              }
+            }
+          }
         }
 
         return updatedPen;
@@ -205,6 +319,7 @@ export class PenRepository {
           );
         }
       }
+      console.log('ERROR:', error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while updating the variable.',
       );

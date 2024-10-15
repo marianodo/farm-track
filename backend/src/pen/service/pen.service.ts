@@ -15,9 +15,17 @@ export class PenService {
     }
   }
 
-  async findAll(withFieldsBool: boolean, withObjectsBool: boolean) {
+  async findAllByFieldId(
+    fieldId: string,
+    withFieldsBool: boolean,
+    withObjectsBool: boolean,
+  ) {
     try {
-      return await this.penRepository.findAll(withFieldsBool, withObjectsBool);
+      return await this.penRepository.findAllByFieldId(
+        fieldId,
+        withFieldsBool,
+        withObjectsBool,
+      );
     } catch (error) {
       throw error;
     }

@@ -9,6 +9,7 @@ import { Prisma, Variable } from '@prisma/client';
 import { CreateVariableDto } from '../dto/create-variable.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateVariableDto } from '../dto/update-variable.dto';
+import prismaMiddleware from 'prisma/prisma.extensions';
 
 @Injectable()
 export class VariableRepository {
@@ -17,22 +18,38 @@ export class VariableRepository {
   async create(createVariableDto: CreateVariableDto) {
     const { type_of_object_ids, ...variableData } = createVariableDto;
     try {
-      const newVariable = await this.db.variable.create({
+      const newVariable = await prismaMiddleware.variable.create({
         data: {
           ...variableData,
-          type_of_objects: createVariableDto.type_of_object_ids?.length
+          type_of_objects: type_of_object_ids?.length
             ? {
-                create: createVariableDto.type_of_object_ids.map(
-                  (typeOfObjectId) => ({
-                    type_of_object: {
-                      connect: { id: typeOfObjectId },
-                    },
-                  }),
-                ),
+                create: type_of_object_ids.map((typeOfObjectId) => ({
+                  type_of_object: {
+                    connect: { id: typeOfObjectId },
+                  },
+                })),
               }
             : null,
         },
       });
+
+      if (newVariable) {
+        const uniqueCombinations =
+          await this.findUniqueCombinations(type_of_object_ids);
+        console.log('Unique Combinations:', uniqueCombinations);
+
+        for (const combination of uniqueCombinations) {
+          await this.db.penVariableTypeOfObject.create({
+            data: {
+              penId: combination.penId,
+              variableId: newVariable.id,
+              typeOfObjectId: combination.type_of_object_id,
+              custom_parameters: newVariable.defaultValue,
+            },
+          });
+        }
+      }
+
       return newVariable;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -52,7 +69,7 @@ export class VariableRepository {
           );
         }
       }
-
+      console.log('ERROR:', error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating the variable.',
       );
@@ -84,6 +101,11 @@ export class VariableRepository {
           },
         },
       });
+      if (!variablesFound.length) {
+        throw new NotFoundException(
+          `No variables found for TypeOfObject with ID ${type_of_object_id}`,
+        );
+      }
       return variablesFound.map((variable) => ({
         ...variable,
         type_of_objects: variable.type_of_objects.map((obj) => ({
@@ -92,8 +114,51 @@ export class VariableRepository {
         })),
       }));
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new InternalServerErrorException(
         'An unexpected error occurred while retrieving variable.',
+      );
+    }
+  }
+
+  async findUniqueCombinations(
+    typeOfObjectIds: number[],
+  ): Promise<{ type_of_object_id: number; penId: number }[]> {
+    //crear set para almacenar los valores unicos
+    const uniqueCombinations = new Set<string>();
+    const result = [];
+    try {
+      for (const typeId of typeOfObjectIds) {
+        const records = await this.db.penVariableTypeOfObject.findMany({
+          where: {
+            typeOfObjectId: typeId,
+          },
+
+          select: {
+            typeOfObjectId: true,
+            penId: true,
+          },
+        });
+        //recorrer los registros y agregarlos a result
+        for (const record of records) {
+          const combinationKey = `${record.typeOfObjectId}-${record.penId}`;
+          if (!uniqueCombinations.has(combinationKey)) {
+            uniqueCombinations.add(combinationKey);
+            result.push({
+              type_of_object_id: record.typeOfObjectId,
+              penId: record.penId,
+            });
+          }
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('ERROR:', error);
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving unique combinations.',
       );
     }
   }
@@ -221,6 +286,12 @@ export class VariableRepository {
 
   async remove(id: number): Promise<Variable> {
     try {
+      // borrar las asociociones en la tabla intermedia Pen_Variable_TypeOfObject
+      await this.db.penVariableTypeOfObject.deleteMany({
+        where: { variableId: id },
+      });
+
+      // Delete the variable
       return await this.db.variable.delete({
         where: { id },
       });
@@ -231,7 +302,7 @@ export class VariableRepository {
         }
       }
       throw new InternalServerErrorException(
-        'An unexpected error occurred while remove the variable.',
+        'An unexpected error occurred while removing the variable.',
       );
     }
   }

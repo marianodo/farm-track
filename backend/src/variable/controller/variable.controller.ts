@@ -28,6 +28,23 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Get('uniqueCombinations')
+  async findUniqueCombinations(
+    @Body('typeOfObjectIds') typeOfObjectIds: number[],
+  ) {
+    try {
+      console.log('Controller - typeOfObjectIds:', typeOfObjectIds);
+      const result =
+        await this.variableService.findUniqueCombinations(typeOfObjectIds);
+      console.log('Controller - result:', result);
+      return result;
+    } catch (error) {
+      console.error('Controller - ERROR:', error);
+      throw error;
+    }
+  }
+
+  @HttpCode(HttpStatus.OK)
   @Get()
   async findAll() {
     try {
