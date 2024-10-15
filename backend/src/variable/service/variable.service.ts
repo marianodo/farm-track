@@ -53,4 +53,16 @@ export class VariableService {
       throw error;
     }
   }
+
+  async findUniqueCombinations(
+    typeOfObjectIds: number[],
+  ): Promise<{ type_of_object_id: number; penId: number }[]> {
+    try {
+      return await this.variableRepository.findUniqueCombinations(
+        typeOfObjectIds,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 }

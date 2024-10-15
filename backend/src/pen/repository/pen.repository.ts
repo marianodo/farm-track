@@ -201,6 +201,8 @@ export class PenRepository {
           select: { typeOfObjectId: true },
         });
 
+        // console.log('Previous Type Of Objects:', previousTypeOfObjects);
+
         // Actualizar el Pen
         const updatedPen = await prisma.pen.update({
           where: { id },
@@ -209,60 +211,86 @@ export class PenRepository {
           },
         });
 
-        // Borrar relaciones anteriores
-        await prisma.penTypeOfObject.deleteMany({
-          where: { penId: id },
-        });
-
-        // Crear las nuevas asociaciones de type_of_objects si existen
-        if (type_of_object_ids?.length) {
-          await prisma.penTypeOfObject.createMany({
-            data: type_of_object_ids.map((typeOfObjectId) => ({
-              penId: id,
-              typeOfObjectId: typeOfObjectId,
-            })),
-          });
-        }
-
-        // Guardar los valores anteriores en algún lugar si es necesario
-        console.log('Previous Type Of Objects:', previousTypeOfObjects);
-
-        // Obtener los type_of_object_ids que ya no están en la lista actualizada
+        // Obtener los type_of_object_ids que no estan en la lista actualizada
         const typeOfObjectsToDelete = previousTypeOfObjects
           .map((obj) => obj.typeOfObjectId)
           .filter((id) => !type_of_object_ids.includes(id));
 
-        // Borrar las entradas en pen_variable_type-of-objects para los type_of_object_ids eliminados
+        // console.log('Type Of Objects Delete:', typeOfObjectsToDelete);
+
+        // Borrar los registros en pen_variable_type-of-objects para los type_of_object_ids eliminados
         for (const typeOfObjectId of typeOfObjectsToDelete) {
           await this.penVariableTypeOfObjectRepository.deleteByPenIdAndTypeOfObjectId(
             id,
             typeOfObjectId,
           );
-        }
-
-        // Obtener los type_of_object_ids que se agregaron
-        const typeOfObjectsToAdd = type_of_object_ids.filter(
-          (typeOfObjectId) =>
-            !previousTypeOfObjects.some(
-              (obj) => obj.typeOfObjectId === typeOfObjectId,
-            ),
-        );
-
-        // Crear las entradas en pen_variable_type-of-objects para los type_of_object_ids agregados
-        for (const typeOfObjectId of typeOfObjectsToAdd) {
-          // Obtener las variables asociadas a typeOfObjectId
-          const variables = await this.db.typeOfObject_Variable.findMany({
-            where: { type_of_object_id: typeOfObjectId },
-            include: { variable: true },
-          });
-
-          for (const { variable } of variables) {
-            await this.penVariableTypeOfObjectRepository.create({
+          await this.db.penTypeOfObject.deleteMany({
+            where: {
               penId: id,
-              variableId: variable.id,
               typeOfObjectId: typeOfObjectId,
-              custom_parameters: variable.defaultValue,
-            });
+            },
+          });
+        }
+        //verficiar si hay type_of_object_ids para agregar
+        if (type_of_object_ids?.length) {
+          // console.log('Type Of Object IDs:', type_of_object_ids);
+          // console.log('Previous Type Of Objects:', previousTypeOfObjects);
+
+          // Obtener los type_of_object_ids que se agregaron
+          const typeOfObjectsToAdd = type_of_object_ids.filter(
+            (typeOfObjectId) => {
+              const exists = previousTypeOfObjects.some(
+                (obj) => obj.typeOfObjectId === typeOfObjectId,
+              );
+              console.log(
+                `Checking if ${typeOfObjectId} exists in previousTypeOfObjects:`,
+                exists,
+              );
+              return !exists;
+            },
+          );
+
+          // console.log('Type Of Objects Add:', typeOfObjectsToAdd);
+          if (typeOfObjectsToAdd.length > 0) {
+            // Crear nuevos registros en pen_variable_type-of-objects para los type_of_object_ids agregados
+            for (const typeOfObjectId of typeOfObjectsToAdd) {
+              // Crear la asociación en penTypeOfObject
+              await this.db.penTypeOfObject.create({
+                data: {
+                  penId: id,
+                  typeOfObjectId: typeOfObjectId,
+                },
+              });
+
+              // Obtener las variables asociadas a typeOfObjectId
+              const variables = await this.db.typeOfObject_Variable.findMany({
+                where: { type_of_object_id: typeOfObjectId },
+                include: { variable: true },
+              });
+
+              for (const { variable } of variables) {
+                // verificar si el registro existe
+                const existingEntry =
+                  await this.db.penVariableTypeOfObject.findUnique({
+                    where: {
+                      penId_variableId_typeOfObjectId: {
+                        penId: id,
+                        variableId: variable.id,
+                        typeOfObjectId: typeOfObjectId,
+                      },
+                    },
+                  });
+
+                if (!existingEntry) {
+                  await this.penVariableTypeOfObjectRepository.create({
+                    penId: id,
+                    variableId: variable.id,
+                    typeOfObjectId: typeOfObjectId,
+                    custom_parameters: variable.defaultValue,
+                  });
+                }
+              }
+            }
           }
         }
 
@@ -291,6 +319,7 @@ export class PenRepository {
           );
         }
       }
+      console.log('ERROR:', error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while updating the variable.',
       );
