@@ -245,26 +245,112 @@ export class VariableRepository {
     const { type_of_object_ids, ...updateData } = updateVariableDto;
 
     try {
-      const updatedVariable = await this.db.variable.update({
-        where: { id },
-        data: {
-          ...updateData,
-          // Gestiono la relación con la tabla intermedia TypeOfObject_Variable.
-          type_of_objects: {
-            deleteMany: {}, // Si es necesario borrar relaciones anteriores van aca.
-            create: type_of_object_ids.map((type_of_object_id) => ({
-              type_of_object: {
-                connect: { id: type_of_object_id },
-              },
-            })),
+      const result = await this.db.$transaction(async (prisma) => {
+        // Obtener las relaciones anteriores
+        const previousTypeOfObjects =
+          await prisma.typeOfObject_Variable.findMany({
+            where: { variable_id: id },
+            select: { type_of_object_id: true },
+          });
+
+        // Actualizar la Variable
+        const updatedVariable = await prisma.variable.update({
+          where: { id },
+          data: {
+            ...updateData,
           },
-        },
-        include: {
-          type_of_objects: true,
-        },
+        });
+
+        // Obtener los type_of_object_ids que no están en la lista actualizada
+        const typeOfObjectsToDelete = previousTypeOfObjects
+          .map((obj) => obj.type_of_object_id)
+          .filter((typeId) => !type_of_object_ids.includes(typeId));
+
+        // Borrar los registros en pen_variable_type_of_objects para los type_of_object_ids eliminados
+        for (const typeOfObjectId of typeOfObjectsToDelete) {
+          // Obtener los pens relacionados con el typeOfObjectId
+          const pens = await prisma.penTypeOfObject.findMany({
+            where: { typeOfObjectId },
+            select: { penId: true },
+          });
+
+          for (const { penId } of pens) {
+            await prisma.penVariableTypeOfObject.deleteMany({
+              where: {
+                penId,
+                variableId: id,
+                typeOfObjectId,
+              },
+            });
+          }
+
+          await prisma.typeOfObject_Variable.deleteMany({
+            where: {
+              variable_id: id,
+              type_of_object_id: typeOfObjectId,
+            },
+          });
+        }
+
+        // Verificar si hay type_of_object_ids para agregar
+        if (type_of_object_ids?.length) {
+          // Obtener los type_of_object_ids que se agregaron
+          const typeOfObjectsToAdd = type_of_object_ids.filter(
+            (typeOfObjectId) => {
+              return !previousTypeOfObjects.some(
+                (obj) => obj.type_of_object_id === typeOfObjectId,
+              );
+            },
+          );
+
+          if (typeOfObjectsToAdd.length > 0) {
+            for (const typeOfObjectId of typeOfObjectsToAdd) {
+              // Crear la asociación en typeOfObject_Variable
+              await prisma.typeOfObject_Variable.create({
+                data: {
+                  variable_id: id,
+                  type_of_object_id: typeOfObjectId,
+                },
+              });
+
+              // Obtener los pens relacionados con el typeOfObjectId
+              const pens = await prisma.penTypeOfObject.findMany({
+                where: { typeOfObjectId },
+                select: { penId: true },
+              });
+
+              for (const { penId } of pens) {
+                // Verificar si el registro existe
+                const existingEntry =
+                  await prisma.penVariableTypeOfObject.findUnique({
+                    where: {
+                      penId_variableId_typeOfObjectId: {
+                        penId,
+                        variableId: id,
+                        typeOfObjectId,
+                      },
+                    },
+                  });
+
+                if (!existingEntry) {
+                  await prisma.penVariableTypeOfObject.create({
+                    data: {
+                      penId,
+                      variableId: id,
+                      typeOfObjectId,
+                      custom_parameters: updateVariableDto.defaultValue,
+                    },
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        return updatedVariable;
       });
 
-      return updatedVariable;
+      return result;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {

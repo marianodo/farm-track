@@ -127,6 +127,40 @@ export class PenVariableTypeOfObjectRepository {
     }
   }
 
+  async findByTypeOfObjectIdAndPen(
+    typeOfObjectId: number,
+    penId: number,
+    withVariableBool: boolean,
+  ) {
+    try {
+      console.log('EEEEEEEEEEEEEEEEEENTRRREEEEEEEEEEEEEEEE');
+      const result = await this.prisma.penVariableTypeOfObject.findMany({
+        where: {
+          typeOfObjectId,
+          penId,
+        },
+        include: {
+          variable: withVariableBool
+            ? {
+                select: {
+                  name: true,
+                  type: true,
+                },
+              }
+            : false,
+        },
+      });
+      console.log(result); // Depurar los resultados
+      return result;
+    } catch (error) {
+      console.log('EEEEEEEEEEEEEEEEEENTRRREEEEEEEEEEEEEEEE');
+      // Manejo de errores
+      throw new Error(
+        `Error finding PenVariableTypeOfObject by typeOfObjectId: ${error.message}`,
+      );
+    }
+  }
+
   async update(
     penId: number,
     variableId: number,

@@ -71,10 +71,28 @@ export class PenVariableTypeOfObjectService {
     }
   }
 
-  async findByTypeOfObjectId(typeOfObjectId: number, withVariableBool) {
+  async findByTypeOfObjectId(
+    typeOfObjectId: number,
+    withVariableBool: boolean,
+  ) {
     try {
       return await this.penVariableTypeOfObjectRepository.findByTypeOfObjectId(
         typeOfObjectId,
+        withVariableBool,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+  async findByTypeOfObjectIdAndPen(
+    typeOfObjectId: number,
+    penId: number,
+    withVariableBool: boolean,
+  ) {
+    try {
+      return await this.penVariableTypeOfObjectRepository.findByTypeOfObjectIdAndPen(
+        typeOfObjectId,
+        penId,
         withVariableBool,
       );
     } catch (error) {

@@ -43,6 +43,24 @@ export class PenVariableTypeOfObjectController {
       throw error;
     }
   }
+  @HttpCode(HttpStatus.OK)
+  @Get('type-of-object/:typeOfObjectId/:penId')
+  async findByTypeOfObjectIdAndPen(
+    @Param('typeOfObjectId') typeOfObjectId: string,
+    @Param('penId') penId: string,
+    @Query('withVariable') withVariable: string,
+  ) {
+    try {
+      const withVariableBool = withVariable === 'false' ? false : true;
+      return await this.penVariableTypeOfObjectService.findByTypeOfObjectIdAndPen(
+        +typeOfObjectId,
+        +penId,
+        withVariableBool,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 
   @HttpCode(HttpStatus.OK)
   @Get(':penId/:variableId/:typeOfObjectId')

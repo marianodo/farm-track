@@ -127,17 +127,18 @@ export class PenRepository {
             : false,
         },
       });
-      if (!pensFound.length) {
-        throw new NotFoundException(`No pens found with fieldId ${fieldId}`);
+      if (pensFound.length) {
+        return pensFound.map((pen) => ({
+          ...pen,
+          type_of_objects:
+            pen.type_of_objects?.map((obj) => ({
+              id: obj['type_of_object'].id,
+              name: obj['type_of_object'].name,
+            })) || [],
+        }));
       }
-      return pensFound.map((pen) => ({
-        ...pen,
-        type_of_objects:
-          pen.type_of_objects?.map((obj) => ({
-            id: obj['type_of_object'].id,
-            name: obj['type_of_object'].name,
-          })) || [],
-      }));
+      return pensFound;
+      // throw new NotFoundException(`No pens found with fieldId ${fieldId}`);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

@@ -8,6 +8,7 @@ import {
   Pressable,
   SafeAreaView,
   StyleSheet,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
@@ -109,31 +110,15 @@ export default function HomeScreen() {
             onPress={() => router.push('/createField')}
             size={rS(24)}
           />
-          <IconButton
-            style={[styles.floatingButton, { left: 15 }]}
-            icon="plus"
-            iconColor="#FFF"
-            onPress={() => router.push('/pen')}
-            size={rS(24)}
-          />
         </SafeAreaView>
       ) : (
-        <Fragment>
-          <IconButton
-            style={styles.floatingButton}
-            icon="plus"
-            iconColor="#FFF"
-            onPress={() => router.push('/createField')}
-            size={rS(24)}
-          />
-          <IconButton
-            style={[styles.floatingButton, { left: 15 }]}
-            icon="plus"
-            iconColor="#FFF"
-            onPress={() => router.push('/pen')}
-            size={rS(24)}
-          />
-        </Fragment>
+        <IconButton
+          style={styles.floatingButton}
+          icon="plus"
+          iconColor="#FFF"
+          onPress={() => router.push('/createField')}
+          size={rS(24)}
+        />
       )}
       {/* header */}
       <ImageBackground
@@ -289,7 +274,22 @@ export default function HomeScreen() {
                     borderRadius: 10,
                   }}
                 >
-                  <View key={index} style={styles.fieldContainer}>
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.fieldContainer}
+                    activeOpacity={0.7}
+                    onPress={() =>
+                      router.push({
+                        pathname: `/pen/[fieldId]`,
+                        params: {
+                          fieldId: field.id,
+                          fieldName: field.name,
+                          withFields: 'false',
+                          withObjects: 'true',
+                        },
+                      })
+                    }
+                  >
                     <View
                       style={{
                         display: 'flex',
@@ -363,7 +363,7 @@ export default function HomeScreen() {
                         </Text>
                       </View>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 </Swipeable>
               )}
             />

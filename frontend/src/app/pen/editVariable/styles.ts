@@ -13,8 +13,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   spacer: {
-    // flex: 1,
-    height: '64%',
+    flex: 5,
+    paddingBottom: 2,
+    // height: '64%',
   },
   greeting: {
     color: '#fff',
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingVertical: 30,
+    paddingVertical: 10,
     paddingHorizontal: 20,
   },
   inputContainerNumber: {

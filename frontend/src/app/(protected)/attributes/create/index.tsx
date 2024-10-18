@@ -777,6 +777,7 @@ const CreateAttribute: React.FC = () => {
                           placeholder={t(
                             'attributeView.createPlaceHolderExampleDefaultValues'
                           )}
+                          autoCapitalize="sentences"
                           activeOutlineColor="#486732"
                           outlineColor="#486732"
                           cursorColor="#486732"

@@ -30,7 +30,7 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
 
-export default function createField() {
+export default function CreateField() {
   const router = useRouter();
   const { userId, authLoading } = useAuthStore((state) => ({
     userId: state.userId,

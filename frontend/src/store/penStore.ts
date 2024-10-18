@@ -1,26 +1,24 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
 import useTypeOfObjectStore from './typeOfObjectStore';
-
-export interface Pen {
-  id: number;
-  name: string;
-  location: string;
-  type_of_objects?: [];
-}
-
-export interface PenWithIds extends Omit<Pen, 'id' | 'type_of_objects'> {
-  type_of_objects_ids: number[];
-}
+import { Pen, CreatePen } from './interface/pen.interface';
 
 interface PenState {
   pens: Pen[] | null;
   penById: Pen | null;
   pensLoading: boolean;
-  createPen: (pen: PenWithIds) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-  onUpdate: (id: number, pen: Partial<PenWithIds>) => Promise<void>;
-  getAllPens: () => void;
+  createPen: (pen: CreatePen, fieldId: string) => Promise<void>;
+  onDelete: (id: number, fieldId: string) => Promise<void>;
+  onUpdate: (
+    id: number,
+    pen: Partial<CreatePen>,
+    fieldId: string
+  ) => Promise<void>;
+  getAllPens: (
+    fieldId: string,
+    withFields?: boolean,
+    withObjects?: boolean
+  ) => void;
   getPenById: (id: number | null) => Promise<void>;
   getPensByObjectId: (id: number) => Promise<void>;
   resetDetail: () => void;
@@ -30,11 +28,11 @@ const usePenStore = create<PenState>((set) => ({
   pens: null,
   penById: null,
   pensLoading: false,
-  createPen: async (pen: PenWithIds): Promise<void> => {
+  createPen: async (pen: CreatePen): Promise<void> => {
     set({ pensLoading: true });
     try {
       await axiosInstance.post('/pens', pen);
-      usePenStore.getState().getAllPens();
+      usePenStore.getState().getAllPens(pen.fieldId);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ pensLoading: false });
     } catch (error: any) {
@@ -42,21 +40,21 @@ const usePenStore = create<PenState>((set) => ({
       console.error('Error creating pen:', error);
     }
   },
-  onDelete: async (id: number) => {
+  onDelete: async (id: number, fieldId: string) => {
     try {
       await axiosInstance.delete(`/pens/${id}`);
-      usePenStore.getState().getAllPens();
+      usePenStore.getState().getAllPens(fieldId);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
     } catch (error: any) {
       set({ pensLoading: false });
       console.error('Error deleting pen:', error);
     }
   },
-  onUpdate: async (id: number, pen: Partial<PenWithIds>) => {
+  onUpdate: async (id: number, pen: Partial<CreatePen>, fieldId: string) => {
     set({ pensLoading: true });
     try {
       await axiosInstance.patch(`/pens/${id}`, pen);
-      usePenStore.getState().getAllPens();
+      usePenStore.getState().getAllPens(fieldId);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ pensLoading: false });
     } catch (error: any) {
@@ -64,10 +62,16 @@ const usePenStore = create<PenState>((set) => ({
       console.error('Error updating pen:', error);
     }
   },
-  getAllPens: async () => {
+  getAllPens: async (
+    fieldId: string,
+    withFields?: boolean,
+    withObjects?: boolean
+  ) => {
     set({ pensLoading: true });
     try {
-      const response = await axiosInstance.get('/pens');
+      const response = await axiosInstance.get(
+        `/pens/byField/${fieldId}?withFields=${withFields}&withObjects=${withObjects}`
+      );
       set({
         pens: response.data.length ? response.data : [],
         pensLoading: false,

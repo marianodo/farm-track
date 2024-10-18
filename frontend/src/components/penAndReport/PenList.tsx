@@ -1,4 +1,7 @@
+import { Pen } from '@/store/interface/pen.interface';
+import usePenStore from '@/store/penStore';
 import { rMS, rMV } from '@/styles/responsive';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +18,12 @@ import {
   Swipeable,
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
-import { Badge, Divider, IconButton } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Badge,
+  Divider,
+  IconButton,
+} from 'react-native-paper';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -40,7 +48,7 @@ interface Variable {
 }
 
 interface PenListProps {
-  variables: Variable[];
+  pens: Pen[] | null;
   expandedItems: number[];
   toggleExpand: (
     index: number,
@@ -49,18 +57,28 @@ interface PenListProps {
   setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>;
   rMS: (value: number) => number;
   styles: any;
+  getAllPens: (fieldId: string) => void;
+  onDelete: (id: number, fieldId: string) => void;
+  fieldId: string;
 }
 
 const PenList: React.FC<PenListProps> = ({
-  variables,
+  pens,
+  onDelete,
   expandedItems,
   toggleExpand,
   setExpandedItems,
   rMS,
   styles,
+  getAllPens,
+  fieldId,
 }) => {
+  const { pensLoading } = usePenStore((state) => ({
+    pensLoading: state.pensLoading,
+  }));
+  const router = useRouter();
   const { t } = useTranslation();
-  const deleteButtonAlert = (id: string, name: string) =>
+  const deleteButtonAlert = (id: number, name: string) =>
     Alert.alert(
       `${t('penView.deleteAlertTitle')} '${name}'?`,
       t('penView.deleteAlertSubTitle'),
@@ -69,23 +87,36 @@ const PenList: React.FC<PenListProps> = ({
           text: `${t('penView.cancelButtonAlertText')}`,
           style: 'cancel',
         },
-        { text: t('penView.deleteButtonAlertText') },
-        // onPress: async () => await onDelete(id)
+        {
+          text: t('penView.deleteButtonAlertText'),
+          onPress: async () => onDelete(id, fieldId),
+        },
       ]
     );
 
-  const renderRightActions = (progress: any, dragX: any, attribute: any) => (
+  const renderRightActions = (progress: any, dragX: any, pen: any) => (
     <View style={styles.rightActions}>
       <Pressable
         style={styles.editButton}
-        // onPress={() => router.push(`/attributes/edit/${attribute.id}`)}
+        onPress={() => {
+          router.push({
+            pathname: `/pen/editPen`,
+            params: {
+              penId: pen.id,
+              penName: pen.name,
+              type_of_objects: JSON.stringify(pen.type_of_objects),
+              fieldId: pen.fieldId,
+            },
+          });
+          console.log('Edit pen:', pen.fieldId);
+        }}
       >
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(attribute.id, attribute.name)}
+        onPress={() => deleteButtonAlert(pen.id, pen.name)}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -203,22 +234,37 @@ const PenList: React.FC<PenListProps> = ({
               width: '100%',
             }}
           >
-            {item.type_of_objects.map((variable: any, index: number) => {
+            {item.type_of_objects.map((type_of_object: any, index: number) => {
               return (
-                <Badge
+                <Pressable
                   key={index}
-                  style={{
-                    paddingHorizontal: rMS(7),
-                    height: rMS(24),
-                    backgroundColor: '#486732',
-                    fontFamily: 'Pro-Regular',
-                    fontSize: rMS(12),
-                    marginRight: rMS(4), // Add margin to ensure proper spacing
-                    marginBottom: rMS(4), // Add margin to ensure proper spacing
+                  onPress={() => {
+                    router.push({
+                      pathname: `/pen/editTypeObject`,
+                      params: {
+                        type_of_object_name: type_of_object.name,
+                        type_of_object_id: type_of_object.id,
+                        penId: item.id,
+                        penName: item.name,
+                      },
+                    });
                   }}
                 >
-                  {variable.name}
-                </Badge>
+                  <Badge
+                    key={index}
+                    style={{
+                      paddingHorizontal: rMS(7),
+                      height: rMS(24),
+                      backgroundColor: '#486732',
+                      fontFamily: 'Pro-Regular',
+                      fontSize: rMS(12),
+                      marginRight: rMS(4), // Add margin to ensure proper spacing
+                      marginBottom: rMS(4), // Add margin to ensure proper spacing
+                    }}
+                  >
+                    {type_of_object.name}
+                  </Badge>
+                </Pressable>
               );
             })}
           </View>
@@ -227,7 +273,7 @@ const PenList: React.FC<PenListProps> = ({
     );
   };
 
-  return false ? (
+  return !pens?.length ? (
     <View
       style={{
         width: '100%',
@@ -271,23 +317,47 @@ const PenList: React.FC<PenListProps> = ({
     </View>
   ) : (
     <View style={styles.spacer}>
-      <FlatList
-        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-        data={variables}
-        keyExtractor={(item, index) => `${item.name}${index}`}
-        renderItem={({ item, index }) => {
-          const isExpanded = expandedItems.includes(index);
-          return (
-            <ListItem
-              item={item}
-              index={index}
-              isExpanded={isExpanded}
-              toggleExpand={toggleExpand}
-              setExpandedItems={setExpandedItems}
-            />
-          );
-        }}
-      />
+      {pensLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            style={{
+              marginTop: '0%',
+            }}
+            animating={true}
+            color="#486732"
+          />
+        </View>
+      ) : (
+        <FlatList
+          style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+          data={pens}
+          keyExtractor={(item, index) => `${item.name}${index}`}
+          renderItem={({ item, index }) => {
+            const isExpanded = expandedItems.includes(index);
+            return (
+              <ListItem
+                item={item}
+                index={index}
+                isExpanded={isExpanded}
+                toggleExpand={toggleExpand}
+                setExpandedItems={setExpandedItems}
+              />
+            );
+          }}
+        />
+      )}
     </View>
   );
 };
