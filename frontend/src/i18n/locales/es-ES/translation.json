@@ -162,6 +162,21 @@
     "deleteButtonAlertText": "Eliminar",
     "cancelButtonAlertText": "Cancelar"
   },
+  "editTypeObject": {
+    "title": "Editar objeto",
+    "subtitle": "Variables de",
+    "helpText1": "Para ver los valores de una variable, haga click sobre el mismo. Para editarla, seleccione la opcion 'Editar' de dicha variable.",
+    "helpText2": "La edición de variables solo se aplicará al corral",
+    "finishEditTypeObjectText": "Terminar edición",
+    "number": "numérica",
+    "categorical": "categórica",
+    "subtitleVariable": "Variable",
+    "goBackText": "Volver",
+    "categoricalText": "Valores categóricos",
+    "numberTextDefault": "Rango de valores por defecto",
+    "numberTextOptimum": "Rango de valores óptimos",
+    "granularityText": "Granularidad"
+  },
   "typeProductionText": {
     "bovine_of_meat": "Bovina de carne",
     "bovine_of_milk": "Bovina de leche",

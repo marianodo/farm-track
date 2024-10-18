@@ -1,3 +1,4 @@
+import usePenStore from '@/store/penStore';
 import { rMS, rMV } from '@/styles/responsive';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +59,12 @@ const ReportList: React.FC<ReportListProps> = ({
   rMS,
   styles,
 }) => {
+  const { pensLoading, penById, pens, getAllPens } = usePenStore((state) => ({
+    pensLoading: state.pensLoading,
+    penById: state.penById,
+    pens: state.pens,
+    getAllPens: state.getAllPens,
+  }));
   const { t } = useTranslation();
   const deleteButtonAlert = (id: string, name: string) =>
     Alert.alert(
@@ -226,7 +233,7 @@ const ReportList: React.FC<ReportListProps> = ({
     );
   };
 
-  return false ? (
+  return pens?.length && true ? (
     <View
       style={{
         width: '100%',
@@ -268,7 +275,7 @@ const ReportList: React.FC<ReportListProps> = ({
         </Text>
       </View>
     </View>
-  ) : false ? (
+  ) : !pens?.length ? (
     <View
       style={{
         width: '100%',

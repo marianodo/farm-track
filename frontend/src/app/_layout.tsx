@@ -51,12 +51,27 @@ const StackLayout = () => {
                 options={{ headerShown: false }} // Puedes personalizar el header
               />
               <Stack.Screen
-                name="createField/index"
+                name="pen/[fieldId]"
                 options={{ headerShown: false }}
               />
-              <Stack.Screen name="pen/index" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="pen/editPen/index"
+                options={{ headerShown: false }}
+              />
               <Stack.Screen
                 name="pen/createPen/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="pen/editVariable/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="pen/editTypeObject/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="createField/index"
                 options={{ headerShown: false }}
               />
             </Stack>

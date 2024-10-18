@@ -24,12 +24,11 @@ import {
 import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
-import { ViewStyle } from 'react-native-size-matters';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -61,35 +60,34 @@ type FormDataError = {
   type_of_object_ids: string | null;
 };
 
-const CreatePen: React.FC = () => {
-  const { fieldId } = useLocalSearchParams();
-  const {
-    validateRangeOrGranularity,
-    validateCategoricalValue,
-    validateTypeObjectValue,
-    validateNameInput,
-  } = useValidationRules();
+const EditPen: React.FC = () => {
+  const { penId, penName, type_of_objects, fieldId } = useLocalSearchParams();
+
+  const { validateTypeObjectValue, validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
     name: null,
     type_of_object_ids: null,
   });
-  const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
-  const { pensLoading, createPen } = usePenStore((state: any) => ({
+  const { onUpdate, pensLoading } = usePenStore((state: any) => ({
+    onUpdate: state.onUpdate,
     pensLoading: state.pensLoading,
-    createPen: state.createPen,
   }));
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
+  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>(
+    JSON.parse(
+      Array.isArray(type_of_objects) ? type_of_objects[0] : type_of_objects
+    ).map((item: { id: number; name: string }) => item.id)
+  );
   const [items, setItems] = useState<Item[]>([]);
   console.log('items', itemsValue);
 
   const [formData, setFormData] = useState<FormData>({
-    name: null,
+    name: penName as string,
     type_of_object_ids: null,
   });
 
@@ -144,13 +142,8 @@ const CreatePen: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm()) {
       try {
-        await createPen({ ...formData, fieldId: fieldId as string });
+        await onUpdate(penId, formData, fieldId);
         alert(t('attributeView.formOkText'));
-        setFormData({
-          name: null,
-          type_of_object_ids: null,
-        });
-        setItemsValue(undefined);
         router.back();
       } catch (error) {
         console.log(error);
@@ -298,6 +291,7 @@ const CreatePen: React.FC = () => {
                   mode="outlined"
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
+                  value={formData.name ?? ''}
                   onChangeText={(value) => onChange('name', value)}
                   autoCapitalize="words"
                   activeOutlineColor="transparent"
@@ -381,4 +375,4 @@ const CreatePen: React.FC = () => {
   );
 };
 
-export default CreatePen;
+export default EditPen;

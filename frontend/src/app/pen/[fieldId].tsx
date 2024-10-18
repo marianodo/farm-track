@@ -23,11 +23,10 @@ import {
 import styles from './styles';
 import PenList from '../../components/penAndReport/PenList';
 import ReportList from '../../components/penAndReport/ReportList';
-import { Href } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import useAuthStore from '@/store/authStore';
-import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   Swipeable,
@@ -45,6 +44,7 @@ import Animated, {
 import { useValidationRules } from '@/utils/validation/validationRules';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
+import usePenStore from '@/store/penStore';
 
 interface ListItemProps {
   item: any;
@@ -54,7 +54,9 @@ interface ListItemProps {
   setExpandedItems: (items: number[]) => void;
 }
 
-export default function AttributeScreen() {
+export default function PenScreen() {
+  const { fieldId, fieldName } = useLocalSearchParams();
+  console.log('fieldId', fieldId, 'fieldName', fieldName);
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [penOrReportSelect, setPenOrReportSelect] = useState<string>('pens');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -209,38 +211,45 @@ export default function AttributeScreen() {
     variables,
     variablesLoading,
     createVariable,
-    onDelete,
     onUpdate,
     getAllVariables,
   } = useVariableStore((state: any) => ({
     variables: state.variables,
     variablesLoading: state.variablesLoading,
     createVariable: state.createVariable,
-    onDelete: state.onDelete,
     onUpdate: state.onUpdate,
     getAllVariables: state.getAllVariables,
   }));
 
-  const { fieldLoading, fieldsByUserId } = useFieldStore((state) => ({
-    fieldLoading: state.fieldLoading,
-    fieldsByUserId: state.fieldsByUserId,
-    onDelete: state.onDelete,
-  }));
+  const { pensLoading, penById, onDelete, pens, getAllPens } = usePenStore(
+    (state) => ({
+      pensLoading: state.pensLoading,
+      penById: state.penById,
+      pens: state.pens,
+      onDelete: state.onDelete,
+      getAllPens: state.getAllPens,
+    })
+  );
 
-  const { typeOfObjects } = useTypeOfObjectStore((state) => ({
-    typeOfObjects: state.typeOfObjects,
-  }));
+  const { typeOfObjects, getAllTypeOfObjects } = useTypeOfObjectStore(
+    (state) => ({
+      typeOfObjects: state.typeOfObjects,
+      getAllTypeOfObjects: state.getAllTypeOfObjects,
+    })
+  );
 
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (
-      (fieldsByUserId !== null && variables === null) ||
-      typeOfObjects === null
-    ) {
-      getAllVariables();
+    if (pens === null) {
+      getAllPens(fieldId as string, false, true);
     }
-  }, [variables, getAllVariables, fieldsByUserId, typeOfObjects]);
+    if (typeOfObjects === null) {
+      getAllTypeOfObjects();
+    }
+  }, [pens, getAllPens, getAllTypeOfObjects, typeOfObjects]);
+
+  // console.log(pens);
 
   return (
     <View style={styles.titleContainer}>
@@ -251,7 +260,14 @@ export default function AttributeScreen() {
             <IconButton
               icon="plus"
               iconColor="#FFF"
-              onPress={() => router.push('/pen/createPen')}
+              onPress={() =>
+                router.push({
+                  pathname: '/pen/createPen',
+                  params: {
+                    fieldId: fieldId,
+                  },
+                })
+              }
               size={rS(24)}
             />
           </SafeAreaView>
@@ -260,7 +276,14 @@ export default function AttributeScreen() {
             style={styles.floatingButton}
             icon="plus"
             iconColor="#FFF"
-            onPress={() => router.push('/pen/createPen')}
+            onPress={() =>
+              router.push({
+                pathname: '/pen/createPen',
+                params: {
+                  fieldId: fieldId,
+                },
+              })
+            }
             size={rS(24)}
           />
         ))}
@@ -303,7 +326,7 @@ export default function AttributeScreen() {
                 fontSize: rMS(14),
               }}
             >
-              Nombre del campo aca
+              {fieldName}
             </Text>
             {/* titulo */}
             {penOrReportSelect === 'pens' ? (
@@ -389,7 +412,10 @@ export default function AttributeScreen() {
         ) : penOrReportSelect === 'pens' ? (
           /* contenido scroll */
           <PenList
-            variables={variables}
+            pens={pens}
+            getAllPens={getAllPens}
+            fieldId={fieldId as string}
+            onDelete={onDelete}
             expandedItems={penExpandedItems}
             toggleExpand={toggleExpand}
             setExpandedItems={setPenExpandedItems}

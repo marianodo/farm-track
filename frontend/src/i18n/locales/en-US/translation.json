@@ -162,6 +162,21 @@
     "deleteButtonAlertText": "Delete",
     "cancelButtonAlertText": "Cancel"
   },
+  "editTypeObject": {
+    "title": "Edit object",
+    "subtitle": "Variables of",
+    "helpText1": "To view the values of a variable, click on it. To edit it, select the 'Edit' option of that variable.",
+    "helpText2": "Variable editing will only apply to the pen",
+    "finishEditTypeObjectText": "Finish editing",
+    "number": "numerical",
+    "categorical": "categorical",
+    "subtitleVariable": "Variable",
+    "goBackText": "Go back",
+    "categoricalText": "Categorical values",
+    "numberTextDefault": "Default value range",
+    "numberTextOptimum": "Optimal value range",
+    "granularityText": "Granularity"
+  },
   "typeProductionText": {
     "bovine_of_meat": "Bovine of meat",
     "bovine_of_milk": "Bovine of milk",
