@@ -150,7 +150,9 @@
     "cancelButtonAlertText": "Cancel",
     "penNamePlaceHolder": "Pen name",
     "penObjectsPlaceHolder": "Pen objects",
-    "penObjectSelectsPlaceHolder": "Selected objects"
+    "penObjectSelectsPlaceHolder": "Selected objects",
+    "updatePenTextButton": "Update pen",
+    "updatePenOkText": "Pen updated successfully."
   },
   "reportsView": {
     "reportsText": "Reports",

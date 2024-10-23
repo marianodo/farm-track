@@ -143,7 +143,7 @@ const EditPen: React.FC = () => {
     if (!validateForm()) {
       try {
         await onUpdate(penId, formData, fieldId);
-        alert(t('attributeView.formOkText'));
+        alert(t('penView.updatePenOkText'));
         router.back();
       } catch (error) {
         console.log(error);
@@ -365,7 +365,7 @@ const EditPen: React.FC = () => {
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>
               <Text style={styles.buttonText}>
-                {t('penView.createPenTextButton')}
+                {t('penView.updatePenTextButton')}
               </Text>
             </Pressable>
           </View>
