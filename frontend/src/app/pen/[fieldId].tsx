@@ -57,23 +57,17 @@ interface ListItemProps {
 export default function PenScreen() {
   const { fieldId, fieldName } = useLocalSearchParams();
   console.log('fieldId', fieldId, 'fieldName', fieldName);
-  const { startsWithABlankSpace, minLength } = useValidationRules();
+
   const [penOrReportSelect, setPenOrReportSelect] = useState<string>('pens');
-  const [errors, setErrors] = useState<FormErrors>({});
+
   const router = useRouter();
-  const [inputValue, setInputValue] = useState<Record<string, any>>({
-    name: '',
-  });
-  const [editInputValue, setEditInputValue] = useState<Record<string, any>>({
-    name: '',
-  });
 
   const { role, userName } = useAuthStore((state) => ({
     role: state.role,
 
     userName: state.username,
   }));
-  const [objectId, setObjectId] = useState(null);
+
   const [penExpandedItems, setPenExpandedItems] = useState<number[]>([]);
   const [reportExpandedItems, setReportExpandedItems] = useState<number[]>([]);
 
@@ -86,127 +80,6 @@ export default function PenScreen() {
     );
   };
 
-  const handleInputChange = (name: string, value: string, type?: string) => {
-    if (type === 'edit') {
-      setEditInputValue({
-        ...editInputValue,
-        [name]: value,
-      });
-      Object.keys(editInputValue).forEach((key) => {
-        validateField(key, 'edit');
-      });
-    } else {
-      setInputValue({
-        ...inputValue,
-        [name]: value,
-      });
-      Object.keys(inputValue).forEach((key) => {
-        validateField(key);
-      });
-    }
-  };
-
-  const validateField = (name: string, type?: string) => {
-    if (type === 'edit') {
-      const value = editInputValue[name];
-      let fieldErrors: string[] | null = null;
-
-      switch (name) {
-        case 'name':
-          fieldErrors = validateInput(
-            value,
-            [startsWithABlankSpace, minLength(2)],
-            t
-          );
-          break;
-      }
-
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: fieldErrors,
-      }));
-    } else {
-      const value = inputValue[name];
-      let fieldErrors: string[] | null = null;
-
-      switch (name) {
-        case 'name':
-          fieldErrors = validateInput(
-            value,
-            [startsWithABlankSpace, minLength(2)],
-            t
-          );
-          break;
-      }
-
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: fieldErrors,
-      }));
-    }
-  };
-
-  const updateVariableSubmit = async () => {
-    Object.keys(editInputValue).forEach((key) => {
-      validateField(key, 'edit');
-    });
-    errors.name = errors.name = validateInput(
-      editInputValue.name,
-      [startsWithABlankSpace, minLength(2)],
-      t
-    );
-    if (!Object.values(errors).some((error) => error !== null) && objectId) {
-      await onUpdate(objectId, editInputValue);
-      setErrors({});
-      setPenExpandedItems([]);
-      setReportExpandedItems([]);
-    } else {
-      return;
-    }
-  };
-
-  const onSubmit = async () => {
-    Object.keys(inputValue).forEach((key) => {
-      validateField(key);
-    });
-    errors.name = errors.name = validateInput(
-      inputValue.name,
-      [startsWithABlankSpace, minLength(2)],
-      t
-    );
-    if (!Object.values(errors).some((error) => error !== null)) {
-      await createVariable(inputValue);
-      setErrors({});
-      setPenExpandedItems([]);
-      setReportExpandedItems([]);
-      setInputValue({ name: '' });
-    } else {
-      return;
-    }
-  };
-
-  // Dentro de tu componente HomeScreen
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
-
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
-  }, []);
   const {
     variables,
     variablesLoading,
@@ -237,17 +110,20 @@ export default function PenScreen() {
       getAllTypeOfObjects: state.getAllTypeOfObjects,
     })
   );
-
+  //  useEffect(() => {
+  //    getPenVariableTypeOfObjectsByObjectIdAndPen(type_of_object_id, penId);
+  //    return () => {
+  //      resetDetail();
+  //    };
+  //  }, [penId]);
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (pens === null) {
-      getAllPens(fieldId as string, false, true);
-    }
+    getAllPens(fieldId as string, false, true);
     if (typeOfObjects === null) {
       getAllTypeOfObjects();
     }
-  }, [pens, getAllPens, getAllTypeOfObjects, typeOfObjects]);
+  }, [getAllTypeOfObjects, typeOfObjects, fieldId]);
 
   // console.log(pens);
 
@@ -401,7 +277,7 @@ export default function PenScreen() {
             )}
           </Pressable>
         </View>
-        {variablesLoading ? (
+        {pensLoading ? (
           <ActivityIndicator
             style={{
               marginTop: '60%',
