@@ -50,6 +50,7 @@ model Field {
   userId            String
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pens              Pen[]
+  reports           Report[]
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
@@ -70,6 +71,7 @@ model TypeOfObject {
   variables         TypeOfObject_Variable[]
   pens              PenTypeOfObject[]
   pen_variable_type_of_objects PenVariableTypeOfObject[]
+  subjects          Subject[]
 }
 model Pen {
   id        Int    @id @default(autoincrement())
@@ -81,6 +83,38 @@ model Pen {
 
   @@unique([name, fieldId])
 
+}
+
+model Subject {
+  id                Int          @id @default(autoincrement())
+  name              String?      
+  type_of_object_id Int
+  type_of_object      TypeOfObject @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  measurement       Measurement?
+}
+
+model Measurement {
+  id             Int      @id @default(autoincrement())
+  pen_variable_type_of_object_id Int
+  pen_variable_type_of_object PenVariableTypeOfObject @relation(fields: [pen_variable_type_of_object_id], references: [id])
+  value          String   
+  report_id      Int
+  report         Report   @relation(fields: [report_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  subject_id     Int      @unique
+  subject        Subject  @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+}
+
+model Report {
+  id            Int          @id @default(autoincrement())
+  name          String?    
+  comment       String?      
+  field_id      String
+  field         Field @relation(fields: [field_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  measurements  Measurement[]
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
 }
 
 model PenTypeOfObject {
@@ -102,13 +136,28 @@ model TypeOfObject_Variable {
 }
 
 model PenVariableTypeOfObject {
-  penId             Int
-  variableId        Int
-  typeOfObjectId    Int
+  id               Int      @id @default(autoincrement())
+  penId            Int
+  variableId       Int
+  typeOfObjectId   Int
   custom_parameters Json
-  pen               Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  variable          Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_object    TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  pen              Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  variable         Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  type_of_object   TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  measurements     Measurement[]
 
-  @@id([penId, variableId, typeOfObjectId])
+  @@unique([penId, variableId, typeOfObjectId])
 }
+
+// model PenVariableTypeOfObject {
+//   penId             Int
+//   variableId        Int
+//   typeOfObjectId    Int
+//   custom_parameters Json
+//   pen               Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   variable          Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   type_of_object    TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+//   measurements    Measurement[]
+
+//   @@id([penId, variableId, typeOfObjectId])
+// }
