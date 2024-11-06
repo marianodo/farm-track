@@ -102,7 +102,6 @@ const EditTypeObject: React.FC = () => {
     null
   );
   const [items, setItems] = useState<Item[]>([]);
-  console.log('items', itemsValue);
 
   const [formData, setFormData] = useState<FormData>({
     name: null,

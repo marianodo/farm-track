@@ -47,4 +47,12 @@ export class ReportService {
       throw error;
     }
   }
+
+  async removeAll(): Promise<void> {
+    try {
+      return await this.reportRepository.removeAll();
+    } catch (error) {
+      throw error;
+    }
+  }
 }

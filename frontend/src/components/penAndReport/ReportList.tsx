@@ -1,6 +1,13 @@
-import usePenStore from '@/store/penStore';
+import {
+  Report,
+  CreateReport,
+  ReportWithMeasurements,
+} from '@/store/interface/report.interface';
+import useReportStore from '@/store/reportStore';
 import { rMS, rMV } from '@/styles/responsive';
-import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -11,12 +18,18 @@ import {
   Alert,
   Keyboard,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import {
   Swipeable,
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
-import { Badge, Divider, IconButton } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Badge,
+  Divider,
+  IconButton,
+} from 'react-native-paper';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -40,8 +53,8 @@ interface Variable {
   type_of_objects: any[];
 }
 
-interface ReportListProps {
-  variables: Variable[];
+interface PenListProps {
+  reports: Report[] | null;
   expandedItems: number[];
   toggleExpand: (
     index: number,
@@ -50,54 +63,89 @@ interface ReportListProps {
   setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>;
   rMS: (value: number) => number;
   styles: any;
+  getAllPens: (fieldId: string) => void;
+  onDelete: (id: number, fieldId: string) => void;
+  fieldId: string;
+  lng: string | null;
+  fieldName: string | null;
 }
-const ReportList: React.FC<ReportListProps> = ({
-  variables,
+
+const ReportList: React.FC<PenListProps> = ({
+  reports,
+  onDelete,
   expandedItems,
   toggleExpand,
   setExpandedItems,
   rMS,
   styles,
+  lng,
+  fieldId,
+  fieldName,
 }) => {
-  const { pensLoading, penById, pens, getAllPens } = usePenStore((state) => ({
-    pensLoading: state.pensLoading,
-    penById: state.penById,
-    pens: state.pens,
-    getAllPens: state.getAllPens,
+  const { reportsLoading } = useReportStore((state) => ({
+    reportsLoading: state.reportsLoading,
   }));
+  const router = useRouter();
   const { t } = useTranslation();
-  const deleteButtonAlert = (id: string, name: string) =>
+  const deleteButtonAlert = (id: number, name: string) =>
     Alert.alert(
-      `${t('reportsView.deleteAlertTitle')} '${name}'?`,
-      t('reportsView.deleteAlertSubTitle'),
+      `${t('penView.deleteAlertTitle')} '${name ? name : id}'?`,
+      t('penView.deleteAlertSubTitle'),
       [
         {
-          text: `${t('fieldView.deleteAlertText')}`,
+          text: `${t('penView.cancelButtonAlertText')}`,
           style: 'cancel',
         },
-        { text: t('reportsView.deleteButtonAlertText') },
-        // onPress: async () => await onDelete(id)
+        {
+          text: t('penView.deleteButtonAlertText'),
+          onPress: async () => onDelete(id, fieldId),
+        },
       ]
     );
 
-  const renderRightActions = (progress: any, dragX: any, attribute: any) => (
-    <View style={styles.rightActions}>
-      <Pressable
-        style={styles.editButton}
-        // onPress={() => router.push(`/attributes/edit/${attribute.id}`)}
-      >
-        <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
-      </Pressable>
-      <Pressable
-        style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(attribute.id, attribute.name)}
-      >
-        <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
-      </Pressable>
-    </View>
-  );
+  const renderRightActions = (progress: any, dragX: any, pen: any) => {
+    const reportName = (pen?.name as string)
+      ? pen.name.charAt(0).toUpperCase() + pen.name.slice(1).toLowerCase()
+      : `Reporte: ${new Date(pen.created_at).toLocaleDateString(`${lng}`, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })}`;
+    return (
+      <View style={styles.rightActions}>
+        <Pressable
+          style={styles.editButton}
+          onPress={() => console.log('edit')}
+          //   router.push({
+          //     pathname: `/report/[reportId]`,
+          //     params: {
+          //       fieldName: fieldName,
+          //       reportId: +pen.id,
+          //       reportName: reportName,
+          //       penName: pen.name,
+          //       type_of_objects: JSON.stringify(pen.type_of_objects),
+          //       fieldId: pen.field_id,
+          //     },
+          //   });
+          // }}
+        >
+          <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
+          <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
+        </Pressable>
+        <Pressable
+          style={styles.deleteButton}
+          onPress={() => deleteButtonAlert(pen.id, pen.name ? pen.name : '')}
+        >
+          <IconButton
+            icon="trash-can-outline"
+            iconColor="#fff"
+            size={rMS(24)}
+          />
+          <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
+        </Pressable>
+      </View>
+    );
+  };
 
   const ListItem: React.FC<ListItemProps> = ({
     item,
@@ -126,28 +174,44 @@ const ReportList: React.FC<ReportListProps> = ({
     return (
       <Swipeable
         key={index}
-        enabled={!isExpanded} // Elimina el swipe si está expandido
+        // enabled={!isExpanded} // Elimina el swipe si está expandido
         renderRightActions={(progress, dragX) =>
           renderRightActions(progress, dragX, item)
         }
         containerStyle={{
+          height: rMV(60),
           backgroundColor: '#3A5228',
           marginBottom: 10,
           borderRadius: 10,
         }}
       >
-        <TouchableWithoutFeedback
+        <TouchableOpacity
           key={index}
-          onPress={
-            item.type_of_objects.length > 0
-              ? () => {
-                  Keyboard.dismiss;
-                  toggleExpand(index, setExpandedItems);
-                }
-              : () => {
-                  Keyboard.dismiss;
-                }
-          }
+          activeOpacity={0.7}
+          onPress={() => {
+            const reportName = (item?.name as string)
+              ? item.name.charAt(0).toUpperCase() +
+                item.name.slice(1).toLowerCase()
+              : `Reporte: ${new Date(item.created_at).toLocaleDateString(
+                  `${lng}`,
+                  {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  }
+                )}`;
+            router.push({
+              pathname: `/report/[reportId]`,
+              params: {
+                fieldName: fieldName,
+                reportId: +item.id,
+                reportName: reportName,
+                penName: item.name,
+                type_of_objects: JSON.stringify(item.type_of_objects),
+                fieldId: item.field_id,
+              },
+            });
+          }}
         >
           <View style={styles.attributeContainer}>
             <Text
@@ -159,81 +223,32 @@ const ReportList: React.FC<ReportListProps> = ({
                 fontFamily: 'Pro-Regular',
               }}
             >
-              REPORT LIST
+              {(item?.name as string)
+                ? `${item.name.charAt(0).toUpperCase()}${item.name
+                    .slice(1)
+                    .toLowerCase()} - ${new Date(
+                    item.created_at
+                  ).toLocaleDateString(`${lng}`, {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}`
+                : `${t('reportsView.reportListNameText')} ${
+                    item.id
+                  } - ${new Date(item.created_at).toLocaleDateString(`${lng}`, {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}`}
             </Text>
-            {item.type_of_objects.length > 0 && isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../assets/images/tabs/object-selected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : item.type_of_objects.length > 0 && !isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../assets/images/tabs/object-unselected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : null}
           </View>
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
         {/* Mostrar información cuando se expande */}
-
-        <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
-          <Divider
-            style={{
-              backgroundColor: '#486732',
-              height: 1,
-            }}
-          />
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              paddingHorizontal: rMS(10),
-              paddingTop: rMS(8),
-              paddingBottom: rMS(8),
-              gap: rMS(4),
-              width: '100%',
-            }}
-          >
-            {item.type_of_objects.map((variable: any, index: number) => {
-              return (
-                <Badge
-                  key={index}
-                  style={{
-                    paddingHorizontal: rMS(7),
-                    height: rMS(24),
-                    backgroundColor: '#486732',
-                    fontFamily: 'Pro-Regular',
-                    fontSize: rMS(12),
-                    marginRight: rMS(4), // Add margin to ensure proper spacing
-                    marginBottom: rMS(4), // Add margin to ensure proper spacing
-                  }}
-                >
-                  {variable.name}
-                </Badge>
-              );
-            })}
-          </View>
-        </Animated.View>
       </Swipeable>
     );
   };
 
-  return pens?.length && true ? (
+  return !reports?.length ? (
     <View
       style={{
         width: '100%',
@@ -271,71 +286,53 @@ const ReportList: React.FC<ReportListProps> = ({
             textAlign: 'center',
           }}
         >
-          {t('reportsView.dontReportMessage')}
-        </Text>
-      </View>
-    </View>
-  ) : !pens?.length ? (
-    <View
-      style={{
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <View
-        style={{
-          width: '90%',
-          backgroundColor: '#f5ead2',
-          height: rMV(44),
-          borderRadius: rMS(6),
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: rMV(20),
-          display: 'flex',
-          flexDirection: 'row',
-          paddingRight: rMS(12),
-        }}
-      >
-        <IconButton
-          icon={'alert-circle-outline'}
-          iconColor="#d9a220"
-          size={rMS(20)}
-          style={{ margin: 0 }}
-        />
-        <Text
-          style={{
-            color: '#d9a220',
-            fontFamily: 'Pro-Regular',
-            fontSize: rMS(10),
-            flexShrink: 1,
-            flexWrap: 'wrap',
-            textAlign: 'center',
-          }}
-        >
-          {t('reportsView.dontPenMessage')}
+          {t('penView.dontPenMessage')}
         </Text>
       </View>
     </View>
   ) : (
     <View style={styles.spacer}>
-      <FlatList
-        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-        data={variables}
-        keyExtractor={(item, index) => `${item.name}${index}`}
-        renderItem={({ item, index }) => {
-          const isExpanded = expandedItems.includes(index);
-          return (
-            <ListItem
-              item={item}
-              index={index}
-              isExpanded={isExpanded}
-              toggleExpand={toggleExpand}
-              setExpandedItems={setExpandedItems}
-            />
-          );
-        }}
-      />
+      {reportsLoading ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}
+        >
+          <ActivityIndicator
+            style={{
+              marginTop: '0%',
+            }}
+            animating={true}
+            color="#486732"
+          />
+        </View>
+      ) : (
+        <FlatList
+          style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+          data={reports}
+          keyExtractor={(item, index) => `${item.name}${index}`}
+          renderItem={({ item, index }) => {
+            const isExpanded = expandedItems.includes(index);
+            return (
+              <ListItem
+                item={item}
+                index={index}
+                isExpanded={isExpanded}
+                toggleExpand={toggleExpand}
+                setExpandedItems={setExpandedItems}
+              />
+            );
+          }}
+        />
+      )}
     </View>
   );
 };

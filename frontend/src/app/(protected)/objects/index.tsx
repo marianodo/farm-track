@@ -171,7 +171,7 @@ export default function ObjectScreen() {
       [startsWithABlankSpace, minLength(2)],
       t
     );
-    console.log(errors);
+
     if (!Object.values(errors).some((error) => error !== null)) {
       await createTypeOfObject(inputValue);
       setErrors({});

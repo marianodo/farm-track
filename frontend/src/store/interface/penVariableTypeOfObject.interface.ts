@@ -6,6 +6,11 @@ export interface PenVariableTypeOfObject {
   variable: Variable;
 }
 
+export interface ExtendedPenVariableTypeOfObject
+  extends PenVariableTypeOfObject {
+  id: number;
+}
+
 export interface CustomParameters {
   value: string[] | NumberValues;
 }

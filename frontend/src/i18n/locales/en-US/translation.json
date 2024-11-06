@@ -162,7 +162,28 @@
     "deleteAlertTitle": "¿Do you want to delete the report",
     "deleteAlertSubTitle": "If you delete this report, all related data will be deleted. This action cannot be undone",
     "deleteButtonAlertText": "Delete",
-    "cancelButtonAlertText": "Cancel"
+    "cancelButtonAlertText": "Cancel",
+    "newReportText": "New report",
+    "detailReportText": "Detalles del reporte",
+    "reportFieldNamePlaceHolder": "Field name",
+    "reportDatePlaceHolder": "Report date",
+    "reportNamePlaceHolder": "Report name",
+    "reportObservationsPlaceHolder": "Observations",
+    "reportListNameText": "Report",
+    "createReportInfoText": "The name and observations of the report are optional.",
+    "createReportTextButton": "Create report",
+    "reportErrorCreateText": "Error creating the report."
+  },
+  "measurementView": {
+    "newMeasurementText": "New measurement",
+    "detailMeasurementText": "Measurement details",
+    "penPlaceHolder": "Pen to measure",
+    "typeOfObjectPlaceHolder": "Object to measure",
+    "variablePlaceHolder": "Variable to measure",
+    "variablesSelectedText": "Selected variables",
+    "subjectTextInfo": "The name of the object is optional data.",
+    "continueButtonTEXT": "Continue",
+    "dropDownDontInfo": "¡don't information available!"
   },
   "editTypeObject": {
     "title": "Edit object",

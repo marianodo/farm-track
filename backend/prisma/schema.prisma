@@ -90,7 +90,7 @@ model Subject {
   name              String?      
   type_of_object_id Int
   type_of_object      TypeOfObject @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  measurement       Measurement?
+  measurement       Measurement[]
 }
 
 model Measurement {
@@ -100,7 +100,7 @@ model Measurement {
   value          String   
   report_id      Int
   report         Report   @relation(fields: [report_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  subject_id     Int      @unique
+  subject_id     Int
   subject        Subject  @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt

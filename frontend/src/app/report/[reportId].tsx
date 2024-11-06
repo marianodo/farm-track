@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   KeyboardEvent,
+  ScrollView,
 } from 'react-native';
 import styles from './styles';
 import PenList from '../../components/penAndReport/PenList';
@@ -47,6 +48,7 @@ import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import useReportStore from '@/store/reportStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ReportDetail from '@/components/penAndReport/reportDetail';
 
 interface ListItemProps {
   item: any;
@@ -57,10 +59,9 @@ interface ListItemProps {
 }
 
 export default function PenScreen() {
+  const [localLoading, setLocalLoading] = useState<boolean>(true);
   const [lng, setLng] = useState<string | null>(null);
-  const { fieldId, fieldName } = useLocalSearchParams();
-
-  const [penOrReportSelect, setPenOrReportSelect] = useState<string>('pens');
+  const { fieldId, fieldName, reportName, reportId } = useLocalSearchParams();
 
   const router = useRouter();
 
@@ -96,15 +97,15 @@ export default function PenScreen() {
     getAllVariables: state.getAllVariables,
   }));
 
-  const { pensLoading, penById, onDelete, pens, getAllPens, resetDetail } =
-    usePenStore((state) => ({
+  const { pensLoading, penById, onDelete, pens, getAllPens } = usePenStore(
+    (state) => ({
       pensLoading: state.pensLoading,
       penById: state.penById,
       pens: state.pens,
       onDelete: state.onDelete,
       getAllPens: state.getAllPens,
-      resetDetail: state.resetDetail,
-    }));
+    })
+  );
 
   const { typeOfObjects, getAllTypeOfObjects } = useTypeOfObjectStore(
     (state) => ({
@@ -112,13 +113,23 @@ export default function PenScreen() {
       getAllTypeOfObjects: state.getAllTypeOfObjects,
     })
   );
-  const { getAllReportsByField, reportsByFielId, onDeleteReport } =
-    useReportStore((state) => ({
-      getAllReportsByField: state.getAllReportsByField,
-      reportsByFielId: state.reportsByFielId,
-      onDeleteReport: state.onDelete,
-    }));
+  const {
+    getAllReportsByField,
+    resetDetail,
+    reportById,
+    getReportById,
+    reportsLoading,
+  } = useReportStore((state) => ({
+    getAllReportsByField: state.getAllReportsByField,
+    getReportById: state.getReportById,
+    reportById: state.reportById,
+    reportsLoading: state.reportsLoading,
+    resetDetail: state.resetDetail,
+  }));
   const { t } = useTranslation();
+  const [penOrReportSelect, setPenOrReportSelect] = useState<string | null>(
+    (reportById && reportById[0]?.name) ?? null
+  );
 
   useEffect(() => {
     const getLanguage = async () => {
@@ -129,69 +140,32 @@ export default function PenScreen() {
   }, []);
 
   useEffect(() => {
-    if (!reportsByFielId || reportsByFielId[`${fieldId}`] === null) {
-      getAllReportsByField(fieldId as string);
+    getReportById(reportId as unknown as number);
+    return () => {
+      resetDetail();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!reportsLoading) {
+      setLocalLoading(false);
+    } else {
+      setLocalLoading(true);
     }
-    if (!pens || pens[`${fieldId}`] === null) {
-      getAllPens(fieldId as string, false, true);
+  }, [reportsLoading]);
+
+  useEffect(() => {
+    if (reportById && reportById.length > 0) {
+      setPenOrReportSelect(reportById[0].name);
     }
-    if (typeOfObjects === null) {
-      getAllTypeOfObjects();
-    }
-  }, [
-    getAllTypeOfObjects,
-    getAllPens,
-    ,
-    getAllReportsByField,
-    pens,
-    reportsByFielId,
-    typeOfObjects,
-    fieldId,
-  ]);
+  }, [reportById]);
+
+  const selectedReport = reportById?.find(
+    (report) => report.name === penOrReportSelect
+  );
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(typeOfObjects) &&
-        typeOfObjects.length > 0 &&
-        (Platform.OS === 'ios' ? (
-          <SafeAreaView style={styles.floatingButton}>
-            <IconButton
-              icon="plus"
-              iconColor="#FFF"
-              onPress={() =>
-                router.push({
-                  pathname:
-                    penOrReportSelect === 'pens'
-                      ? '/pen/createPen'
-                      : '/report/createReport',
-                  params: {
-                    fieldId: fieldId,
-                  },
-                })
-              }
-              size={rS(24)}
-            />
-          </SafeAreaView>
-        ) : (
-          <IconButton
-            style={styles.floatingButton}
-            icon="plus"
-            iconColor="#FFF"
-            onPress={() =>
-              router.push({
-                pathname:
-                  penOrReportSelect === 'pens'
-                    ? '/pen/createPen'
-                    : '/report/createReport',
-                params:
-                  penOrReportSelect === 'pens'
-                    ? { fieldId: fieldId }
-                    : { fieldId: fieldId, fieldName: fieldName },
-              })
-            }
-            size={rS(24)}
-          />
-        ))}
       {/* header */}
       <ImageBackground
         source={require('../../../assets/images/penAndReport-bg-image.png')}
@@ -234,11 +208,7 @@ export default function PenScreen() {
               {fieldName}
             </Text>
             {/* titulo */}
-            {penOrReportSelect === 'pens' ? (
-              <Text style={styles.welcome}>{t('penView.title')}</Text>
-            ) : (
-              <Text style={styles.welcome}>{t('reportsView.title')}</Text>
-            )}
+            <Text style={styles.welcome}>{reportName}</Text>
           </View>
         </View>
       </ImageBackground>
@@ -255,69 +225,74 @@ export default function PenScreen() {
       >
         <View
           style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            gap: rMS(60),
             marginHorizontal: rMS(22),
             marginVertical: rMS(10),
+            paddingHorizontal: rMS(14),
           }}
         >
-          <Pressable onPress={() => setPenOrReportSelect('pens')}>
-            <Text
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View
               style={{
-                textAlign: 'center',
-                fontSize: 18,
-                fontWeight: 'bold',
-                fontFamily: 'Pro-Regular',
-                color: penOrReportSelect === 'pens' ? '#486732' : '#000',
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'flex-start', // Cambiado a 'flex-start'
+                gap: rMS(30),
               }}
             >
-              {t('penView.penText')}
-            </Text>
-            {penOrReportSelect === 'pens' && (
-              <Divider
+              <View
                 style={{
-                  backgroundColor: '#486732',
-                  height: rMS(2.4),
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  gap: 30, // Ajusta según tu función rMS
                 }}
-              />
-            )}
-          </Pressable>
-          <Pressable onPress={() => setPenOrReportSelect('reports')}>
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 18,
-                fontWeight: 'bold',
-                fontFamily: 'Pro-Regular',
-                color: penOrReportSelect === 'reports' ? '#486732' : '#000',
-              }}
-            >
-              {t('reportsView.reportsText')}
-            </Text>
-            {penOrReportSelect === 'reports' && (
-              <Divider
-                style={{
-                  backgroundColor: '#486732',
-                  height: rMS(2.4),
-                }}
-              />
-            )}
-          </Pressable>
+              >
+                {reportById?.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => {
+                      setPenOrReportSelect(item.name);
+                      setPenExpandedItems([]);
+                    }}
+                  >
+                    <Text
+                      style={{
+                        textAlign: 'center',
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        fontFamily: 'Pro-Regular',
+                        color:
+                          penOrReportSelect === item.name ? '#486732' : '#000',
+                      }}
+                    >
+                      {item.name}
+                    </Text>
+                    {penOrReportSelect === item.name && (
+                      <Divider
+                        style={{
+                          backgroundColor: '#486732',
+                          height: 2.4, // Ajusta según tu función rMS
+                        }}
+                      />
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </ScrollView>
         </View>
-        {pensLoading ? (
+        {reportsLoading || localLoading ? (
           <ActivityIndicator
             style={{
-              marginTop: '60%',
+              marginTop: '50%',
             }}
             animating={true}
             color="#486732"
           />
-        ) : penOrReportSelect === 'pens' ? (
-          /* contenido scroll */
-          <PenList
-            pens={pens && pens[`${fieldId}`]}
+        ) : (
+          <ReportDetail
+            reports={selectedReport || null}
+            reportsLoading={reportsLoading}
             getAllPens={getAllPens}
             fieldId={fieldId as string}
             onDelete={onDelete}
@@ -326,20 +301,6 @@ export default function PenScreen() {
             setExpandedItems={setPenExpandedItems}
             rMS={rMS}
             styles={styles}
-          />
-        ) : (
-          <ReportList
-            reports={reportsByFielId && reportsByFielId[`${fieldId}`]}
-            expandedItems={reportExpandedItems}
-            toggleExpand={toggleExpand}
-            setExpandedItems={setReportExpandedItems}
-            rMS={rMS}
-            styles={styles}
-            getAllReports={getAllReportsByField}
-            lng={lng}
-            onDelete={onDeleteReport}
-            fieldName={fieldName}
-            fieldId={fieldId as string}
           />
         )}
       </View>

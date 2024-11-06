@@ -12,6 +12,7 @@ import {
 import { MeasurementService } from '../service/measurement.service';
 import { CreateMeasurementDto } from '../dto/create-measurement.dto';
 import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
+import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
 
 @Controller('measurements')
 export class MeasurementController {
@@ -27,12 +28,27 @@ export class MeasurementController {
     }
   }
 
+  // @Post()
+  // @HttpCode(HttpStatus.CREATED)
+  // async create(@Body() createMeasurementDto: CreateMeasurementDto) {
+  //   try {
+  //     return await this.measurementService.create(createMeasurementDto);
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createMeasurementDto: CreateMeasurementDto) {
+  async bulkCreate(
+    @Body() createBullkMeasurementDto: CreateBulkMeasurementDto,
+  ) {
     try {
-      return await this.measurementService.create(createMeasurementDto);
+      return await this.measurementService.bulkCreate(
+        createBullkMeasurementDto,
+      );
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }

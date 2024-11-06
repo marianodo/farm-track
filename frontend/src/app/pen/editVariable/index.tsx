@@ -270,7 +270,7 @@ const EditVariable: React.FC = () => {
         await onUpdateByIds(penId, variableId, typeOfObjectsId, {
           custom_parameters: formData.custom_parameters,
         });
-        console.log('formData', formData.custom_parameters);
+
         alert(t('attributeView.formOkText'));
         setFormData({
           name: null,
@@ -601,7 +601,6 @@ const EditVariable: React.FC = () => {
                 </>
               ) : type === 'CATEGORICAL' ? (
                 <>
-                  {console.log('TIPO', type)}
                   <TextInput
                     mode="outlined"
                     placeholderTextColor="#292929"

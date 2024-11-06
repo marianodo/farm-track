@@ -4,7 +4,7 @@ import useTypeOfObjectStore from './typeOfObjectStore';
 import { Pen, CreatePen } from './interface/pen.interface';
 
 interface PenState {
-  pens: Pen[] | null;
+  pens: { [fieldId: string]: Pen[] } | null;
   penById: Pen | null;
   pensLoading: boolean;
   createPen: (pen: CreatePen, fieldId: string) => Promise<void>;
@@ -72,10 +72,13 @@ const usePenStore = create<PenState>((set) => ({
       const response = await axiosInstance.get(
         `/pens/byField/${fieldId}?withFields=${withFields}&withObjects=${withObjects}`
       );
-      set({
-        pens: response.data.length ? response.data : [],
+      set((state) => ({
+        pens: {
+          ...state.pens,
+          [fieldId]: response.data.length ? response.data : [],
+        },
         pensLoading: false,
-      });
+      }));
     } catch (error) {
       set({ pensLoading: false });
       console.error('Error fetching pens:', error);
@@ -111,6 +114,7 @@ const usePenStore = create<PenState>((set) => ({
   },
   resetDetail: () => {
     set({
+      pens: null,
       penById: null,
     });
   },
