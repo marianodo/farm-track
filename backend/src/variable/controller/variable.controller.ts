@@ -33,13 +33,11 @@ export class VariableController {
     @Body('typeOfObjectIds') typeOfObjectIds: number[],
   ) {
     try {
-      console.log('Controller - typeOfObjectIds:', typeOfObjectIds);
       const result =
         await this.variableService.findUniqueCombinations(typeOfObjectIds);
-      console.log('Controller - result:', result);
+
       return result;
     } catch (error) {
-      console.error('Controller - ERROR:', error);
       throw error;
     }
   }

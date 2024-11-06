@@ -71,4 +71,14 @@ export class ReportController {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeAll(): Promise<void> {
+    try {
+      await this.reportService.removeAll();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
 }

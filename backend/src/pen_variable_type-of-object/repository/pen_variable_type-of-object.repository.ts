@@ -117,7 +117,7 @@ export class PenVariableTypeOfObjectRepository {
             : false,
         },
       });
-      console.log(result); // Depurar los resultados
+
       return result;
     } catch (error) {
       // Manejo de errores
@@ -133,7 +133,6 @@ export class PenVariableTypeOfObjectRepository {
     withVariableBool: boolean,
   ) {
     try {
-      console.log('EEEEEEEEEEEEEEEEEENTRRREEEEEEEEEEEEEEEE');
       const result = await this.prisma.penVariableTypeOfObject.findMany({
         where: {
           typeOfObjectId,
@@ -150,10 +149,9 @@ export class PenVariableTypeOfObjectRepository {
             : false,
         },
       });
-      console.log(result); // Depurar los resultados
+
       return result;
     } catch (error) {
-      console.log('EEEEEEEEEEEEEEEEEENTRRREEEEEEEEEEEEEEEE');
       // Manejo de errores
       throw new Error(
         `Error finding PenVariableTypeOfObject by typeOfObjectId: ${error.message}`,

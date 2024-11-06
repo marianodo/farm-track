@@ -13,7 +13,9 @@ export const useAuthRedirect = () => {
       segments[0] === '(protected)' ||
       segments[0] === 'createField' ||
       segments[0] === 'editField' ||
-      segments[0] === 'pen';
+      segments[0] === 'pen' ||
+      segments[0] === 'report' ||
+      segments[0] === 'measurement';
     if (token == null && inAuthGroup) {
       router.replace('/');
     } else if (token !== null && !inAuthGroup) {

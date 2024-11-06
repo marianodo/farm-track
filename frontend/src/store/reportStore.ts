@@ -1,71 +1,78 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
-
-export interface Report {
-  id: number;
-  title: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ReportWithIds extends Omit<Report, 'id'> {}
+import {
+  Report,
+  ReportWithMeasurements,
+  CreateReport,
+  MeasurementData,
+} from './interface/report.interface';
 
 interface ReportState {
-  reports: Report[] | null;
-  reportById: Report | null;
+  reportsByFielId: { [fieldId: string]: Report[] } | null;
+  reportById: ReportWithMeasurements[] | null | [];
+  createReportId: number | null;
+  measurementVariablesData: MeasurementData[] | null;
   reportsLoading: boolean;
-  createReport: (report: ReportWithIds) => Promise<void>;
-  onDelete: (id: number) => Promise<void>;
-  onUpdate: (id: number, report: Partial<ReportWithIds>) => Promise<void>;
-  getAllReports: () => void;
+  createReport: (report: Report) => Promise<void>;
+  onDelete: (id: number, fieldId: string) => Promise<void>;
+  onUpdate: (id: number, report: CreateReport) => Promise<void>;
+  getAllReportsByField: (field_id: string) => void;
   getReportById: (id: number | null) => Promise<void>;
   resetDetail: () => void;
+  resetCreateReportId: () => void;
+  setMeasurementData: (data: MeasurementData[]) => void;
+  createMeasurementWithReportId: (data: any, field_id: string) => void;
 }
 
 const useReportStore = create<ReportState>((set) => ({
-  reports: null,
+  reportsByFielId: null,
   reportById: null,
   reportsLoading: false,
-  createReport: async (report: ReportWithIds): Promise<void> => {
+  createReportId: null,
+  measurementVariablesData: null,
+  createReport: async (report: CreateReport): Promise<void> => {
     set({ reportsLoading: true });
     try {
-      await axiosInstance.post('/reports', report);
-      useReportStore.getState().getAllReports();
-      set({ reportsLoading: false });
+      const response = await axiosInstance.post('/reports', report);
+      const newReport = response.data;
+      useReportStore.getState().getAllReportsByField(report.field_id);
+      //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
+      set({ reportsLoading: false, createReportId: newReport.id });
     } catch (error: any) {
       set({ reportsLoading: false });
       console.error('Error creating report:', error);
     }
   },
-  onDelete: async (id: number) => {
+  onDelete: async (id: number, fieldId: string) => {
     try {
       await axiosInstance.delete(`/reports/${id}`);
-      useReportStore.getState().getAllReports();
+      set({ reportsLoading: false });
+      useReportStore.getState().getAllReportsByField(fieldId);
     } catch (error: any) {
       set({ reportsLoading: false });
       console.error('Error deleting report:', error);
     }
   },
-  onUpdate: async (id: number, report: Partial<ReportWithIds>) => {
+  onUpdate: async (id: number, report: CreateReport) => {
     set({ reportsLoading: true });
     try {
-      await axiosInstance.patch(`/reports/${id}`, report);
-      useReportStore.getState().getAllReports();
       set({ reportsLoading: false });
     } catch (error: any) {
       set({ reportsLoading: false });
       console.error('Error updating report:', error);
     }
   },
-  getAllReports: async () => {
+  getAllReportsByField: async (field_id) => {
     set({ reportsLoading: true });
     try {
-      const response = await axiosInstance.get('/reports');
-      set({
-        reports: response.data.length ? response.data : [],
+      const response = await axiosInstance.get(`/reports/byField/${field_id}`);
+      set((state) => ({
+        reportsByFielId: {
+          ...state.reportsByFielId,
+          [field_id]: response.data.length ? response.data : [],
+        },
         reportsLoading: false,
-      });
+      }));
     } catch (error) {
       set({ reportsLoading: false });
       console.error('Error fetching reports:', error);
@@ -74,14 +81,10 @@ const useReportStore = create<ReportState>((set) => ({
   getReportById: async (id: number | null) => {
     set({ reportsLoading: true });
     try {
-      if (id) {
-        const response = await axiosInstance.get(`/reports/${id}`);
-        set({
-          reportById: response.data ? response.data : null,
-          reportsLoading: false,
-        });
-      }
-    } catch (error) {
+      const response = await axiosInstance.get(`/reports/${id}`);
+      set({ reportById: response.data, reportsLoading: false });
+    } catch (error: any) {
+      console.log(error?.response);
       set({ reportsLoading: false });
       console.error('Error fetching report by ID:', error);
     }
@@ -90,6 +93,33 @@ const useReportStore = create<ReportState>((set) => ({
     set({
       reportById: null,
     });
+  },
+
+  resetCreateReportId: () => {
+    set({
+      createReportId: null,
+    });
+  },
+  setMeasurementData: (data) => {
+    set({
+      measurementVariablesData: data,
+    });
+  },
+  createMeasurementWithReportId: async (
+    data: any,
+    field_id: string
+  ): Promise<void> => {
+    set({ reportsLoading: true });
+    try {
+      await axiosInstance.post('/measurements', data);
+      // const newReport = response.data;
+      useReportStore.getState().getAllReportsByField(field_id);
+      //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
+      set({ reportsLoading: false });
+    } catch (error: any) {
+      set({ reportsLoading: false });
+      console.error('Error creating report:', error);
+    }
   },
 }));
 

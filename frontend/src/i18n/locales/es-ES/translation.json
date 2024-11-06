@@ -162,7 +162,28 @@
     "deleteAlertTitle": "¿Desea eliminar el reporte",
     "deleteAlertSubTitle": "Si elimina este reporte, se borrarán todas las mediciones relacionadas. Esta acción no se puede deshacer.",
     "deleteButtonAlertText": "Eliminar",
-    "cancelButtonAlertText": "Cancelar"
+    "cancelButtonAlertText": "Cancelar",
+    "newReportText": "Nuevo reporte",
+    "detailReportText": "Detalles del reporte",
+    "reportFieldNamePlaceHolder": "Nombre del campo",
+    "reportDatePlaceHolder": "Fecha del reporte",
+    "reportNamePlaceHolder": "Nombre del reporte",
+    "reportObservationsPlaceHolder": "Observaciones",
+    "reportListNameText": "Reporte",
+    "createReportInfoText": "El nombre y las observaciones del reporte son opcionales.",
+    "createReportTextButton": "Crear reporte",
+    "reportErrorCreateText": "Error al crear el reporte."
+  },
+  "measurementView": {
+    "newMeasurementText": "Nueva medición",
+    "detailMeasurementText": "Detalles de la medición",
+    "penPlaceHolder": "Corral a medir",
+    "typeOfObjectPlaceHolder": "Objeto a medir",
+    "variablePlaceHolder": "Variables a medir",
+    "variablesSelectedText": "Variables seleccionadas",
+    "subjectTextInfo": "El nombre del objeto es un dato opcional.",
+    "continueButtonTEXT": "Continuar",
+    "dropDownDontInfo": "¡No hay información disponible!"
   },
   "editTypeObject": {
     "title": "Editar objeto",

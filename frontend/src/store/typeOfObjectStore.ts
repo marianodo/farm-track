@@ -105,9 +105,10 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
     set({ typeOfObjectsLoading: true });
     try {
       if (id) {
-        const response = await axiosInstance.get(`/objects/${id}`);
+        const response = await axiosInstance.get(`/type-of-objects/${id}`);
+        console.log('RESPUESTA', response.data);
         set({
-          typeOfObjectById: response.data.length ? response.data : null, // Cambiado 'objectsByUserId' por 'typeOfObjectById'
+          typeOfObjectById: response.data ? response.data : null, // Cambiado 'objectsByUserId' por 'typeOfObjectById'
           typeOfObjectsLoading: false,
         });
       }

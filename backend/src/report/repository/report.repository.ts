@@ -38,8 +38,7 @@ export class ReportRepository {
       const reports = await this.db.report.findMany({
         where: { field_id: field_id },
       });
-      if (reports.length === 0)
-        throw new NotFoundException('Reports not found');
+
       return reports;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -58,21 +57,41 @@ export class ReportRepository {
         include: {
           measurements: {
             select: {
-              id: true,
-              value: true,
-              report_id: true,
-              created_at: true,
-              updated_at: true,
               subject: {
                 select: {
                   id: true,
                   name: true,
-                  type_of_object: true,
+                  type_of_object: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                  measurement: {
+                    select: {
+                      id: true,
+                      value: true,
+                      created_at: true,
+                      updated_at: true,
+                      pen_variable_type_of_object: {
+                        include: {
+                          variable: {
+                            select: {
+                              id: true,
+                              name: true,
+                              type: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
                 },
               },
               pen_variable_type_of_object: {
                 include: {
                   pen: true,
+                  variable: true,
                 },
               },
             },
@@ -90,27 +109,33 @@ export class ReportRepository {
           acc[penId] = {
             id: measurement.pen_variable_type_of_object.pen.id,
             name: measurement.pen_variable_type_of_object.pen.name,
+            report_id: report.id,
             fieldId: measurement.pen_variable_type_of_object.pen.fieldId,
-            measurements: [],
+            subjects: {},
           };
         }
-        acc[penId].measurements.push({
-          ...measurement,
-          pen_variable_type_of_object: {
-            id: measurement.pen_variable_type_of_object.id,
-            penId: measurement.pen_variable_type_of_object.penId,
-            variableId: measurement.pen_variable_type_of_object.variableId,
-            typeOfObjectId:
-              measurement.pen_variable_type_of_object.typeOfObjectId,
-            custom_parameters:
-              measurement.pen_variable_type_of_object.custom_parameters,
-          },
-        });
+
+        const subjectId = measurement.subject.id;
+        if (!acc[penId].subjects[subjectId]) {
+          acc[penId].subjects[subjectId] = {
+            id: measurement.subject.id,
+            name: measurement.subject.name,
+            type_of_object: {
+              id: measurement.subject.type_of_object.id,
+              name: measurement.subject.type_of_object.name,
+            },
+            measurement: measurement.subject.measurement,
+          };
+        }
+
         return acc;
       }, {});
 
-      // Convertir el objeto en un array
-      const pensArray = Object.values(pens);
+      // Convertir el objeto en un array y los subjects en arrays
+      const pensArray: any[] = Object.values(pens).map((pen: any) => ({
+        ...pen,
+        subjects: Object.values(pen.subjects),
+      }));
 
       return pensArray;
     } catch (error) {
@@ -138,6 +163,16 @@ export class ReportRepository {
       }
       throw new InternalServerErrorException(
         'An unexpected error occurred while updating the report.',
+      );
+    }
+  }
+
+  async removeAll(): Promise<void> {
+    try {
+      await this.db.report.deleteMany();
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while deleting all reports.',
       );
     }
   }

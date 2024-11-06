@@ -4,11 +4,13 @@ import useTypeOfObjectStore from './typeOfObjectStore';
 import {
   PenVariableTypeOfObject,
   CreatePenVariableTypeOfObject,
+  ExtendedPenVariableTypeOfObject,
 } from './interface/penVariableTypeOfObject.interface';
 
 interface PenVariableTypeOfObjectState {
   penVariableTypeOfObjects: PenVariableTypeOfObject[] | null;
   penVariableTypeOfObjectByTypeId: PenVariableTypeOfObject | null;
+  penVariableTypeOfObjectByTypeIdAndPen: ExtendedPenVariableTypeOfObject | null;
   penVariableTypeOfObjectsLoading: boolean;
   createPenVariableTypeOfObject: (
     penVariableTypeOfObject: CreatePenVariableTypeOfObject
@@ -43,6 +45,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
   (set) => ({
     penVariableTypeOfObjects: null,
     penVariableTypeOfObjectByTypeId: null,
+    penVariableTypeOfObjectByTypeIdAndPen: null,
     penVariableTypeOfObjectsLoading: false,
     createPenVariableTypeOfObject: async (
       penVariableTypeOfObject: CreatePenVariableTypeOfObject
@@ -97,7 +100,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
           .getState()
           .getPenVariableTypeOfObjectsByObjectIdAndPen(typeOfObjectId, penId);
         // useTypeOfObjectStore.getState().getAllTypeOfObjects();
-        set({ penVariableTypeOfObjectsLoading: false });
+        set({ penVariableTypeOfObjectsLoading: fals });
       } catch (error: any) {
         set({ penVariableTypeOfObjectsLoading: false });
         console.error('Error updating pen variable type of object:', error);
@@ -142,7 +145,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
     },
     getPenVariableTypeOfObjectsByObjectIdAndPen: async (
       type: number,
-      penId
+      penId: number
     ) => {
       set({ penVariableTypeOfObjectsLoading: true });
       try {
@@ -150,7 +153,9 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
           `/pens-variables-type-of-objects/type-of-object/${type}/${penId}`
         );
         set({
-          penVariableTypeOfObjectByTypeId: response.data ? response.data : [],
+          penVariableTypeOfObjectByTypeIdAndPen: response.data
+            ? response.data
+            : [],
           penVariableTypeOfObjectsLoading: false,
         });
       } catch (error) {
@@ -165,6 +170,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
       console.log('reset');
       set({
         penVariableTypeOfObjectByTypeId: null,
+        penVariableTypeOfObjectByTypeIdAndPen: null,
       });
     },
   })

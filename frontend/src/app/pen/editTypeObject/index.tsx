@@ -96,7 +96,7 @@ const EditTypeObject: React.FC = () => {
     defaultValue: null,
     type_of_object_ids: null,
   });
-  console.log('PEEEEEEEEEEEEN ID: ', penId);
+
   const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
@@ -116,7 +116,6 @@ const EditTypeObject: React.FC = () => {
     null
   );
   const [items, setItems] = useState<Item[]>([]);
-  //   console.log('items', itemsValue);
 
   const [formData, setFormData] = useState<FormData>({
     name: null,
@@ -135,12 +134,13 @@ const EditTypeObject: React.FC = () => {
 
   const {
     resetDetail,
-    penVariableTypeOfObjectByTypeId,
+    penVariableTypeOfObjectByTypeIdAndPen,
     penVariableTypeOfObjectsLoading,
     getPenVariableTypeOfObjectsByObjectIdAndPen,
   } = usePenVariableTypeOfObjectStore((state: any) => ({
     resetDetail: state.resetDetail,
-    penVariableTypeOfObjectByTypeId: state.penVariableTypeOfObjectByTypeId,
+    penVariableTypeOfObjectByTypeIdAndPen:
+      state.penVariableTypeOfObjectByTypeIdAndPen,
     penVariableTypeOfObjectsLoading: state.penVariableTypeOfObjectsLoading,
     getPenVariableTypeOfObjectsByObjectIdAndPen:
       state.getPenVariableTypeOfObjectsByObjectIdAndPen,
@@ -198,8 +198,6 @@ const EditTypeObject: React.FC = () => {
       resetDetail();
     };
   }, [penId]);
-
-  //   console.log('laala', penVariableTypeOfObjectByTypeId);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     const updatedFormData = { ...formData, [field]: inputValue };
@@ -671,7 +669,7 @@ const EditTypeObject: React.FC = () => {
                 paddingHorizontal: rMS(20),
                 paddingTop: rMS(10),
               }}
-              data={penVariableTypeOfObjectByTypeId}
+              data={penVariableTypeOfObjectByTypeIdAndPen}
               keyExtractor={(item, index) => `${item.typeOfObjectId}${index}`}
               renderItem={({ item, index }) => {
                 const isExpanded = expandedItems.includes(index);

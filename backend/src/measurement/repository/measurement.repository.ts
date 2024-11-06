@@ -8,17 +8,45 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Measurement, Prisma } from '@prisma/client';
 import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
 import { CreateMeasurementDto } from '../dto/create-measurement.dto';
+import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
 
 @Injectable()
 export class MeasurementRepository {
   constructor(private readonly db: PrismaService) {}
 
-  async create(
-    createMeasurementDto: CreateMeasurementDto,
-  ): Promise<Measurement> {
+  // async create(
+  //   createMeasurementDto: CreateMeasurementDto,
+  // ): Promise<Measurement> {
+  //   try {
+  //     const newMeasurement = await this.db.measurement.create({
+  //       data: createMeasurementDto,
+  //     });
+  //     return newMeasurement;
+  //   } catch (error) {
+  //     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  //       if (error.code === 'P2002') {
+  //         throw new BadRequestException(
+  //           'A measurement with this ID already exists.',
+  //         );
+  //       }
+  //     }
+  //     throw new InternalServerErrorException(
+  //       'An unexpected error occurred while creating the measurement.',
+  //     );
+  //   }
+  // }
+
+  async bulkCreate(data: CreateBulkMeasurementDto): Promise<Measurement[]> {
     try {
-      const newMeasurement = await this.db.measurement.create({
-        data: createMeasurementDto,
+      const measurementsWithSubjectId = data.measurements.map(
+        (measurement) => ({
+          ...measurement,
+          subject_id: data.subject_id,
+        }),
+      );
+
+      const newMeasurement = await this.db.measurement.createManyAndReturn({
+        data: measurementsWithSubjectId,
       });
       return newMeasurement;
     } catch (error) {
@@ -38,7 +66,6 @@ export class MeasurementRepository {
   async findAll(): Promise<Measurement[]> {
     try {
       const measurements = await this.db.measurement.findMany();
-      console.log(measurements);
       if (measurements.length === 0)
         throw new NotFoundException('Measurements not found');
       return measurements;

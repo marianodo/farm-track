@@ -1,4 +1,5 @@
 import { Pen } from '@/store/interface/pen.interface';
+import { ReportWithMeasurements } from '@/store/interface/report.interface';
 import usePenStore from '@/store/penStore';
 import { rMS, rMV } from '@/styles/responsive';
 import { useRouter } from 'expo-router';
@@ -48,7 +49,8 @@ interface Variable {
 }
 
 interface PenListProps {
-  pens: Pen[] | null;
+  reports: any;
+  reportsLoading: boolean;
   expandedItems: number[];
   toggleExpand: (
     index: number,
@@ -62,8 +64,8 @@ interface PenListProps {
   fieldId: string;
 }
 
-const PenList: React.FC<PenListProps> = ({
-  pens,
+const ReportDetail: React.FC<PenListProps> = ({
+  reports,
   onDelete,
   expandedItems,
   toggleExpand,
@@ -71,8 +73,18 @@ const PenList: React.FC<PenListProps> = ({
   rMS,
   styles,
   getAllPens,
+  reportsLoading,
   fieldId,
 }) => {
+  const formatTime = (dateString: any) => {
+    const date = new Date(dateString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    const formattedHours = hours;
+    return `${formattedHours}:${minutes} ${ampm}`;
+  };
+
   const { pensLoading } = usePenStore((state) => ({
     pensLoading: state.pensLoading,
   }));
@@ -163,14 +175,15 @@ const PenList: React.FC<PenListProps> = ({
         <TouchableWithoutFeedback
           key={index}
           onPress={
-            item.type_of_objects.length > 0
-              ? () => {
-                  Keyboard.dismiss();
-                  toggleExpand(index, setExpandedItems);
-                }
-              : () => {
-                  Keyboard.dismiss();
-                }
+            // item.type_of_objects.length > 0
+            //   ? () => {
+            //       Keyboard.dismiss();
+            //       toggleExpand(index, setExpandedItems);
+            //     }
+            //   : () => {
+            //       Keyboard.dismiss();
+            //     }
+            () => toggleExpand(index, setExpandedItems)
           }
         >
           <View style={styles.attributeContainer}>
@@ -183,33 +196,23 @@ const PenList: React.FC<PenListProps> = ({
                 fontFamily: 'Pro-Regular',
               }}
             >
-              {item?.name}
+              {item.type_of_object.name} - {item.name ? item.name : item.id}
             </Text>
-            {item.type_of_objects.length > 0 && isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../assets/images/tabs/object-selected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : item.type_of_objects.length > 0 && !isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../assets/images/tabs/object-unselected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : null}
+            <View style={{ paddingBottom: rMS(8) }}>
+              <Image
+                source={
+                  isExpanded
+                    ? require('../../../assets/images/reportDetailOn.png')
+                    : require('../../../assets/images/reportDetailOf.png')
+                }
+                style={{
+                  width: rMS(22),
+                  height: rMS(22),
+                  alignSelf: 'center',
+                }}
+                resizeMode="contain"
+              />
+            </View>
           </View>
         </TouchableWithoutFeedback>
         {/* Mostrar información cuando se expande */}
@@ -224,55 +227,32 @@ const PenList: React.FC<PenListProps> = ({
           <View
             style={{
               display: 'flex',
-              flexDirection: 'row',
+              flexDirection: 'column',
               flexWrap: 'wrap',
               paddingHorizontal: rMS(10),
               paddingTop: rMS(8),
               paddingBottom: rMS(8),
-              gap: rMS(4),
+              gap: rMS(26),
               width: '100%',
             }}
           >
-            {item.type_of_objects.map((type_of_object: any, index: number) => {
-              return (
-                <Pressable
-                  key={index}
-                  onPress={() => {
-                    router.push({
-                      pathname: `/pen/editTypeObject`,
-                      params: {
-                        type_of_object_name: type_of_object.name,
-                        type_of_object_id: type_of_object.id,
-                        penId: item.id,
-                        penName: item.name,
-                      },
-                    });
-                  }}
-                >
-                  <Badge
-                    key={index}
-                    style={{
-                      paddingHorizontal: rMS(7),
-                      height: rMS(24),
-                      backgroundColor: '#486732',
-                      fontFamily: 'Pro-Regular',
-                      fontSize: rMS(12),
-                      marginRight: rMS(4), // Add margin to ensure proper spacing
-                      marginBottom: rMS(4), // Add margin to ensure proper spacing
-                    }}
-                  >
-                    {type_of_object.name}
-                  </Badge>
-                </Pressable>
-              );
-            })}
+            {item.measurement.map((measurement: any) => (
+              <View key={measurement.id} style={stylesDetail.infoContainer}>
+                <Text style={stylesDetail.infoTextLeft}>
+                  {`${measurement.pen_variable_type_of_object.variable.name}: ${measurement.value}`}
+                </Text>
+                <Text style={stylesDetail.infoTextRight}>
+                  {formatTime(measurement.updated_at)}
+                </Text>
+              </View>
+            ))}
           </View>
         </Animated.View>
       </Swipeable>
     );
   };
 
-  return !pens?.length ? (
+  return !reports ? (
     <View
       style={{
         width: '100%',
@@ -316,49 +296,45 @@ const PenList: React.FC<PenListProps> = ({
     </View>
   ) : (
     <View style={styles.spacer}>
-      {pensLoading ? (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-          }}
-        >
-          <ActivityIndicator
-            style={{
-              marginTop: '0%',
-            }}
-            animating={true}
-            color="#486732"
-          />
-        </View>
-      ) : (
-        <FlatList
-          style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-          data={pens}
-          keyExtractor={(item, index) => `${item.name}${index}`}
-          renderItem={({ item, index }) => {
-            const isExpanded = expandedItems.includes(index);
-            return (
-              <ListItem
-                item={item}
-                index={index}
-                isExpanded={isExpanded}
-                toggleExpand={toggleExpand}
-                setExpandedItems={setExpandedItems}
-              />
-            );
-          }}
-        />
-      )}
+      <FlatList
+        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+        data={reports.subjects}
+        keyExtractor={(item, index) => `${item.name}${item.id}${index}`}
+        renderItem={({ item, index }) => {
+          const isExpanded = expandedItems.includes(index);
+          return (
+            <ListItem
+              item={item}
+              index={index}
+              isExpanded={isExpanded}
+              toggleExpand={toggleExpand}
+              setExpandedItems={setExpandedItems}
+            />
+          );
+        }}
+      />
     </View>
   );
 };
 
-export default PenList;
+export default ReportDetail;
+
+const stylesDetail = StyleSheet.create({
+  infoContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignContent: 'center',
+    width: '100%',
+  },
+  infoTextLeft: {
+    color: '#292929',
+    fontFamily: 'Pro-Regular',
+    fontSize: rMS(14),
+  },
+  infoTextRight: {
+    color: '#96A59A',
+    fontFamily: 'Pro-Regular',
+    fontSize: rMS(14),
+  },
+});

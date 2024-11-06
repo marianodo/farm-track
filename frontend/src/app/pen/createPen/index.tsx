@@ -86,7 +86,6 @@ const CreatePen: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
   const [items, setItems] = useState<Item[]>([]);
-  console.log('items', itemsValue);
 
   const [formData, setFormData] = useState<FormData>({
     name: null,

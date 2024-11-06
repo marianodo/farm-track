@@ -36,7 +36,6 @@ export class VariableRepository {
       if (newVariable) {
         const uniqueCombinations =
           await this.findUniqueCombinations(type_of_object_ids);
-        console.log('Unique Combinations:', uniqueCombinations);
 
         for (const combination of uniqueCombinations) {
           await this.db.penVariableTypeOfObject.create({
