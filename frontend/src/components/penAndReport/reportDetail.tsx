@@ -1,6 +1,7 @@
 import { Pen } from '@/store/interface/pen.interface';
 import { ReportWithMeasurements } from '@/store/interface/report.interface';
 import usePenStore from '@/store/penStore';
+import useReportStore from '@/store/reportStore';
 import { rMS, rMV } from '@/styles/responsive';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -50,6 +51,7 @@ interface Variable {
 
 interface PenListProps {
   reports: any;
+  reportById: any;
   reportsLoading: boolean;
   expandedItems: number[];
   toggleExpand: (
@@ -66,6 +68,7 @@ interface PenListProps {
 
 const ReportDetail: React.FC<PenListProps> = ({
   reports,
+  reportById,
   onDelete,
   expandedItems,
   toggleExpand,
@@ -73,7 +76,6 @@ const ReportDetail: React.FC<PenListProps> = ({
   rMS,
   styles,
   getAllPens,
-  reportsLoading,
   fieldId,
 }) => {
   const formatTime = (dateString: any) => {
@@ -85,8 +87,9 @@ const ReportDetail: React.FC<PenListProps> = ({
     return `${formattedHours}:${minutes} ${ampm}`;
   };
 
-  const { pensLoading } = usePenStore((state) => ({
-    pensLoading: state.pensLoading,
+  const { onDeleteMeasurement, reportsLoading } = useReportStore((state) => ({
+    onDeleteMeasurement: state.onDeleteMeasurement,
+    reportsLoading: state.reportsLoading,
   }));
   const router = useRouter();
   const { t } = useTranslation();
@@ -111,15 +114,15 @@ const ReportDetail: React.FC<PenListProps> = ({
       <Pressable
         style={styles.editButton}
         onPress={() => {
-          router.push({
-            pathname: `/pen/editPen`,
-            params: {
-              penId: pen.id,
-              penName: pen.name,
-              type_of_objects: JSON.stringify(pen.type_of_objects),
-              fieldId: pen.fieldId,
-            },
-          });
+          // router.push({
+          //   pathname: `/pen/editPen`,
+          //   params: {
+          //     penId: pen.id,
+          //     penName: pen.name,
+          //     type_of_objects: JSON.stringify(pen.type_of_objects),
+          //     fieldId: pen.fieldId,
+          //   },
+          // });
         }}
       >
         <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
@@ -162,7 +165,7 @@ const ReportDetail: React.FC<PenListProps> = ({
     return (
       <Swipeable
         key={index}
-        enabled={!isExpanded} // Elimina el swipe si está expandido
+        enabled={false} // Elimina el swipe si está expandido
         renderRightActions={(progress, dragX) =>
           renderRightActions(progress, dragX, item)
         }
@@ -172,7 +175,7 @@ const ReportDetail: React.FC<PenListProps> = ({
           borderRadius: 10,
         }}
       >
-        <TouchableWithoutFeedback
+        <Pressable
           key={index}
           onPress={
             // item.type_of_objects.length > 0
@@ -188,17 +191,78 @@ const ReportDetail: React.FC<PenListProps> = ({
         >
           <View style={styles.attributeContainer}>
             <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={{
                 paddingBottom: rMS(8),
                 fontSize: rMS(17),
                 paddingLeft: 6,
                 fontWeight: 'bold',
                 fontFamily: 'Pro-Regular',
+                width: isExpanded ? '64%' : '90%',
               }}
             >
               {item.type_of_object.name} - {item.name ? item.name : item.id}
             </Text>
-            <View style={{ paddingBottom: rMS(8) }}>
+            <View
+              style={{
+                display: 'flex',
+                gap: rMS(1),
+                flexDirection: 'row',
+                paddingBottom: rMS(8),
+              }}
+            >
+              {isExpanded && (
+                <>
+                  <Pressable
+                    onPress={(event) => {
+                      event.stopPropagation();
+                    }}
+                    style={({ pressed }) => [
+                      {
+                        opacity: pressed ? 0.5 : 1, // Cambia la opacidad cuando se presiona
+                      },
+                    ]}
+                  >
+                    <IconButton
+                      onPress={() =>
+                        onDeleteMeasurement(reportById, item.measurement[0].id)
+                      }
+                      icon="trash-can-outline"
+                      iconColor="#486732"
+                      size={rMV(22)}
+                      style={{ marginHorizontal: 0, marginRight: rMS(2) }}
+                    />
+                  </Pressable>
+                  <Pressable
+                    onPress={(event) => {
+                      event.stopPropagation();
+                      router.push({
+                        pathname: '/measurement/editMeasurement',
+                        params: {
+                          reportId: reportById,
+                          subjectId: item.id,
+                          typeOfObjectName: item.type_of_object.name,
+                          subjectName: item.name,
+                        },
+                      });
+                    }}
+                    style={({ pressed }) => [
+                      {
+                        opacity: pressed ? 0.5 : 1, // Cambia la opacidad cuando se presiona
+                      },
+                    ]}
+                  >
+                    <IconButton
+                      icon="pencil-outline"
+                      iconColor="#486732"
+                      size={rMV(22)}
+                      style={{ marginHorizontal: 0, marginRight: rMS(8) }}
+                    />
+                  </Pressable>
+                </>
+              )}
+
               <Image
                 source={
                   isExpanded
@@ -214,7 +278,7 @@ const ReportDetail: React.FC<PenListProps> = ({
               />
             </View>
           </View>
-        </TouchableWithoutFeedback>
+        </Pressable>
         {/* Mostrar información cuando se expande */}
 
         <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>

@@ -4,6 +4,7 @@ import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
 import { Injectable } from '@nestjs/common';
 import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
 import { SubjectService } from 'src/subject/service/subject.service';
+import { UpdateBulkMeasurementDto } from '../dto/updateBulkBody.dto';
 
 @Injectable()
 export class MeasurementService {
@@ -53,10 +54,32 @@ export class MeasurementService {
     }
   }
 
+  async findByReportAndSubjectId(report_id: number, subject_id: number) {
+    try {
+      return await this.measurementRepository.findByReportAndSubjectId(
+        report_id,
+        subject_id,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async update(id: number, updateMeasurementDto: UpdateMeasurementDto) {
     try {
       return await this.measurementRepository.update(id, updateMeasurementDto);
     } catch (error) {
+      throw error;
+    }
+  }
+
+  async bulkUpdate(updateBulkMeasurementDto: UpdateBulkMeasurementDto) {
+    try {
+      return await this.measurementRepository.bulkUpdate(
+        updateBulkMeasurementDto,
+      );
+    } catch (error) {
+      console.log('ERROR:', error);
       throw error;
     }
   }

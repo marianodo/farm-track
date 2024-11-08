@@ -83,6 +83,10 @@ const StackLayout = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="measurement/editMeasurement/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="measurement/createMeasurement/index"
                 options={{ headerShown: false }}
               />

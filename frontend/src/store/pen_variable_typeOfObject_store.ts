@@ -100,7 +100,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
           .getState()
           .getPenVariableTypeOfObjectsByObjectIdAndPen(typeOfObjectId, penId);
         // useTypeOfObjectStore.getState().getAllTypeOfObjects();
-        set({ penVariableTypeOfObjectsLoading: fals });
+        set({ penVariableTypeOfObjectsLoading: false });
       } catch (error: any) {
         set({ penVariableTypeOfObjectsLoading: false });
         console.error('Error updating pen variable type of object:', error);

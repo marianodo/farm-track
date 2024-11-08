@@ -67,11 +67,11 @@ export const useValidationRules = () => {
       errors.minMax = t('formErrors.range.minMaxInvalid');
     }
 
-    if (optimal_min <= min || optimal_min >= max) {
+    if (optimal_min < min || optimal_min > max) {
       errors.optimalMinMax = t('formErrors.range.minOptimoInvalid');
     }
 
-    if (optimal_max <= optimal_min || optimal_max >= max) {
+    if (optimal_max < optimal_min || optimal_max > max) {
       errors.optimalMinMax = t('formErrors.range.maxOptimoInvalid');
     }
 

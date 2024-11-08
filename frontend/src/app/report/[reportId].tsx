@@ -292,6 +292,7 @@ export default function PenScreen() {
         ) : (
           <ReportDetail
             reports={selectedReport || null}
+            reportById={reportById && reportById[0]?.report_id}
             reportsLoading={reportsLoading}
             getAllPens={getAllPens}
             fieldId={fieldId as string}
