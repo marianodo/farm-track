@@ -333,7 +333,7 @@ const EditVariable: React.FC = () => {
         { maxHeight: Dimensions.get('window').height },
       ]}
     >
-      {variablesLoading && (
+      {penVariableTypeOfObjectsLoading && (
         <View
           style={{
             position: 'absolute',

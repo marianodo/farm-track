@@ -9,6 +9,7 @@ import { Measurement, Prisma } from '@prisma/client';
 import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
 import { CreateMeasurementDto } from '../dto/create-measurement.dto';
 import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
+import { UpdateBulkMeasurementDto } from '../dto/updateBulkBody.dto';
 
 @Injectable()
 export class MeasurementRepository {
@@ -50,6 +51,7 @@ export class MeasurementRepository {
       });
       return newMeasurement;
     } catch (error) {
+      console.log(error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new BadRequestException(
@@ -68,6 +70,53 @@ export class MeasurementRepository {
       const measurements = await this.db.measurement.findMany();
       if (measurements.length === 0)
         throw new NotFoundException('Measurements not found');
+      return measurements;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving measurements.',
+      );
+    }
+  }
+
+  async findByReportAndSubjectId(report_id: number, subject_id: number) {
+    try {
+      const where: Prisma.MeasurementWhereInput = {};
+      if (report_id) {
+        where.report_id = report_id;
+      }
+      if (subject_id) {
+        where.subject_id = subject_id;
+      }
+
+      const measurements = await this.db.measurement.findMany({
+        where: {
+          report_id: report_id,
+          subject_id: subject_id,
+        },
+        select: {
+          id: true,
+          value: true,
+          subject_id: true,
+          pen_variable_type_of_object: {
+            select: {
+              custom_parameters: true,
+              variable: {
+                select: {
+                  name: true,
+                  type: true,
+                },
+              },
+            },
+          }, // Incluir la relación con pen_variable_type_of_object
+        },
+      });
+      if (measurements.length === 0)
+        throw new NotFoundException(
+          'Measurements by report and subject not found',
+        );
       return measurements;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -116,6 +165,37 @@ export class MeasurementRepository {
       }
       throw new InternalServerErrorException(
         'An unexpected error occurred while updating the measurement.',
+      );
+    }
+  }
+
+  async bulkUpdate(
+    updateBulkMeasurementDto: UpdateBulkMeasurementDto,
+  ): Promise<Measurement[]> {
+    const { measurements } = updateBulkMeasurementDto;
+    console.log('MEASUREMENTS:', measurements);
+    try {
+      // Iniciar una transacción para actualizar múltiples mediciones ya que si una falla, ninguna se va a actualizar.
+      // UpdateMany no permite actualizar datos dinamicos en varios registros, solo si el dato es el mismo para todos los registros.
+      const updatedMeasurements = await this.db.$transaction(
+        measurements.map((measurement) =>
+          this.db.measurement.update({
+            where: { id: measurement.id },
+            data: { value: measurement.value },
+          }),
+        ),
+      );
+
+      return updatedMeasurements;
+    } catch (error) {
+      console.log('ERROR:', error);
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          throw new NotFoundException(`One or more measurements not found.`);
+        }
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while updating the measurements.',
       );
     }
   }

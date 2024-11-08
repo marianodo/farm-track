@@ -2,26 +2,31 @@ import { create } from 'zustand';
 import { axiosInstance } from './authStore';
 import {
   Report,
-  ReportWithMeasurements,
+  ReportWithMeasurements2,
   CreateReport,
   MeasurementData,
+  MeasurementEditData,
 } from './interface/report.interface';
 
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
-  reportById: ReportWithMeasurements[] | null | [];
+  reportById: ReportWithMeasurements2[] | null | [];
   createReportId: number | null;
   measurementVariablesData: MeasurementData[] | null;
+  measurementEditData: MeasurementEditData[] | null;
   reportsLoading: boolean;
   createReport: (report: Report) => Promise<void>;
   onDelete: (id: number, fieldId: string) => Promise<void>;
-  onUpdate: (id: number, report: CreateReport) => Promise<void>;
+  onUpdate: (report_id: number, measurementsUpdates: any) => Promise<void>;
   getAllReportsByField: (field_id: string) => void;
   getReportById: (id: number | null) => Promise<void>;
   resetDetail: () => void;
   resetCreateReportId: () => void;
+  resetMeasurementEditData: () => void;
   setMeasurementData: (data: MeasurementData[]) => void;
   createMeasurementWithReportId: (data: any, field_id: string) => void;
+  getMeasurementEditData: (report_id: number, subject_id: number) => void;
+  onDeleteMeasurement: (report_id: number, measurement_id: number) => void;
 }
 
 const useReportStore = create<ReportState>((set) => ({
@@ -30,6 +35,7 @@ const useReportStore = create<ReportState>((set) => ({
   reportsLoading: false,
   createReportId: null,
   measurementVariablesData: null,
+  measurementEditData: null,
   createReport: async (report: CreateReport): Promise<void> => {
     set({ reportsLoading: true });
     try {
@@ -53,11 +59,30 @@ const useReportStore = create<ReportState>((set) => ({
       console.error('Error deleting report:', error);
     }
   },
-  onUpdate: async (id: number, report: CreateReport) => {
+
+  onDeleteMeasurement: async (report_id: number, measurement_id: number) => {
     set({ reportsLoading: true });
     try {
+      await axiosInstance.delete(`/measurements/${measurement_id}`);
+      set({ reportsLoading: false });
+      useReportStore.getState().getReportById(report_id);
+    } catch (error: any) {
+      set({ reportsLoading: false });
+      console.error('Error deleting report:', error);
+    }
+  },
+
+  onUpdate: async (report_id, measurementsUpdates) => {
+    set({ reportsLoading: true });
+    try {
+      await axiosInstance.patch(
+        `/measurements/bulkUpdate`,
+        measurementsUpdates
+      );
+      useReportStore.getState().getReportById(report_id);
       set({ reportsLoading: false });
     } catch (error: any) {
+      console.log(error?.response.message);
       set({ reportsLoading: false });
       console.error('Error updating report:', error);
     }
@@ -100,6 +125,13 @@ const useReportStore = create<ReportState>((set) => ({
       createReportId: null,
     });
   },
+
+  resetMeasurementEditData: () => {
+    set({
+      measurementEditData: null,
+    });
+  },
+
   setMeasurementData: (data) => {
     set({
       measurementVariablesData: data,
@@ -119,6 +151,19 @@ const useReportStore = create<ReportState>((set) => ({
     } catch (error: any) {
       set({ reportsLoading: false });
       console.error('Error creating report:', error);
+    }
+  },
+  getMeasurementEditData: async (report_id, subject_id) => {
+    set({ reportsLoading: true });
+    try {
+      const response = await axiosInstance.get(
+        `/measurements/${report_id}/${subject_id}`
+      );
+      set({ measurementEditData: response.data, reportsLoading: false });
+    } catch (error: any) {
+      console.log(error?.response);
+      set({ reportsLoading: false });
+      console.error('Error fetching report by ID:', error);
     }
   },
 }));

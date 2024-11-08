@@ -164,9 +164,10 @@ export default function PenScreen() {
                     penOrReportSelect === 'pens'
                       ? '/pen/createPen'
                       : '/report/createReport',
-                  params: {
-                    fieldId: fieldId,
-                  },
+                  params:
+                    penOrReportSelect === 'pens'
+                      ? { fieldId: fieldId }
+                      : { fieldId: fieldId, fieldName: fieldName },
                 })
               }
               size={rS(24)}

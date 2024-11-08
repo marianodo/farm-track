@@ -115,7 +115,7 @@ const ReportList: React.FC<PenListProps> = ({
       <View style={styles.rightActions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => console.log('edit')}
+          onPress={() => console.log(pen)}
           //   router.push({
           //     pathname: `/report/[reportId]`,
           //     params: {

@@ -39,9 +39,9 @@ export class SubjectController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id') id: string) {
     try {
-      return await this.subjectService.findOne(id);
+      return await this.subjectService.findOne(+id);
     } catch (error) {
       throw error;
     }
@@ -62,9 +62,9 @@ export class SubjectController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id') id: string) {
     try {
-      return await this.subjectService.remove(id);
+      return await this.subjectService.remove(+id);
     } catch (error) {
       throw error;
     }

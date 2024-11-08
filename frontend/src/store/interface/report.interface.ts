@@ -41,6 +41,18 @@ export interface MeasurementData {
   variable: Variable;
 }
 
+export interface MeasurementEditData {
+  id: number;
+  value: string;
+  subject_id: number;
+  pen_variable_type_of_object: PenVariableTypeOfObject;
+}
+
+export interface PenVariableTypeOfObject {
+  variable: Variable;
+  custom_parameters: CustomParameters;
+}
+
 export interface Variable {
   name: string;
   type: string;
