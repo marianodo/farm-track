@@ -20,7 +20,7 @@
     "@react-native-community/slider": "^4.5.5",
     "@react-navigation/native": "^6.0.2",
     "axios": "^1.7.6",
-    "expo": "~51.0.23",
+    "expo": "~52",
     "expo-build-properties": "^0.12.5",
     "expo-constants": "~16.0.2",
     "expo-dev-client": "~4.0.22",
