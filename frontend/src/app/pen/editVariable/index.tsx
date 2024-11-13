@@ -439,7 +439,7 @@ const EditVariable: React.FC = () => {
                     value={formData.name as string}
                     editable={false}
                     // onChangeText={(value) => onChange('name', value)}
-                    autoCapitalize="words"
+                    autoCapitalize="sentences"
                     activeOutlineColor="transparent"
                     outlineColor="#F1F1F1"
                     cursorColor="#486732"
@@ -608,7 +608,7 @@ const EditVariable: React.FC = () => {
                     value={formData.name as string}
                     editable={false}
                     // onChangeText={(value) => onChange('name', value)}
-                    autoCapitalize="words"
+                    autoCapitalize="sentences"
                     activeOutlineColor="transparent"
                     outlineColor="#F1F1F1"
                     cursorColor="#486732"

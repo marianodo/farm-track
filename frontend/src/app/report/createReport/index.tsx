@@ -335,7 +335,7 @@ const CreateReport: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('reportsView.reportNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -351,7 +351,7 @@ const CreateReport: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('reportsView.reportObservationsPlaceHolder')}
                   onChangeText={(value) => onChange('comment', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

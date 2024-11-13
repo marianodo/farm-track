@@ -115,19 +115,19 @@ const ReportList: React.FC<PenListProps> = ({
       <View style={styles.rightActions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => console.log(pen)}
-          //   router.push({
-          //     pathname: `/report/[reportId]`,
-          //     params: {
-          //       fieldName: fieldName,
-          //       reportId: +pen.id,
-          //       reportName: reportName,
-          //       penName: pen.name,
-          //       type_of_objects: JSON.stringify(pen.type_of_objects),
-          //       fieldId: pen.field_id,
-          //     },
-          //   });
-          // }}
+          onPress={() =>
+            router.push({
+              pathname: `/report/editReport`,
+              params: {
+                fieldName: fieldName,
+                reportId: +pen.id,
+                reportName: reportName,
+                penName: pen.name,
+                type_of_objects: JSON.stringify(pen.type_of_objects),
+                fieldId: pen.field_id,
+              },
+            })
+          }
         >
           <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
           <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>

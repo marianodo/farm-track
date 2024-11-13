@@ -79,6 +79,10 @@ const StackLayout = () => {
                 options={{ headerShown: false }}
               />
               <Stack.Screen
+                name="report/editReport/index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
                 name="measurement/index"
                 options={{ headerShown: false }}
               />

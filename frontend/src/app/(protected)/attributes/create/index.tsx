@@ -458,7 +458,7 @@ const CreateAttribute: React.FC = () => {
                   placeholder={t('attributeView.createPlaceHolderName')}
                   // value={formData.name ?? ''}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

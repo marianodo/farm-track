@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Pro-Regular',
     fontSize: rMS(13.6),
-    marginRight: 200,
+    marginRight: 190,
   },
   welcome: {
     marginLeft: 20,
@@ -286,6 +286,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   errorText: {
+    paddingHorizontal: rMS(14),
     color: 'red',
     textAlign: 'center',
     fontSize: rMS(11),
