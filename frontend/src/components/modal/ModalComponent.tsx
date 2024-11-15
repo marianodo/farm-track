@@ -45,6 +45,7 @@ const ModalComponent: React.FC<ModalComponentProps> = ({
           styles.keyboardAvoidingView,
           marginVertical && { marginVertical },
         ]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.modalContent}>
           <View style={styles.header}>
