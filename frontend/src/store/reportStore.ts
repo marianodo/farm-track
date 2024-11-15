@@ -11,6 +11,7 @@ import {
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
   reportById: ReportWithMeasurements2[] | null | [];
+  reportByIdNameAndComment: { name: string; comment: string } | null;
   createReportId: number | null;
   measurementVariablesData: MeasurementData[] | null;
   measurementEditData: MeasurementEditData[] | null;
@@ -18,15 +19,25 @@ interface ReportState {
   createReport: (report: Report) => Promise<void>;
   onDelete: (id: number, fieldId: string) => Promise<void>;
   onUpdate: (report_id: number, measurementsUpdates: any) => Promise<void>;
+  update: (
+    report_id: number,
+    reportUpdate: any,
+    field_id: number
+  ) => Promise<void>;
   getAllReportsByField: (field_id: string) => void;
-  getReportById: (id: number | null) => Promise<void>;
+  getReportById: (
+    id: number | null,
+    onlyNameAndComment?: string
+  ) => Promise<void>;
   resetDetail: () => void;
   resetCreateReportId: () => void;
   resetMeasurementEditData: () => void;
+  resetReportByIdNameAndComment: () => void;
   setMeasurementData: (data: MeasurementData[]) => void;
   createMeasurementWithReportId: (data: any, field_id: string) => void;
   getMeasurementEditData: (report_id: number, subject_id: number) => void;
   onDeleteMeasurement: (report_id: number, measurement_id: number) => void;
+  setCreateReportId: (report_id: number) => void;
 }
 
 const useReportStore = create<ReportState>((set) => ({
@@ -34,6 +45,7 @@ const useReportStore = create<ReportState>((set) => ({
   reportById: null,
   reportsLoading: false,
   createReportId: null,
+  reportByIdNameAndComment: null,
   measurementVariablesData: null,
   measurementEditData: null,
   createReport: async (report: CreateReport): Promise<void> => {
@@ -87,6 +99,19 @@ const useReportStore = create<ReportState>((set) => ({
       console.error('Error updating report:', error);
     }
   },
+
+  update: async (report_id: number, reportUpdate: any, field_id) => {
+    set({ reportsLoading: true });
+    try {
+      await axiosInstance.patch(`/reports/${report_id}`, reportUpdate);
+      useReportStore.getState().getAllReportsByField(field_id);
+      set({ reportsLoading: false });
+    } catch (error: any) {
+      console.log(error?.response.message);
+      set({ reportsLoading: false });
+      console.error('Error updating report:', error);
+    }
+  },
   getAllReportsByField: async (field_id) => {
     set({ reportsLoading: true });
     try {
@@ -103,11 +128,24 @@ const useReportStore = create<ReportState>((set) => ({
       console.error('Error fetching reports:', error);
     }
   },
-  getReportById: async (id: number | null) => {
+  getReportById: async (id: number | null, onlyNameAndComment?: string) => {
     set({ reportsLoading: true });
+    console.log(
+      onlyNameAndComment,
+      useReportStore.getState().reportByIdNameAndComment
+    );
+
     try {
-      const response = await axiosInstance.get(`/reports/${id}`);
-      set({ reportById: response.data, reportsLoading: false });
+      if (onlyNameAndComment) {
+        const response = await axiosInstance.get(
+          `/reports/${id}?onlyNameAndComment=${onlyNameAndComment}`
+        );
+        set({ reportByIdNameAndComment: response.data, reportsLoading: false });
+        return;
+      } else {
+        const response = await axiosInstance.get(`/reports/${id}`);
+        set({ reportById: response.data, reportsLoading: false });
+      }
     } catch (error: any) {
       console.log(error?.response);
       set({ reportsLoading: false });
@@ -129,6 +167,18 @@ const useReportStore = create<ReportState>((set) => ({
   resetMeasurementEditData: () => {
     set({
       measurementEditData: null,
+    });
+  },
+
+  resetReportByIdNameAndComment: () => {
+    set({
+      reportByIdNameAndComment: null,
+    });
+  },
+
+  setCreateReportId: (report_id) => {
+    set({
+      createReportId: report_id,
     });
   },
 

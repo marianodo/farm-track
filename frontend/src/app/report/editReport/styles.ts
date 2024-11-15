@@ -286,7 +286,6 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   errorText: {
-    paddingHorizontal: rMS(14),
     color: 'red',
     textAlign: 'center',
     fontSize: rMS(11),

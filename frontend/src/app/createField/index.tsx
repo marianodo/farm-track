@@ -483,7 +483,7 @@ export default function CreateField() {
                   placeholder={input.placeholder}
                   value={input.value}
                   onChangeText={(value) => handleInputChange(key, value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

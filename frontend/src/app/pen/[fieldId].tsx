@@ -58,9 +58,11 @@ interface ListItemProps {
 
 export default function PenScreen() {
   const [lng, setLng] = useState<string | null>(null);
-  const { fieldId, fieldName } = useLocalSearchParams();
+  const { fieldId, fieldName, onReport } = useLocalSearchParams();
 
-  const [penOrReportSelect, setPenOrReportSelect] = useState<string>('pens');
+  const [penOrReportSelect, setPenOrReportSelect] = useState<string>(
+    onReport == 'true' ? 'reports' : 'pens'
+  );
 
   const router = useRouter();
 
@@ -112,11 +114,12 @@ export default function PenScreen() {
       getAllTypeOfObjects: state.getAllTypeOfObjects,
     })
   );
-  const { getAllReportsByField, reportsByFielId, onDeleteReport } =
+  const { getAllReportsByField, reportsByFielId, onDeleteReport, update } =
     useReportStore((state) => ({
       getAllReportsByField: state.getAllReportsByField,
       reportsByFielId: state.reportsByFielId,
       onDeleteReport: state.onDelete,
+      update: state.update,
     }));
   const { t } = useTranslation();
 
@@ -141,7 +144,6 @@ export default function PenScreen() {
   }, [
     getAllTypeOfObjects,
     getAllPens,
-    ,
     getAllReportsByField,
     pens,
     reportsByFielId,

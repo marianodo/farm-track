@@ -257,7 +257,7 @@ export default function EditField() {
                   placeholder={t('detailField.fieldNamePlaceHolder')}
                   value={fieldData.name}
                   onChangeText={(value) => handleInputChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -273,7 +273,7 @@ export default function EditField() {
                   onChangeText={(value) =>
                     handleInputChange('description', value)
                   }
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

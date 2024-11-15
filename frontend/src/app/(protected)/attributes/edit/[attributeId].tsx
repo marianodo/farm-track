@@ -2,7 +2,7 @@ import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import { rMS, rMV, rV } from '@/styles/responsive';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import styles from './styles';
 import {
   Platform,
@@ -454,7 +454,7 @@ const EditAttribute: React.FC = () => {
                   placeholder={t('attributeView.createPlaceHolderName')}
                   value={formData.name ?? ''}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

@@ -50,36 +50,51 @@ export class ReportRepository {
     }
   }
 
-  async findOne(id: number): Promise<unknown[]> {
+  async findOne(id: number, onlyNameAndComment: boolean): Promise<unknown[]> {
     try {
-      const report = await this.db.report.findUnique({
-        where: { id },
-        include: {
-          measurements: {
-            select: {
-              subject: {
-                select: {
-                  id: true,
-                  name: true,
-                  type_of_object: {
-                    select: {
-                      id: true,
-                      name: true,
+      let report = null;
+      if (onlyNameAndComment) {
+        report = await this.db.report.findUnique({
+          where: { id },
+          select: {
+            name: true,
+            comment: true,
+          },
+        });
+        if (!report) {
+          throw new NotFoundException(`Report with ID ${id} not found`);
+        }
+        return report;
+      } else {
+        report = await this.db.report.findUnique({
+          where: { id },
+          include: {
+            measurements: {
+              select: {
+                subject: {
+                  select: {
+                    id: true,
+                    name: true,
+                    type_of_object: {
+                      select: {
+                        id: true,
+                        name: true,
+                      },
                     },
-                  },
-                  measurement: {
-                    select: {
-                      id: true,
-                      value: true,
-                      created_at: true,
-                      updated_at: true,
-                      pen_variable_type_of_object: {
-                        include: {
-                          variable: {
-                            select: {
-                              id: true,
-                              name: true,
-                              type: true,
+                    measurement: {
+                      select: {
+                        id: true,
+                        value: true,
+                        created_at: true,
+                        updated_at: true,
+                        pen_variable_type_of_object: {
+                          include: {
+                            variable: {
+                              select: {
+                                id: true,
+                                name: true,
+                                type: true,
+                              },
                             },
                           },
                         },
@@ -87,58 +102,58 @@ export class ReportRepository {
                     },
                   },
                 },
-              },
-              pen_variable_type_of_object: {
-                include: {
-                  pen: true,
-                  variable: true,
+                pen_variable_type_of_object: {
+                  include: {
+                    pen: true,
+                    variable: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
+        });
+        if (!report) {
+          throw new NotFoundException(`Report with ID ${id} not found`);
+        }
 
-      if (!report) {
-        throw new NotFoundException(`Report with ID ${id} not found`);
+        const pens = report.measurements.reduce((acc, measurement) => {
+          const penId = measurement.pen_variable_type_of_object.pen.id;
+          if (!acc[penId]) {
+            acc[penId] = {
+              id: measurement.pen_variable_type_of_object.pen.id,
+              name: measurement.pen_variable_type_of_object.pen.name,
+              report_id: report.id,
+              fieldId: measurement.pen_variable_type_of_object.pen.fieldId,
+              subjects: {},
+            };
+          }
+
+          const subjectId = measurement.subject.id;
+          if (!acc[penId].subjects[subjectId]) {
+            acc[penId].subjects[subjectId] = {
+              id: measurement.subject.id,
+              name: measurement.subject.name,
+              type_of_object: {
+                id: measurement.subject.type_of_object.id,
+                name: measurement.subject.type_of_object.name,
+              },
+              measurement: measurement.subject.measurement,
+            };
+          }
+
+          return acc;
+        }, {});
+
+        // Convertir el objeto en un array y los subjects en arrays
+        const pensArray: any[] = Object.values(pens).map((pen: any) => ({
+          ...pen,
+          subjects: Object.values(pen.subjects),
+        }));
+
+        return pensArray;
       }
-
-      const pens = report.measurements.reduce((acc, measurement) => {
-        const penId = measurement.pen_variable_type_of_object.pen.id;
-        if (!acc[penId]) {
-          acc[penId] = {
-            id: measurement.pen_variable_type_of_object.pen.id,
-            name: measurement.pen_variable_type_of_object.pen.name,
-            report_id: report.id,
-            fieldId: measurement.pen_variable_type_of_object.pen.fieldId,
-            subjects: {},
-          };
-        }
-
-        const subjectId = measurement.subject.id;
-        if (!acc[penId].subjects[subjectId]) {
-          acc[penId].subjects[subjectId] = {
-            id: measurement.subject.id,
-            name: measurement.subject.name,
-            type_of_object: {
-              id: measurement.subject.type_of_object.id,
-              name: measurement.subject.type_of_object.name,
-            },
-            measurement: measurement.subject.measurement,
-          };
-        }
-
-        return acc;
-      }, {});
-
-      // Convertir el objeto en un array y los subjects en arrays
-      const pensArray: any[] = Object.values(pens).map((pen: any) => ({
-        ...pen,
-        subjects: Object.values(pen.subjects),
-      }));
-
-      return pensArray;
     } catch (error) {
+      console.log('ERROR:', error);
       if (error instanceof NotFoundException) {
         throw error;
       }

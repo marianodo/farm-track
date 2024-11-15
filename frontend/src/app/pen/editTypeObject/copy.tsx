@@ -25,7 +25,7 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 const { width } = Dimensions.get('window');
@@ -513,7 +513,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -528,7 +528,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -543,7 +543,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -558,7 +558,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -573,7 +573,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -588,7 +588,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -603,7 +603,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -618,7 +618,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -633,7 +633,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
@@ -648,7 +648,7 @@ const EditTypeObject: React.FC = () => {
                   placeholderTextColor="#292929"
                   placeholder={t('penView.penNamePlaceHolder')}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"

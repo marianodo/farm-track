@@ -26,7 +26,7 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
@@ -68,7 +68,7 @@ type FormDataError = {
 };
 
 const CreatePen: React.FC = () => {
-  const { fieldId } = useLocalSearchParams();
+  const { fieldId, fieldName } = useLocalSearchParams();
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
@@ -84,23 +84,21 @@ const CreatePen: React.FC = () => {
       value: pen.id,
     })) ?? []
   );
-  const [openPenDropDown, setOpenPenDropDown] = useState<boolean>(false);
 
   // Type of object dropdown
   const [typeOfObjectDropDownValue, setTypeOfObjectDropDownValue] = useState<
-    string | undefined | string[]
-  >();
+    string | undefined | string[] | null
+  >(null);
   const [typeOfObjectDropDown, setTypeOfObjectDropDown] = useState<Item[]>([]);
-  const [openTypeOfObjectDropDown, setOpenTypeOfObjectDropDown] =
-    useState<boolean>(false);
 
   // Variables dropdown
   const [variablesDropDownValue, setVariablesDropDownValue] = useState<
-    string | undefined | string[]
-  >();
+    string | undefined | string[] | null
+  >(null);
   const [variablesDropDown, setVariablesDropDown] = useState<Item[]>([]);
-  const [openVariablesDropDown, setOpenVariablesDropDown] =
-    useState<boolean>(false);
+
+  // Estado compartido para controlar cuál dropdown está abierto
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // ----->  DROPDOWN UTILS END <------
 
@@ -187,12 +185,6 @@ const CreatePen: React.FC = () => {
     }
   }, [penVariableTypeOfObjectByTypeIdAndPen]);
 
-  useEffect(() => {
-    return () => {
-      resetCreateReportId();
-    };
-  }, []);
-
   const onChange = (field: keyof FormData, inputValue: any) => {
     if (field === 'penId') {
       setTypeOfObjectDropDown([]);
@@ -256,6 +248,7 @@ const CreatePen: React.FC = () => {
             typeOfObjectId: formData.typeOfObjectId,
             typeOfObjectName: formData.typeOfObjectName,
             fieldId: fieldId,
+            fieldName: fieldName,
           },
         });
         setFormData({
@@ -274,6 +267,21 @@ const CreatePen: React.FC = () => {
       alert(t('attributeView.formErrorText'));
     }
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Aca se puede ejecutar codigo cuando el componente obtiene el foco.
+      return () => {
+        // Cy aca se puede ejecutar codigo cuando el componente pierde el foco.
+        setPenDropDownValue(null);
+        setTypeOfObjectDropDownValue(null);
+        setTypeOfObjectDropDown([]);
+        setVariablesDropDownValue(null);
+        setVariablesDropDown([]);
+        setOpenDropdown(null);
+      };
+    }, [])
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -433,14 +441,14 @@ const CreatePen: React.FC = () => {
                     borderTopEndRadius: 12,
                   }}
                   listMode="SCROLLVIEW"
-                  zIndex={openPenDropDown ? 1 : 0}
-                  zIndexInverse={openPenDropDown ? 1 : 0}
+                  zIndex={openDropdown === 'pen' ? 1 : 0}
+                  zIndexInverse={openDropdown === 'pen' ? 1 : 0}
                   arrowIconStyle={{ tintColor: '#486732' }}
                   closeAfterSelecting={true}
                   ActivityIndicatorComponent={() => (
                     <ActivityIndicator size="large" color="#486732" />
                   )}
-                  open={openPenDropDown}
+                  open={openDropdown === 'pen'}
                   value={penDropDownValue}
                   items={pensDropDown ?? []}
                   setValue={setPenDropDownValue}
@@ -448,7 +456,10 @@ const CreatePen: React.FC = () => {
                   onChangeValue={() => onChange('penId', penDropDownValue)}
                   scrollViewProps={{
                     style: {
-                      height: 'auto',
+                      height:
+                        Dimensions.get('window').height > 640
+                          ? 'auto'
+                          : rMS(156),
                     },
                   }}
                   multiple={false}
@@ -463,8 +474,8 @@ const CreatePen: React.FC = () => {
                     '#e9c46a',
                   ]}
                   dropDownDirection="BOTTOM"
-                  onOpen={() => setOpenPenDropDown(true)}
-                  onClose={() => setOpenPenDropDown(false)}
+                  onOpen={() => setOpenDropdown('pen')}
+                  onClose={() => setOpenDropdown(null)}
                   ListEmptyComponent={() => (
                     <Text style={{ textAlign: 'center', padding: 10 }}>
                       {t('measurementView.dropDownDontInfo')}
@@ -490,11 +501,11 @@ const CreatePen: React.FC = () => {
                     borderTopEndRadius: 12,
                   }}
                   listMode="SCROLLVIEW"
-                  zIndex={openTypeOfObjectDropDown ? 1 : 0}
-                  zIndexInverse={openTypeOfObjectDropDown ? 1 : 0}
+                  zIndex={openDropdown === 'typeOfObject' ? 1 : 0}
+                  zIndexInverse={openDropdown === 'typeOfObject' ? 1 : 0}
                   arrowIconStyle={{ tintColor: '#486732' }}
                   closeAfterSelecting={true}
-                  open={openTypeOfObjectDropDown}
+                  open={openDropdown === 'typeOfObject'}
                   value={typeOfObjectDropDownValue as ValueType}
                   items={typeOfObjectDropDown ?? []}
                   setValue={setTypeOfObjectDropDownValue}
@@ -520,11 +531,14 @@ const CreatePen: React.FC = () => {
                   dropDownDirection="BOTTOM"
                   scrollViewProps={{
                     style: {
-                      height: 'auto',
+                      height:
+                        Dimensions.get('window').height > 640
+                          ? 'auto'
+                          : rMS(156),
                     },
                   }}
-                  onOpen={() => setOpenTypeOfObjectDropDown(true)}
-                  onClose={() => setOpenTypeOfObjectDropDown(false)}
+                  onOpen={() => setOpenDropdown('typeOfObject')}
+                  onClose={() => setOpenDropdown(null)}
                   ListEmptyComponent={() => (
                     <Text style={{ textAlign: 'center', padding: 10 }}>
                       {t('measurementView.dropDownDontInfo')}
@@ -550,10 +564,10 @@ const CreatePen: React.FC = () => {
                     borderTopEndRadius: 12,
                   }}
                   listMode="SCROLLVIEW"
-                  zIndex={openVariablesDropDown ? 1 : 0}
-                  zIndexInverse={openVariablesDropDown ? 1 : 0}
+                  zIndex={openDropdown === 'variables' ? 1 : 0}
+                  zIndexInverse={openDropdown === 'variables' ? 1 : 0}
                   arrowIconStyle={{ tintColor: '#486732' }}
-                  open={openVariablesDropDown}
+                  open={openDropdown === 'variables'}
                   value={variablesDropDownValue as ValueType}
                   items={variablesDropDown ?? []}
                   setValue={setVariablesDropDownValue}
@@ -563,11 +577,6 @@ const CreatePen: React.FC = () => {
                   onChangeValue={() =>
                     onChange('variablesIds', variablesDropDownValue)
                   }
-                  scrollViewProps={{
-                    style: {
-                      height: 'auto',
-                    },
-                  }}
                   multiple={true}
                   mode="BADGE"
                   badgeDotColors={[
@@ -592,8 +601,8 @@ const CreatePen: React.FC = () => {
                   showsVerticalScrollIndicator={true}
                   disabled={formData.typeOfObjectId ? false : true}
                   disabledStyle={{ opacity: 0.5 }}
-                  onOpen={() => setOpenVariablesDropDown(true)}
-                  onClose={() => setOpenVariablesDropDown(false)}
+                  onOpen={() => setOpenDropdown('variables')}
+                  onClose={() => setOpenDropdown(null)}
                   ListEmptyComponent={() => (
                     <Text style={{ textAlign: 'center', padding: 10 }}>
                       {t('measurementView.dropDownDontInfo')}

@@ -24,9 +24,9 @@ export class ReportService {
     }
   }
 
-  async findOne(id: number): Promise<unknown[]> {
+  async findOne(id: number, onlyNameAndComment: boolean): Promise<unknown[]> {
     try {
-      return await this.reportRepository.findOne(id);
+      return await this.reportRepository.findOne(id, onlyNameAndComment);
     } catch (error) {
       throw error;
     }

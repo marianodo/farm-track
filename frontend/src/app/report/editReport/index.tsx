@@ -21,7 +21,6 @@ import {
   Alert,
   TouchableWithoutFeedback,
 } from 'react-native';
-import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,6 +29,7 @@ import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
+import useReportStore from '@/store/reportStore';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -53,35 +53,53 @@ type DefaultParameters = {
 
 type FormData = {
   name: string | null;
-  type_of_object_ids: number[] | null;
+  comment: string | null;
 };
 
 type FormDataError = {
   name: string | null;
-  type_of_object_ids: string | null;
 };
 
-const CreatePen: React.FC = () => {
-  const { fieldId } = useLocalSearchParams();
-  const {
-    validateRangeOrGranularity,
-    validateCategoricalValue,
-    validateTypeObjectValue,
-    validateNameInput,
-  } = useValidationRules();
+const CreateReport: React.FC = () => {
+  const { fieldId, fieldName, reportId } = useLocalSearchParams();
+  const [editData, setEditData] = useState(false);
+  const { validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
     name: null,
-    type_of_object_ids: null,
   });
   const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
-  const { pensLoading, createPen } = usePenStore((state: any) => ({
-    pensLoading: state.pensLoading,
-    createPen: state.createPen,
+  const {
+    resetCreateReportId,
+    createReport,
+    reportsLoading,
+    update,
+    setCreateReportId,
+    reportByIdNameAndComment,
+    getReportById,
+    getAllReportsByField,
+    resetReportByIdNameAndComment,
+  } = useReportStore((state: any) => ({
+    reportsLoading: state.reportsLoading,
+    createReport: state.createReport,
+    resetDetail: state.resetDetail,
+    resetCreateReportId: state.resetCreateReportId,
+    setCreateReportId: state.setCreateReportId,
+    update: state.update,
+    reportByIdNameAndComment: state.reportByIdNameAndComment,
+    getReportById: state.getReportById,
+    getAllReportsByField: state.getAllReportsByField,
+    resetReportByIdNameAndComment: state.resetReportByIdNameAndComment,
   }));
+
+  const { pens, pensLoading } = usePenStore((state: any) => ({
+    pens: state.pens,
+    pensLoading: state.pensLoading,
+  }));
+
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
@@ -89,73 +107,45 @@ const CreatePen: React.FC = () => {
 
   const [formData, setFormData] = useState<FormData>({
     name: null,
-    type_of_object_ids: null,
+    comment: null,
   });
 
   const validateForm = () => {
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
-      type_of_object_ids: validateTypeObjectValue(
-        formData.type_of_object_ids,
-        t
-      ),
     };
 
     setError(newError);
-    return newError.name || newError.type_of_object_ids;
+    return newError.name;
   };
 
-  useEffect(() => {
-    if (items.length === 0 && typeOfObjects) {
-      typeOfObjects.map((type: any) => {
-        setItems((prev) => [
-          ...(prev ?? []),
-          {
-            label: type.name,
-            value: type.id,
-          },
-        ]);
-      });
-    }
-  }, []);
-
   const onChange = (field: keyof FormData, inputValue: any) => {
-    const updatedFormData = { ...formData, [field]: inputValue };
-    switch (field) {
-      case 'type_of_object_ids':
-        setError((prevError) => ({
-          ...prevError,
-          type_of_object_ids:
-            itemsValue !== undefined
-              ? validateTypeObjectValue(inputValue as number[] | null, t)
-              : null,
-        }));
-        break;
-      default:
-        setError((prevError) => ({
-          ...prevError,
-          name: validateNameInput(inputValue, t),
-        }));
-    }
-    setFormData(updatedFormData);
+    // const updatedFormData = { ...formData, [field]: inputValue };
+    // switch (field) {
+    //   default:
+    //     setError((prevError) => ({
+    //       ...prevError,
+    //       name: validateNameInput(inputValue, t),
+    //     }));
+    // }
+    setEditData(true);
+    setFormData({ ...formData, [field]: inputValue });
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      try {
-        await createPen({ ...formData, fieldId: fieldId as string });
-        alert(t('attributeView.formOkText'));
-        setFormData({
-          name: null,
-          type_of_object_ids: null,
-        });
-        setItemsValue(undefined);
-        router.back();
-      } catch (error) {
-        console.log(error);
-        alert(t('attributeView.formErrorText'));
+    try {
+      if (editData) {
+        update(reportId, formData, fieldId);
       }
-    } else {
+      router.push({
+        pathname: `/measurement`,
+        params: {
+          fieldName: fieldName,
+          fieldId: fieldId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
       alert(t('attributeView.formErrorText'));
     }
   };
@@ -163,7 +153,7 @@ const CreatePen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        if (formData.name || formData.type_of_object_ids) {
+        if (formData.name) {
           Alert.alert(
             t('attributeView.unsavedChangesTitle'),
             t('attributeView.unsavedChangesMessage'),
@@ -191,6 +181,25 @@ const CreatePen: React.FC = () => {
     }, [formData])
   );
 
+  useEffect(() => {
+    setCreateReportId(reportId);
+    getReportById(reportId, 'true');
+  }, [reportId, getReportById]);
+
+  useEffect(() => {
+    setFormData({
+      name: reportByIdNameAndComment?.name,
+      comment: reportByIdNameAndComment?.comment,
+    });
+  }, [reportByIdNameAndComment]);
+
+  useEffect(() => {
+    return () => {
+      resetCreateReportId();
+      resetReportByIdNameAndComment();
+    };
+  }, []);
+
   return (
     <View
       style={[
@@ -198,7 +207,7 @@ const CreatePen: React.FC = () => {
         { maxHeight: Dimensions.get('window').height },
       ]}
     >
-      {pensLoading && (
+      {reportsLoading && (
         <View
           style={{
             position: 'absolute',
@@ -245,21 +254,28 @@ const CreatePen: React.FC = () => {
               />
               <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
             </View>
-            <View>
-              <Text style={styles.welcome}>
-                {t('penView.createPenTextTitle')}
+            <View
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: 'row',
+              }}
+            >
+              <Text style={styles.welcome}>Editar reporte</Text>
+              <Text
+                style={[styles.welcome, { marginLeft: 0, marginRight: 20 }]}
+              >
+                ID: {reportId}
               </Text>
             </View>
           </View>
-
-          {/* contenedor contenido variable */}
         </ImageBackground>
 
         <View
           style={{
             backgroundColor: 'white',
             width: '100%',
-            // height: Dimensions.get('window').height,
+            flex: 1,
             maxHeight: Dimensions.get('window').height + rMS(140),
             minHeight: Dimensions.get('window').height - rMS(130),
             zIndex: 200,
@@ -278,8 +294,51 @@ const CreatePen: React.FC = () => {
               fontFamily: 'Pro-Regular',
             }}
           >
-            {t('penView.createPenTextDetail')}
+            {t('reportsView.detailReportText')}
           </Text>
+          <View
+            style={{
+              width: '100%',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <View
+              style={{
+                width: '90%',
+                backgroundColor: '#ebf2ed',
+                height: rMV(44),
+                borderRadius: rMS(6),
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: rMV(6),
+                display: 'flex',
+                flexDirection: 'row',
+                paddingRight: rMS(12),
+              }}
+            >
+              <IconButton
+                icon={'alert-circle-outline'}
+                iconColor="#487632"
+                size={rMS(20)}
+                style={{ margin: 0 }}
+              />
+              <Text
+                style={{
+                  color: '#487632',
+                  fontFamily: 'Pro-Regular',
+                  fontSize: rMS(10),
+                  flexShrink: 1,
+                  flexWrap: 'wrap',
+                  textAlign: 'center',
+                }}
+              >
+                {/* {t('reportsView.createReportInfoText')} */}
+                Puedes editar el nombre y el comentario del reporte si lo
+                deseas.
+              </Text>
+            </View>
+          </View>
           {/* contenido scroll  */}
           <View style={styles.spacer}>
             <KeyboardAwareScrollView
@@ -289,14 +348,49 @@ const CreatePen: React.FC = () => {
               extraScrollHeight={30}
               contentContainerStyle={[
                 styles.scrollContent,
-                { height: open ? rMS(360) : null },
+                { height: open ? rMS(360) : null, paddingVertical: 10 },
               ]}
             >
               <View style={[styles.spacer, { marginBottom: 20 }]}>
                 <TextInput
                   mode="outlined"
+                  placeholderTextColor="#486732"
+                  placeholder={`${t(
+                    'reportsView.reportFieldNamePlaceHolder'
+                  )}: ${fieldName as string}`}
+                  editable={false}
+                  activeOutlineColor="transparent"
+                  outlineColor="#F1F1F1"
+                  style={styles.input}
+                />
+
+                <TextInput
+                  mode="outlined"
+                  placeholderTextColor="#486732"
+                  placeholder={`${t(
+                    'reportsView.reportDatePlaceHolder'
+                  )}: ${new Date().toLocaleDateString('es-Es')}`}
+                  editable={false}
+                  activeOutlineColor="transparent"
+                  outlineColor="#F1F1F1"
+                  style={styles.input}
+                />
+
+                <TextInput
+                  mode="outlined"
+                  placeholderTextColor="#486732"
+                  placeholder={`ID del reporte: ${reportId}`}
+                  editable={false}
+                  activeOutlineColor="transparent"
+                  outlineColor="#F1F1F1"
+                  style={styles.input}
+                />
+
+                <TextInput
+                  mode="outlined"
                   placeholderTextColor="#292929"
-                  placeholder={t('penView.penNamePlaceHolder')}
+                  placeholder={t('reportsView.reportNamePlaceHolder')}
+                  value={formData?.name as string}
                   onChangeText={(value) => onChange('name', value)}
                   autoCapitalize="sentences"
                   activeOutlineColor="transparent"
@@ -308,69 +402,37 @@ const CreatePen: React.FC = () => {
                 {error?.name && (
                   <Text style={styles.errorText}>{error?.name}</Text>
                 )}
-                <DropDownPicker
-                  placeholder={t('penView.penObjectsPlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={open ? 1 : 0}
-                  zIndexInverse={open ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  open={open}
-                  value={itemsValue as ValueType}
-                  items={items ?? []}
-                  setOpen={setOpen}
-                  setValue={setItemsValue}
-                  setItems={setItems as Dispatch<SetStateAction<any[]>>}
-                  onChangeValue={() =>
-                    onChange(
-                      'type_of_object_ids',
-                      (itemsValue ?? []).length > 0 ? itemsValue : null
-                    )
-                  }
-                  multiple={true}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  onOpen={() => setOpen(true)}
-                  onClose={() => setOpen(false)}
+
+                <TextInput
+                  mode="outlined"
+                  placeholderTextColor="#292929"
+                  placeholder={t('reportsView.reportObservationsPlaceHolder')}
+                  value={formData?.comment as string}
+                  onChangeText={(value) => onChange('comment', value)}
+                  autoCapitalize="sentences"
+                  activeOutlineColor="transparent"
+                  outlineColor="#F1F1F1"
+                  cursorColor="#486732"
+                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                  style={styles.input}
                 />
-                {error?.type_of_object_ids && (
-                  <Text style={styles.errorText}>
-                    {error?.type_of_object_ids}
-                  </Text>
+                {error?.name && (
+                  <Text style={styles.errorText}>{error?.name}</Text>
                 )}
               </View>
             </KeyboardAwareScrollView>
           </View>
           {/* este view es para poner el boton debajo de todo */}
-          <View style={{ flex: 1 }} />
+
+          <View
+            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
+          />
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>
               <Text style={styles.buttonText}>
-                {t('penView.createPenTextButton')}
+                {/* {t('reportsView.createReportTextButton')} */}
+                Agregar nueva medición
               </Text>
             </Pressable>
           </View>
@@ -380,4 +442,4 @@ const CreatePen: React.FC = () => {
   );
 };
 
-export default CreatePen;
+export default CreateReport;

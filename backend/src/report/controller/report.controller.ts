@@ -9,6 +9,7 @@ import {
   HttpStatus,
   HttpException,
   HttpCode,
+  Query,
 } from '@nestjs/common';
 import { ReportService } from '../service/report.service';
 import { CreateReportDto } from '../dto/create-report.dto';
@@ -41,9 +42,14 @@ export class ReportController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async findOne(@Param('id') id: string): Promise<unknown[]> {
+  async findOne(
+    @Param('id') id: string,
+    @Query('onlyNameAndComment') onlyNameAndComment: string = 'false',
+  ): Promise<unknown[]> {
     try {
-      return await this.reportService.findOne(+id);
+      const withOnlyNameAndComment =
+        onlyNameAndComment === 'false' ? false : true;
+      return await this.reportService.findOne(+id, withOnlyNameAndComment);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

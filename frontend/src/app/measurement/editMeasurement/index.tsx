@@ -25,13 +25,18 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
 import useReportStore from '@/store/reportStore';
 import Slider from '@react-native-community/slider';
+import {
+  ModalComponent,
+  SuccessModal,
+  UnsavedModalComponent,
+} from '@/components/modal/ModalComponent';
 const { width, height } = Dimensions.get('window');
 
 type Item = {
@@ -66,35 +71,34 @@ type FormDataError = {
 const CreatePen: React.FC = () => {
   const { reportId, subjectId, typeOfObjectName, subjectName } =
     useLocalSearchParams();
-  const [firstRender, setFirstRender] = useState<boolean>(true);
+  const [texts, setTexts] = useState({
+    title: '',
+    subtitle: '',
+  });
+  const [formOk, setFormOk] = useState<boolean>(false);
+  const [modalVisible, setModalVisible] = useState<string | null>(null);
+  const [modalSuccess, setIsModalSuccess] = useState<boolean>(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorsName, setErrorsName] = useState<string[]>([]);
-  const [selectedValue, setSelectedValue] = useState<string | null>(null);
   const [values, setValues] = useState<{
     [key: string]: number | string | null;
   }>({});
   const handlePress = (key: string, name: string, item: string) => {
     if (values[key] === item) {
-      // const newValues = { ...values };
-      // delete newValues[key];
       setValues((prevValues) => ({
         ...prevValues,
         [key]: null,
       }));
 
-      // validateValues();
-
       setErrors((prevErrors) => ({
         ...prevErrors,
-        [name]: 'true',
+        [name]: 'Debes seleccionar un valor.',
       }));
     } else {
       setValues((prevValues) => ({
         ...prevValues,
         [key]: item,
       }));
-
-      // validateValues();
 
       setErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
@@ -104,18 +108,7 @@ const CreatePen: React.FC = () => {
     }
   };
 
-  const { validateNameInput } = useValidationRules();
-  const [error, setError] = useState<FormDataError>({
-    name: null,
-  });
-  const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
-  const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
-    typeOfObjects: state.typeOfObjects,
-  }));
-
-  const MIN_VALUE = 0;
-  const MAX_VALUE = 100;
 
   const {
     createReportId,
@@ -143,18 +136,8 @@ const CreatePen: React.FC = () => {
     onUpdate: state.onUpdate,
   }));
 
-  const { pensLoading, createPen } = usePenStore((state: any) => ({
-    pensLoading: state.pensLoading,
-    createPen: state.createPen,
-  }));
-
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
-  const [items, setItems] = useState<Item[]>([]);
-  const [measurement, setMeasurement] = useState<{
-    [key: string]: string | number;
-  }>({});
 
   const [formData, setFormData] = useState<FormData>({
     name: null,
@@ -162,35 +145,12 @@ const CreatePen: React.FC = () => {
     measurements: null,
   });
 
-  const validateForm = () => {
-    const newError: FormDataError = {
-      name: validateNameInput(formData.name ?? '', t),
-    };
-
-    setError(newError);
-    return newError.name;
-  };
-
   useEffect(() => {
     getMeasurementEditData(reportId, subjectId);
     return () => {
       resetMeasurementEditData();
     };
   }, []);
-
-  // useEffect(() => {
-  //   if (items.length === 0 && typeOfObjects) {
-  //     typeOfObjects.map((type: any) => {
-  //       setItems((prev) => [
-  //         ...(prev ?? []),
-  //         {
-  //           label: type.name,
-  //           value: type.id,
-  //         },
-  //       ]);
-  //     });
-  //   }
-  // }, []);
 
   useEffect(() => {
     setFormData((prevValues) => ({
@@ -212,14 +172,6 @@ const CreatePen: React.FC = () => {
   }, [values]);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
-    // const updatedFormData = { ...formData, [field]: inputValue };
-    // switch (field) {
-    //   default:
-    //     setError((prevError) => ({
-    //       ...prevError,
-    //       name: validateNameInput(inputValue, t),
-    //     }));
-    // }
     setFormData({ ...formData, [field]: inputValue });
   };
 
@@ -238,55 +190,47 @@ const CreatePen: React.FC = () => {
   const handleSubmit = async () => {
     const validationErrors = validateValues();
     if (
-      validationErrors.length > 0 &&
+      (validationErrors.length > 0 &&
+        validationErrors.length !== measurementEditData.length) ||
       validationErrors.length === measurementEditData.length
     ) {
-      Alert.alert(
-        'Faltan campos por completar',
-        'Por favor, complete los campos faltantes.'
-      );
+      setFormOk(false);
+      setTexts({
+        title: 'Faltan campos por completar',
+        subtitle: `No has completado el campo: ${validationErrors.join(', ')}.`,
+      });
+      setModalVisible(null);
+
+      // Alert.alert(
+      //   'Faltan algunos campos por completar',
+      //   'Por favor, complete los campos faltantes.'
+      // );
       return;
     }
-    if (
-      validationErrors.length > 0 &&
-      validationErrors.length !== measurementEditData.length
-    ) {
-      Alert.alert(
-        'Faltan algunos campos por completar',
-        'Por favor, complete los campos faltantes.'
-      );
-      return;
-    }
-    Alert.alert(
-      '¿Estás seguro de guardar la medición?',
-      'Una vez guardada, no podrás modificarla.',
-      [
+    setFormOk(true);
+    setTexts({
+      title: '¿Estás seguro de guardar la medición?',
+      subtitle: `Una vez guardada, no podrás modificarla.`,
+    });
+    setModalVisible(null);
+  };
+
+  const getModalButtons = () => {
+    if (modalVisible === 'unsavedChanges') {
+      return [
         {
-          text: 'Cancelar',
-          style: 'cancel',
+          text: t('attributeView.cancelButtonText'),
+          onPress: () => setModalVisible(null),
         },
         {
-          text: 'Guardar',
-          onPress: async () => {
-            try {
-              const newMeasurement = {
-                name: formData.name,
-                subject_id: +subjectId as number,
-                measurements: Object.entries(values).map(([key, value]) => ({
-                  id: Number(+key),
-                  value: typeof value === 'number' ? value.toString() : value,
-                })),
-              };
-              await onUpdate(reportId, newMeasurement);
-              alert('Medición actualizada con éxito');
-              router.back();
-            } catch (error) {
-              console.log('ERROR:', error);
-            }
+          text: t('attributeView.leaveButtonText'),
+          onPress: () => {
+            setModalVisible(null);
+            router.back();
           },
         },
-      ]
-    );
+      ];
+    }
   };
 
   useFocusEffect(
@@ -336,11 +280,8 @@ const CreatePen: React.FC = () => {
     if (value === '') {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        [name]: 'true',
+        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
       }));
-      // const newValues = { ...values };
-      // delete newValues[key];
-      // setValues(newValues);
       setValues((prevValues) => ({
         ...prevValues,
         [key]: null,
@@ -376,22 +317,38 @@ const CreatePen: React.FC = () => {
   const handleSliderChange = (
     key: string,
     name: string,
-    value: number | null
+    value: number,
+    min: number,
+    max: number,
+    step: number
   ) => {
+    console.log('NOMRBEEE', name);
     if (value === null || value === undefined) {
       setErrors((prevErrors) => ({
         ...prevErrors,
         [name]: 'El campo no puede estar vacío.',
       }));
-    } else {
-      setValues((prevValues) => ({
-        ...prevValues,
-        [key]: value,
+    } else if (
+      value < min ||
+      value > max ||
+      ((value - min) % step !== 0 && value !== min && value !== max)
+    ) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
       }));
-      const newErrors = { ...errors };
-      delete newErrors[name];
-      setErrors(newErrors);
+    } else {
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[name];
+        return newErrors;
+      });
     }
+
+    setValues((prevValues) => ({
+      ...prevValues,
+      [key]: value,
+    }));
   };
 
   return (
@@ -517,16 +474,14 @@ const CreatePen: React.FC = () => {
                   placeholder="Nombre del objeto"
                   value={formData.name as string}
                   onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="words"
+                  autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
                   cursorColor="#486732"
                   selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                   style={styles.input}
                 />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
+
                 {measurementEditData &&
                   measurementEditData.map((e: any) => (
                     <View key={e.id}>
@@ -541,11 +496,16 @@ const CreatePen: React.FC = () => {
                             height: 'auto',
                             borderWidth: 1,
                             paddingVertical: rMS(10),
-                            // fontSize: width * 0.04,
-                            // fontFamily: 'Pro-Regular',
-                            // color: '#292929',
                             borderColor: '#F1F1F1',
-                            backgroundColor: '#F1F1F1',
+                            backgroundColor:
+                              errors[
+                                e.pen_variable_type_of_object.variable.name
+                              ] ||
+                              errorsName.includes(
+                                e.pen_variable_type_of_object.variable.name
+                              )
+                                ? 'rgba(217, 162, 32, 0.12)'
+                                : '#F1F1F1',
                             borderRadius: 8,
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -558,6 +518,7 @@ const CreatePen: React.FC = () => {
                               paddingHorizontal: rMS(16),
                               flexDirection: 'row',
                               justifyContent: 'space-between',
+                              alignItems: 'center',
                             }}
                           >
                             <Text
@@ -569,9 +530,26 @@ const CreatePen: React.FC = () => {
                             >
                               {e.pen_variable_type_of_object.variable.name}
                             </Text>
+
                             <Text>
                               {`Min: ${e.pen_variable_type_of_object.custom_parameters.value.min}; Max: ${e.pen_variable_type_of_object.custom_parameters.value.max}`}
                             </Text>
+                            {errors[
+                              e.pen_variable_type_of_object.variable.name
+                            ] ||
+                            errorsName.includes(
+                              e.pen_variable_type_of_object.variable.name
+                            ) ? (
+                              <IconButton
+                                icon={'alert-circle-outline'}
+                                iconColor="#D9A220"
+                                size={rMS(20)}
+                                style={{
+                                  margin: 0,
+                                  // marginVertical: rMV(-7),
+                                }}
+                              />
+                            ) : null}
                           </View>
                           <View
                             style={{
@@ -592,7 +570,7 @@ const CreatePen: React.FC = () => {
                               onChangeText={(value) =>
                                 handleInputChange(
                                   e.id,
-                                  'whats ',
+                                  e.pen_variable_type_of_object.variable.name,
                                   e.pen_variable_type_of_object
                                     .custom_parameters.value.min,
                                   e.pen_variable_type_of_object
@@ -603,7 +581,7 @@ const CreatePen: React.FC = () => {
                                 )
                               }
                               keyboardType="numeric"
-                              autoCapitalize="words"
+                              autoCapitalize="sentences"
                               activeOutlineColor="transparent"
                               outlineColor="#F1F1F1"
                               cursorColor="#486732"
@@ -618,6 +596,7 @@ const CreatePen: React.FC = () => {
                                 borderWidth: 1,
                               }}
                             />
+
                             <Slider
                               style={{
                                 width: width * 0.9 - rMS(100) - rMS(12),
@@ -636,19 +615,37 @@ const CreatePen: React.FC = () => {
                               }
                               value={Number(values[e.id] || 0)}
                               onValueChange={(value) =>
-                                handleSliderChange(e.id, 'whats', value)
+                                handleSliderChange(
+                                  e.id,
+                                  e.pen_variable_type_of_object.variable.name,
+                                  value,
+                                  e.pen_variable_type_of_object
+                                    .custom_parameters.value.min,
+                                  e.pen_variable_type_of_object
+                                    .custom_parameters.value.max,
+                                  e.pen_variable_type_of_object
+                                    .custom_parameters.value.granularity
+                                )
                               }
                               minimumTrackTintColor="#486732"
                               // maximumTrackTintColor="#000000"
                               thumbTintColor="#FFFFFF"
                             />
                           </View>
-                          {/* {errors[e.variable.name] &&
-                            errors[e.variable.name] !== 'true' && (
+                          {errors[
+                            e.pen_variable_type_of_object.variable.name
+                          ] &&
+                            errors[
+                              e.pen_variable_type_of_object.variable.name
+                            ] !== 'true' && (
                               <Text style={styles.errorText}>
-                                {errors[e.variable.name]}
+                                {
+                                  errors[
+                                    e.pen_variable_type_of_object.variable.name
+                                  ]
+                                }
                               </Text>
-                            )} */}
+                            )}
                           <View
                             style={{
                               display: 'flex',
@@ -682,11 +679,14 @@ const CreatePen: React.FC = () => {
                             // color: '#292929',
                             borderColor: '#F1F1F1',
                             backgroundColor:
-                              // errors[e.variable.name] === 'true' ||
-                              // errorsName.includes(e.variable.name)
-                              //   ? 'rgba(217, 162, 32, 0.12)'
-                              // :
-                              '#F1F1F1',
+                              errors[
+                                e.pen_variable_type_of_object.variable.name
+                              ] ||
+                              errorsName.includes(
+                                e.pen_variable_type_of_object.variable.name
+                              )
+                                ? 'rgba(217, 162, 32, 0.12)'
+                                : '#F1F1F1',
                             borderRadius: 8,
                             flexDirection: 'column',
                             alignItems: 'center',
@@ -722,15 +722,19 @@ const CreatePen: React.FC = () => {
                               >
                                 {e.pen_variable_type_of_object.variable.name}
                               </Text>
-                              {/* {errors[e.variable.name] === 'true' ||
-                              errorsName.includes(e.variable.name) ? (
+                              {errors[
+                                e.pen_variable_type_of_object.variable.name
+                              ] ||
+                              errorsName.includes(
+                                e.pen_variable_type_of_object.variable.name
+                              ) ? (
                                 <IconButton
                                   icon={'alert-circle-outline'}
                                   iconColor="#D9A220"
                                   size={rMS(20)}
                                   style={{ margin: 0 }}
                                 />
-                              ) : null} */}
+                              ) : null}
                             </View>
                             <View style={{}}>
                               <View
@@ -748,7 +752,12 @@ const CreatePen: React.FC = () => {
                                     <Pressable
                                       key={index}
                                       onPress={() =>
-                                        handlePress(e.id, 'whats', item)
+                                        handlePress(
+                                          e.id,
+                                          e.pen_variable_type_of_object.variable
+                                            .name,
+                                          item
+                                        )
                                       }
                                     >
                                       <View
@@ -787,11 +796,18 @@ const CreatePen: React.FC = () => {
                                 )}
                               </View>
 
-                              {/* {errors[e.variable.name] && (
+                              {errors[
+                                e.pen_variable_type_of_object.variable.name
+                              ] && (
                                 <Text style={styles.errorText}>
-                                  {errors[e.variable.name]}
+                                  {
+                                    errors[
+                                      e.pen_variable_type_of_object.variable
+                                        .name
+                                    ]
+                                  }
                                 </Text>
-                              )} */}
+                              )}
                             </View>
                           </View>
                         </View>
@@ -801,14 +817,43 @@ const CreatePen: React.FC = () => {
               </View>
             </KeyboardAwareScrollView>
           </View>
+          <UnsavedModalComponent
+            visible={modalVisible === 'unsavedChanges'}
+            onDismiss={() => setModalVisible(null)}
+            title={texts.title}
+            subtitle={texts.subtitle}
+            buttons={getModalButtons()}
+            marginVertical={'30%'}
+          />
           {/* este view es para poner el boton debajo de todo */}
+          <SuccessModal
+            visible={modalSuccess}
+            onDismiss={() => setIsModalSuccess(false)}
+            title={'Medicion guardada'}
+            icon={
+              <IconButton
+                icon="check-circle-outline"
+                iconColor="#486732"
+                size={rMS(82)}
+              />
+            }
+            marginVertical={'38%'}
+            back={true}
+          />
 
           <View
             style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
           />
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>
-            <Pressable style={styles.button} onPress={handleSubmit}>
+            <Pressable
+              style={[
+                styles.button,
+                { opacity: Object.keys(errors).length > 0 ? 0.5 : 1 },
+              ]}
+              disabled={Object.keys(errors).length > 0}
+              onPress={handleSubmit}
+            >
               <Text style={styles.buttonText}>Terminar edición</Text>
             </Pressable>
           </View>

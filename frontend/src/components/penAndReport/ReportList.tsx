@@ -106,28 +106,31 @@ const ReportList: React.FC<PenListProps> = ({
   const renderRightActions = (progress: any, dragX: any, pen: any) => {
     const reportName = (pen?.name as string)
       ? pen.name.charAt(0).toUpperCase() + pen.name.slice(1).toLowerCase()
-      : `Reporte: ${new Date(pen.created_at).toLocaleDateString(`${lng}`, {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })}`;
+      : `Reporte: ${new Date(pen.created_at).toLocaleDateString(
+          `${lng ?? 'es'}`,
+          {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }
+        )}`;
     return (
       <View style={styles.rightActions}>
         <Pressable
           style={styles.editButton}
-          onPress={() => console.log(pen)}
-          //   router.push({
-          //     pathname: `/report/[reportId]`,
-          //     params: {
-          //       fieldName: fieldName,
-          //       reportId: +pen.id,
-          //       reportName: reportName,
-          //       penName: pen.name,
-          //       type_of_objects: JSON.stringify(pen.type_of_objects),
-          //       fieldId: pen.field_id,
-          //     },
-          //   });
-          // }}
+          onPress={() =>
+            router.push({
+              pathname: `/report/editReport`,
+              params: {
+                fieldName: fieldName,
+                reportId: +pen.id,
+                reportName: reportName,
+                penName: pen.name,
+                type_of_objects: JSON.stringify(pen.type_of_objects),
+                fieldId: pen.field_id,
+              },
+            })
+          }
         >
           <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
           <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
@@ -193,7 +196,7 @@ const ReportList: React.FC<PenListProps> = ({
               ? item.name.charAt(0).toUpperCase() +
                 item.name.slice(1).toLowerCase()
               : `Reporte: ${new Date(item.created_at).toLocaleDateString(
-                  `${lng}`,
+                  `${lng ?? 'es'}`,
                   {
                     day: '2-digit',
                     month: '2-digit',
@@ -228,18 +231,21 @@ const ReportList: React.FC<PenListProps> = ({
                     .slice(1)
                     .toLowerCase()} - ${new Date(
                     item.created_at
-                  ).toLocaleDateString(`${lng}`, {
+                  ).toLocaleDateString(`${lng ?? 'es'}`, {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
                   })}`
                 : `${t('reportsView.reportListNameText')} ${
                     item.id
-                  } - ${new Date(item.created_at).toLocaleDateString(`${lng}`, {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })}`}
+                  } - ${new Date(item.created_at).toLocaleDateString(
+                    `${lng ?? 'es'}`,
+                    {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    }
+                  )}`}
             </Text>
           </View>
         </TouchableOpacity>

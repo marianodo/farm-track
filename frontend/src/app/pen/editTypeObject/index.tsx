@@ -39,7 +39,7 @@ import {
   TextInput,
 } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import { Swipeable } from 'react-native-gesture-handler';
