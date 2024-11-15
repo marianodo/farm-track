@@ -173,16 +173,29 @@ const CreateMeasurement: React.FC = () => {
           onPress: () => {
             setModalVisible(null);
             // router.dismiss(3);
-            router.replace({
-              pathname: `/pen/[fieldId]`,
-              params: {
-                fieldId: fieldId as string,
-                fieldName: fieldName,
-                withFields: 'false',
-                withObjects: 'true',
-                onReport: 'true',
-              },
-            });
+            {
+              Platform.OS === 'ios'
+                ? router.push({
+                    pathname: `/pen/[fieldId]`,
+                    params: {
+                      fieldId: fieldId as string,
+                      fieldName: fieldName,
+                      withFields: 'false',
+                      withObjects: 'true',
+                      onReport: 'true',
+                    },
+                  })
+                : router.replace({
+                    pathname: `/pen/[fieldId]`,
+                    params: {
+                      fieldId: fieldId as string,
+                      fieldName: fieldName,
+                      withFields: 'false',
+                      withObjects: 'true',
+                      onReport: 'true',
+                    },
+                  });
+            }
           },
         },
       ];
