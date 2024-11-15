@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     padding: 5,
-    height: 'auto',
+    minHeight: rMS(20),
     alignItems: 'center',
   },
   buttonText: {
