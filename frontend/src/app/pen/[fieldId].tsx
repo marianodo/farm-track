@@ -61,7 +61,7 @@ export default function PenScreen() {
   const { fieldId, fieldName, onReport } = useLocalSearchParams();
 
   const [penOrReportSelect, setPenOrReportSelect] = useState<string>(
-    onReport === 'true' ? 'reports' : 'pens'
+    onReport == 'true' ? 'reports' : 'pens'
   );
 
   const router = useRouter();
