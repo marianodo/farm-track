@@ -97,6 +97,7 @@ const UnsavedModalComponent: React.FC<ModalComponentProps> = ({
           styles.keyboardAvoidingView,
           marginVertical && { marginVertical },
         ]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.modalContent}>
           <View style={styles.header}>
@@ -170,6 +171,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
           successStyle.keyboardAvoidingView,
           marginVertical && { marginVertical },
         ]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={successStyle.modalContent}>
           <View style={successStyle.header}>
