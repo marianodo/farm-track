@@ -19,7 +19,7 @@ import { Language } from '@/components/Language';
 import { Link, useRouter } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useAuthStore from '@/store/authStore';

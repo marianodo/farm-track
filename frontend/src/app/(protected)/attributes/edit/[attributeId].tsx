@@ -2,7 +2,7 @@ import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import { rMS, rMV, rV } from '@/styles/responsive';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import styles from './styles';
 import {
   Platform,

@@ -25,7 +25,7 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';

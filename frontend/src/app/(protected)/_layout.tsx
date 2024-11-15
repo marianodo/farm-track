@@ -5,7 +5,6 @@ import { rMS, rMV } from '@/styles/responsive';
 import { Colors } from '@/constants/Colors';
 import { Image } from 'react-native';
 import React from 'react';
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Tabs } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from 'react-i18next';
