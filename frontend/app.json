@@ -23,6 +23,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyC_-p23h1zSvzKuKni6q1vcqiZqhsfLvH4"
+        }
+      },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.anonymous.farmproject",
       "runtimeVersion": "1.0.0"
