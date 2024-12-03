@@ -86,6 +86,7 @@ const EditVariable: React.FC = () => {
     name: null,
     custom_parameters: null,
   });
+  const options = [0.1, 0.25, 0.5, 1];
   const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
@@ -567,30 +568,62 @@ const EditVariable: React.FC = () => {
                     <Text style={styles.textGranularity}>
                       {t('attributeView.createTextGranularity')}
                     </Text>
-                    <View style={styles.row}>
-                      <TextInput
-                        mode="outlined"
-                        placeholderTextColor="#486732"
-                        placeholder={t(
-                          'attributeView.createPlaceHolderGranularity'
-                        )}
-                        activeOutlineColor="#486732"
-                        outlineColor="#486732"
-                        cursorColor="#486732"
-                        keyboardType="numeric"
-                        value={
-                          (
-                            formData?.custom_parameters?.value as NumericValue
-                          )?.granularity?.toString() ?? ''
-                        }
-                        onChangeText={(value) =>
-                          onChangeDefaultValue(value, 'granularity')
-                        }
-                        selectionColor={
-                          Platform.OS == 'ios' ? '#486732' : '#486732'
-                        }
-                        style={[styles.input, styles.textInput]}
-                      />
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        paddingVertical: rMV(10),
+                        paddingTop: rMV(20),
+                      }}
+                    >
+                      {options.map((value) => (
+                        <Pressable
+                          key={value}
+                          onPress={() => {
+                            onChangeDefaultValue(value, 'granularity');
+                          }}
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: 18,
+                              width: 18,
+                              borderRadius: 10,
+                              borderWidth: 1,
+                              borderColor: '#486732',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              marginRight: 5,
+                            }}
+                          >
+                            {formData.custom_parameters?.value[
+                              'granularity'
+                            ] === value && (
+                              <View
+                                style={{
+                                  height: 8,
+                                  width: 8,
+                                  borderRadius: 5,
+                                  backgroundColor: '#486732',
+                                }}
+                              />
+                            )}
+                          </View>
+                          <Text
+                            style={{
+                              fontSize: width * 0.04,
+                              fontFamily: 'Pro-Regular',
+                              color: '#292929',
+                            }}
+                          >
+                            {value}
+                          </Text>
+                        </Pressable>
+                      ))}
                     </View>
                     {error?.custom_parameters?.granularity && (
                       <Text style={styles.errorText}>
