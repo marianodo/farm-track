@@ -202,19 +202,19 @@ export default function CreateField() {
     getLocation();
   }, [getLanguage, getLocation]);
 
-  useEffect(() => {
-    if (ubication.marketLocation) {
-      mapRef.current.animateToRegion(
-        {
-          ...ubication.marketLocation,
-          latitudeDelta: ubication.origin.latitudeDelta,
-          longitudeDelta: ubication.origin.longitudeDelta,
-        },
-        1500
-      );
-      setDirection();
-    }
-  }, [ubication.marketLocation, setDirection]);
+  // useEffect(() => {
+  //   if (ubication.marketLocation) {
+  //     mapRef.current.animateToRegion(
+  //       {
+  //         ...ubication.marketLocation,
+  //         latitudeDelta: ubication.origin.latitudeDelta,
+  //         longitudeDelta: ubication.origin.longitudeDelta,
+  //       },
+  //       1500
+  //     );
+  //     setDirection();
+  //   }
+  // }, [ubication.marketLocation, setDirection]);
 
   const handleInputChange = (key: string, value: string) => {
     setInputsData((previnputsData) => ({
@@ -294,111 +294,111 @@ export default function CreateField() {
             {/* TextInputs */}
             {Object.keys(inputsData).map((key: string) => {
               const input = inputsData[key];
-              if (key === 'ubication') {
-                return (
-                  <View key={key} style={{ marginBottom: 10 }}>
-                    <View>
-                      {/* <GooglePlacesAutocomplete
-                          placeholder="Ubicación"
-                          minLength={3}
-                          GooglePlacesDetailsQuery={{
-                            fields: 'geometry',
-                          }}
-                          enablePoweredByContainer={false}
-                          textInputProps={{
-                            value: `${ubication.userLocation.direction}`,
-                            cursorColor: '#486732',
-                            selectionColor: '#486732',
-                            placeholderTextColor: '#292929',
-                            editable: false,
-                          }}
-                          styles={{
-                            textInputContainer: {
-                              alignSelf: 'center',
-                              marginVertical: height * 0.01,
-                              width: width * 0.9,
-                              height: height * 0.07,
-                              borderWidth: 1,
-                              borderColor: '#F1F1F1',
-                              borderRadius: 8,
-                            },
-                            textInput: {
-                              height: '100%',
-                              fontSize: width * 0.04,
-                              fontFamily: 'Pro-Regular',
-                              color: 'black',
-                              backgroundColor: '#F1F1F1',
-                              paddingHorizontal: 16,
-                            },
+              // if (key === 'ubication') {
+              //   return (
+              //     <View key={key} style={{ marginBottom: 10 }}>
+              //       <View>
+              //         {/* <GooglePlacesAutocomplete
+              //             placeholder="Ubicación"
+              //             minLength={3}
+              //             GooglePlacesDetailsQuery={{
+              //               fields: 'geometry',
+              //             }}
+              //             enablePoweredByContainer={false}
+              //             textInputProps={{
+              //               value: `${ubication.userLocation.direction}`,
+              //               cursorColor: '#486732',
+              //               selectionColor: '#486732',
+              //               placeholderTextColor: '#292929',
+              //               editable: false,
+              //             }}
+              //             styles={{
+              //               textInputContainer: {
+              //                 alignSelf: 'center',
+              //                 marginVertical: height * 0.01,
+              //                 width: width * 0.9,
+              //                 height: height * 0.07,
+              //                 borderWidth: 1,
+              //                 borderColor: '#F1F1F1',
+              //                 borderRadius: 8,
+              //               },
+              //               textInput: {
+              //                 height: '100%',
+              //                 fontSize: width * 0.04,
+              //                 fontFamily: 'Pro-Regular',
+              //                 color: 'black',
+              //                 backgroundColor: '#F1F1F1',
+              //                 paddingHorizontal: 16,
+              //               },
 
-                            listView: {
-                              zIndex: 10,
-                            },
-                            description: { color: 'black' },
-                            separator: {
-                              height: 0.5,
-                            },
-                          }}
-                          onFail={(err) => console.error(err)}
-                          fetchDetails={true}
-                          // disableScroll={true}
-                          onPress={async (data, details) => {
-                            setUbication({
-                              ...ubication,
-                              marketLocation: {
-                                latitude: details?.geometry.location.lat,
-                                longitude: details?.geometry.location.lng,
-                              },
-                            });
-                          }}
-                          query={{
-                            key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
-                            language: lang,
-                          }}
-                        /> */}
-                      <TextInput
-                        mode="outlined"
-                        placeholderTextColor="#292929"
-                        placeholder={t('detailField.fieldUbicationPlaceHolder')}
-                        value={ubication.userLocation.direction ?? ''}
-                        onChangeText={(value) =>
-                          handleInputChange('location', value)
-                        }
-                        editable={false}
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
-                        cursorColor="#486732"
-                        selectionColor={
-                          Platform.OS == 'ios' ? '#486732' : '#486732'
-                        }
-                        selection={{ start: 0, end: 0 }}
-                        style={styles.input}
-                      />
-                    </View>
+              //               listView: {
+              //                 zIndex: 10,
+              //               },
+              //               description: { color: 'black' },
+              //               separator: {
+              //                 height: 0.5,
+              //               },
+              //             }}
+              //             onFail={(err) => console.error(err)}
+              //             fetchDetails={true}
+              //             // disableScroll={true}
+              //             onPress={async (data, details) => {
+              //               setUbication({
+              //                 ...ubication,
+              //                 marketLocation: {
+              //                   latitude: details?.geometry.location.lat,
+              //                   longitude: details?.geometry.location.lng,
+              //                 },
+              //               });
+              //             }}
+              //             query={{
+              //               key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
+              //               language: lang,
+              //             }}
+              //           /> */}
+              //         <TextInput
+              //           mode="outlined"
+              //           placeholderTextColor="#292929"
+              //           placeholder={t('detailField.fieldUbicationPlaceHolder')}
+              //           value={ubication.userLocation.direction ?? ''}
+              //           onChangeText={(value) =>
+              //             handleInputChange('location', value)
+              //           }
+              //           editable={false}
+              //           activeOutlineColor="transparent"
+              //           outlineColor="#F1F1F1"
+              //           cursorColor="#486732"
+              //           selectionColor={
+              //             Platform.OS == 'ios' ? '#486732' : '#486732'
+              //           }
+              //           selection={{ start: 0, end: 0 }}
+              //           style={styles.input}
+              //         />
+              //       </View>
 
-                    <View>
-                      <MapView
-                        ref={mapRef}
-                        style={{ width: width * 0.9, height: 239 }}
-                        initialRegion={ubication.origin}
-                        region={{
-                          ...ubication.marketLocation,
-                          latitudeDelta: ubication.origin.latitudeDelta,
-                          longitudeDelta: ubication.origin.longitudeDelta,
-                        }}
-                      >
-                        <Marker
-                          draggable
-                          coordinate={ubication.marketLocation}
-                          onDragEnd={(e) => {
-                            onDragEndChange(e.nativeEvent.coordinate);
-                          }}
-                        />
-                      </MapView>
-                    </View>
-                  </View>
-                );
-              }
+              //       <View>
+              //         <MapView
+              //           ref={mapRef}
+              //           style={{ width: width * 0.9, height: 239 }}
+              //           initialRegion={ubication.origin}
+              //           region={{
+              //             ...ubication.marketLocation,
+              //             latitudeDelta: ubication.origin.latitudeDelta,
+              //             longitudeDelta: ubication.origin.longitudeDelta,
+              //           }}
+              //         >
+              //           <Marker
+              //             draggable
+              //             coordinate={ubication.marketLocation}
+              //             onDragEnd={(e) => {
+              //               onDragEndChange(e.nativeEvent.coordinate);
+              //             }}
+              //           />
+              //         </MapView>
+              //       </View>
+              //     </View>
+              //   );
+              // }
 
               if (key === 'production_type') {
                 return (

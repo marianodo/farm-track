@@ -59,6 +59,10 @@ export const useValidationRules = () => {
     const { min, max, optimal_min, optimal_max, granularity } = inputsValue;
     const errors: { [key: string]: string } = {};
 
+    if (granularity <= 0) {
+      errors.granularity = t('formErrors.granularity.invalid');
+    }
+
     if (min >= max) {
       errors.minMax = t('formErrors.range.minGreaterThanMax');
     }
@@ -73,10 +77,6 @@ export const useValidationRules = () => {
 
     if (optimal_max < optimal_min || optimal_max > max) {
       errors.optimalMinMax = t('formErrors.range.maxOptimoInvalid');
-    }
-
-    if (granularity <= 0) {
-      errors.granularity = t('formErrors.granularity.invalid');
     }
 
     return Object.keys(errors).length ? errors : null;

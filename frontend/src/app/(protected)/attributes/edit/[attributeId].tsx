@@ -92,6 +92,7 @@ const EditAttribute: React.FC = () => {
   const [itemsValue, setItemsValue] = useState<number[] | undefined>(undefined);
   const [categoricalValue, setCategoricalValue] = useState<string | null>();
   const [items, setItems] = useState<Item[]>([]);
+  const options = [0.1, 0.25, 0.5, 1];
   const [formData, setFormData] = useState<FormData>({
     name: variableById?.name ?? null,
     type: variableById?.type ?? null,
@@ -636,7 +637,63 @@ const EditAttribute: React.FC = () => {
                       <Text style={styles.textGranularity}>
                         {t('attributeView.createTextGranularity')}
                       </Text>
-                      <View style={styles.row}>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          width: '100%',
+                          paddingVertical: rMV(10),
+                          paddingTop: rMV(20),
+                        }}
+                      >
+                        {options.map((value) => (
+                          <Pressable
+                            key={value}
+                            onPress={() => {
+                              onChangeDefaultValue(value, 'granularity');
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <View
+                              style={{
+                                height: 18,
+                                width: 18,
+                                borderRadius: 10,
+                                borderWidth: 1,
+                                borderColor: '#486732',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                marginRight: 5,
+                              }}
+                            >
+                              {formData.defaultValue?.value['granularity'] ===
+                                value && (
+                                <View
+                                  style={{
+                                    height: 8,
+                                    width: 8,
+                                    borderRadius: 5,
+                                    backgroundColor: '#486732',
+                                  }}
+                                />
+                              )}
+                            </View>
+                            <Text
+                              style={{
+                                fontSize: width * 0.04,
+                                fontFamily: 'Pro-Regular',
+                                color: '#292929',
+                              }}
+                            >
+                              {value}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                      {/* <View style={styles.row}>
                         <TextInput
                           mode="outlined"
                           placeholderTextColor="#486732"
@@ -660,7 +717,7 @@ const EditAttribute: React.FC = () => {
                           }
                           style={[styles.input, styles.textInput]}
                         />
-                      </View>
+                      </View> */}
                       {error?.defaultValue?.granularity && (
                         <Text style={styles.errorText}>
                           {error?.defaultValue?.granularity}

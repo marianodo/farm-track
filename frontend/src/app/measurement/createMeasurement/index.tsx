@@ -369,31 +369,31 @@ const CreateMeasurement: React.FC = () => {
     max: number,
     step: number
   ) => {
-    if (value === null || value === undefined) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
-    } else if (
-      value < min ||
-      value > max ||
-      ((value - min) % step !== 0 && value !== min && value !== max)
-    ) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-      }));
-    } else {
-      setErrors((prevErrors) => {
-        const newErrors = { ...prevErrors };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
+    // if (value === null || value === undefined) {
+    //   setErrors((prevErrors) => ({
+    //     ...prevErrors,
+    //     [name]: 'El campo no puede estar vacío.',
+    //   }));
+    // } else if (
+    //   value < min ||
+    //   value > max ||
+    //   ((value - min) % step !== 0 && value !== min && value !== max)
+    // ) {
+    //   setErrors((prevErrors) => ({
+    //     ...prevErrors,
+    //     [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
+    //   }));
+    // } else {
+    //   setErrors((prevErrors) => {
+    //     const newErrors = { ...prevErrors };
+    //     delete newErrors[name];
+    //     return newErrors;
+    //   });
+    // }
 
     setValues((prevValues) => ({
       ...prevValues,
-      [key]: value,
+      [key]: parseFloat(value.toFixed(2)),
     }));
   };
 
@@ -678,19 +678,27 @@ const CreateMeasurement: React.FC = () => {
                               minimumValue={e.custom_parameters.value.min}
                               maximumValue={e.custom_parameters.value.max ?? 0}
                               step={e.custom_parameters.value.granularity}
-                              value={Number(
-                                values[e.pen_variable_type_of_object_id] || 0
-                              )}
-                              onValueChange={(value) =>
-                                handleSliderChange(
-                                  e.pen_variable_type_of_object_id,
-                                  e.variable.name,
-                                  value,
-                                  e.custom_parameters.value.min,
-                                  e.custom_parameters.value.max,
-                                  e.custom_parameters.value.granularity
-                                )
-                              }
+                              // value={
+                              //   values[e.pen_variable_type_of_object_id] || 0
+                              // }
+                              // onValueChange={(value) =>
+                              //   handleSliderChange(
+                              //     e.pen_variable_type_of_object_id,
+                              //     e.variable.name,
+                              //     value,
+                              //     e.custom_parameters.value.min,
+                              //     e.custom_parameters.value.max,
+                              //     e.custom_parameters.value.granularity
+                              //   )
+                              // }
+                              onValueChange={(value) => {
+                                console.log('value', value.toFixed(1));
+                                setValues((prevValues) => ({
+                                  ...prevValues,
+                                  [e.pen_variable_type_of_object_id]:
+                                    parseFloat(value.toFixed(2)),
+                                }));
+                              }}
                               minimumTrackTintColor="#486732"
                               thumbTintColor="#FFFFFF"
                             />
