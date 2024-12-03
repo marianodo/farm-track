@@ -326,38 +326,51 @@ const CreateMeasurement: React.FC = () => {
     if (value === '') {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        [name]: `true`,
+        [name]: 'El campo no puede estar vacío.',
       }));
 
       setValues((prevValues) => ({
         ...prevValues,
         [key]: null,
       }));
-    } else {
-      const numericValue = parseInt(value, 10);
-      if (!isNaN(numericValue)) {
-        if (
-          numericValue < min ||
-          numericValue > max ||
-          ((numericValue - min) % step !== 0 &&
-            numericValue !== min &&
-            numericValue !== max)
-        ) {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-          }));
-        } else {
-          const newErrors = { ...errors };
-          delete newErrors[name];
-          setErrors(newErrors);
-        }
-      } else {
+      return;
+    }
+
+    const numericValue = parseFloat(value);
+    if (!isNaN(numericValue)) {
+      // Validar rango
+      if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: 'El valor debe ser un número.',
+          [name]: `El valor debe estar entre ${min} y ${max}.`,
         }));
+        return;
       }
+
+      // Validar que el valor sea un paso válido a partir del mínimo
+      const validValues = [];
+      for (let current = min; current <= max; current += step) {
+        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+      }
+
+      if (!validValues.includes(numericValue)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: `El valor debe incrementarse en pasos de ${step} a partir de ${min}.`,
+        }));
+        return;
+      }
+
+      // Si pasa todas las validaciones, eliminar errores
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors;
+        return newErrors;
+      });
+    } else {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: 'El valor debe ser un número.',
+      }));
     }
   };
 
@@ -384,11 +397,11 @@ const CreateMeasurement: React.FC = () => {
     //     [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
     //   }));
     // } else {
-    //   setErrors((prevErrors) => {
-    //     const newErrors = { ...prevErrors };
-    //     delete newErrors[name];
-    //     return newErrors;
-    //   });
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[name];
+      return newErrors;
+    });
     // }
 
     setValues((prevValues) => ({
@@ -681,24 +694,24 @@ const CreateMeasurement: React.FC = () => {
                               // value={
                               //   values[e.pen_variable_type_of_object_id] || 0
                               // }
-                              // onValueChange={(value) =>
-                              //   handleSliderChange(
-                              //     e.pen_variable_type_of_object_id,
-                              //     e.variable.name,
-                              //     value,
-                              //     e.custom_parameters.value.min,
-                              //     e.custom_parameters.value.max,
-                              //     e.custom_parameters.value.granularity
-                              //   )
-                              // }
-                              onValueChange={(value) => {
-                                console.log('value', value.toFixed(1));
-                                setValues((prevValues) => ({
-                                  ...prevValues,
-                                  [e.pen_variable_type_of_object_id]:
-                                    parseFloat(value.toFixed(2)),
-                                }));
-                              }}
+                              onValueChange={(value) =>
+                                handleSliderChange(
+                                  e.pen_variable_type_of_object_id,
+                                  e.variable.name,
+                                  value,
+                                  e.custom_parameters.value.min,
+                                  e.custom_parameters.value.max,
+                                  e.custom_parameters.value.granularity
+                                )
+                              }
+                              // onValueChange={(value) => {
+                              //   console.log('value', value.toFixed(1));
+                              //   setValues((prevValues) => ({
+                              //     ...prevValues,
+                              //     [e.pen_variable_type_of_object_id]:
+                              //       parseFloat(value.toFixed(2)),
+                              //   }));
+                              // }}
                               minimumTrackTintColor="#486732"
                               thumbTintColor="#FFFFFF"
                             />
