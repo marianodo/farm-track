@@ -148,32 +148,32 @@ export default function CreateField() {
     if (lang) setLang(lang);
   }, []);
 
-  const getLocation = useCallback(async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const { coords } = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 10,
-        });
-        const { latitude, longitude } = coords;
-        setUbication((prev) => ({
-          ...prev,
-          origin: {
-            ...prev.origin,
-            latitude,
-            longitude,
-          },
-          marketLocation: { latitude, longitude },
-          inputLocation: { latitude, longitude, direction: 'falta' },
-        }));
-      } else {
-        console.log('Permiso de ubicación denegado');
-      }
-    } catch (error) {
-      console.error('Error obteniendo la ubicación:', error);
-    }
-  }, []);
+  // const getLocation = useCallback(async () => {
+  //   try {
+  //     const { status } = await Location.requestForegroundPermissionsAsync();
+  //     if (status === 'granted') {
+  //       const { coords } = await Location.getCurrentPositionAsync({
+  //         accuracy: Location.Accuracy.High,
+  //         distanceInterval: 10,
+  //       });
+  //       const { latitude, longitude } = coords;
+  //       setUbication((prev) => ({
+  //         ...prev,
+  //         origin: {
+  //           ...prev.origin,
+  //           latitude,
+  //           longitude,
+  //         },
+  //         marketLocation: { latitude, longitude },
+  //         inputLocation: { latitude, longitude, direction: 'falta' },
+  //       }));
+  //     } else {
+  //       console.log('Permiso de ubicación denegado');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error obteniendo la ubicación:', error);
+  //   }
+  // }, []);
 
   const setDirection = useCallback(async () => {
     try {
@@ -199,8 +199,8 @@ export default function CreateField() {
 
   useEffect(() => {
     getLanguage();
-    getLocation();
-  }, [getLanguage, getLocation]);
+    // getLocation();
+  }, [getLanguage]);
 
   // useEffect(() => {
   //   if (ubication.marketLocation) {
