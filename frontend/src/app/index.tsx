@@ -62,11 +62,10 @@ const Page = () => {
   };
 
   const handleInputChange = (name: string, value: string) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
-    setFormModified(true);
+    }));
   };
 
   const handleBlur = (name: string) => {
