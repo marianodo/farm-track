@@ -366,9 +366,9 @@ const CreateReport: React.FC = () => {
           </View>
           {/* este view es para poner el boton debajo de todo */}
 
-          <View
+          {/* <View
             style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
-          />
+          /> */}
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>

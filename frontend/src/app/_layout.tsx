@@ -32,7 +32,11 @@ const StackLayout = () => {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <PaperProvider>
           <SafeAreaView style={{ flex: 1 }}>
-            <Stack>
+            <Stack
+              screenOptions={{
+                gestureEnabled: false,
+              }}
+            >
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen
                 name="(protected)"

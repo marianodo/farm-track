@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  BackHandler,
 } from 'react-native';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -116,6 +117,24 @@ const Page = () => {
       }
     }
   };
+
+  useEffect(() => {
+    const backAction = () => {
+      // Solo cerrar la app si estamos en esta pantalla específica
+      BackHandler.exitApp(); // Cierra la aplicación
+      return true; // Prevenir el comportamiento por defecto (volver atrás)
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    // Limpiar el listener cuando el componente se desmonte
+    return () => {
+      backHandler.remove();
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
