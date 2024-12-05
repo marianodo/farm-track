@@ -15,12 +15,15 @@ import prismaMiddleware from 'prisma/prisma.extensions';
 export class VariableRepository {
   constructor(private readonly db: PrismaService) {}
 
-  async create(createVariableDto: CreateVariableDto) {
+  async create(userId: string, createVariableDto: CreateVariableDto) {
     const { type_of_object_ids, ...variableData } = createVariableDto;
     try {
       const newVariable = await prismaMiddleware.variable.create({
         data: {
           ...variableData,
+          user: {
+            connect: { id: userId },
+          },
           type_of_objects: type_of_object_ids?.length
             ? {
                 create: type_of_object_ids.map((typeOfObjectId) => ({
@@ -205,6 +208,44 @@ export class VariableRepository {
   async findAll() {
     try {
       const variables = await this.db.variable.findMany({
+        include: {
+          type_of_objects: {
+            include: {
+              type_of_object: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // Formateo la respuesta para devolver solo el id y name de type_of_objects
+      return variables.map((variable) => ({
+        ...variable,
+        type_of_objects: variable.type_of_objects.map((obj) => ({
+          id: obj.type_of_object.id,
+          name: obj.type_of_object.name,
+        })),
+      }));
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving variables.',
+      );
+    }
+  }
+
+  async findAllByUserId(byUserId: string) {
+    try {
+      const variables = await this.db.variable.findMany({
+        where: {
+          userId: byUserId,
+        },
         include: {
           type_of_objects: {
             include: {

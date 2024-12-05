@@ -39,6 +39,7 @@ interface PenVariableTypeOfObjectState {
     penId: number
   ) => Promise<void>;
   resetDetail: () => void;
+  clearPenVariableTypeOfObjects: () => void;
 }
 
 const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
@@ -169,6 +170,13 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
     resetDetail: () => {
       console.log('reset');
       set({
+        penVariableTypeOfObjectByTypeId: null,
+        penVariableTypeOfObjectByTypeIdAndPen: null,
+      });
+    },
+    clearPenVariableTypeOfObjects: () => {
+      set({
+        penVariableTypeOfObjects: null,
         penVariableTypeOfObjectByTypeId: null,
         penVariableTypeOfObjectByTypeIdAndPen: null,
       });

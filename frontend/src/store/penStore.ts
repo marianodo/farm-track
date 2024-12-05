@@ -22,6 +22,7 @@ interface PenState {
   getPenById: (id: number | null) => Promise<void>;
   getPensByObjectId: (id: number) => Promise<void>;
   resetDetail: () => void;
+  clearPens: () => void;
 }
 
 const usePenStore = create<PenState>((set) => ({
@@ -113,6 +114,12 @@ const usePenStore = create<PenState>((set) => ({
     }
   },
   resetDetail: () => {
+    set({
+      pens: null,
+      penById: null,
+    });
+  },
+  clearPens: () => {
     set({
       pens: null,
       penById: null,

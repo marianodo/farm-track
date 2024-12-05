@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
 import useTypeOfObjectStore from './typeOfObjectStore';
-
+import useAuthStore from './authStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export interface TypeOfObject {
   id: number;
   name: string;
@@ -31,6 +32,7 @@ interface VariableState {
   getVariableById: (id: number | null) => Promise<void>;
   getVariablesByObjectId: (id: number) => Promise<void>;
   resetDetail: () => void;
+  clearVariables: () => void;
 }
 
 const useVariableStore = create<VariableState>((set) => ({
@@ -40,7 +42,8 @@ const useVariableStore = create<VariableState>((set) => ({
   createVariable: async (variable: VariableWithIds): Promise<void> => {
     set({ variablesLoading: true });
     try {
-      await axiosInstance.post('/variables', variable);
+      const userId = useAuthStore.getState().userId;
+      await axiosInstance.post(`/variables/${userId}`, variable);
       useVariableStore.getState().getAllVariables();
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ variablesLoading: false });
@@ -74,7 +77,9 @@ const useVariableStore = create<VariableState>((set) => ({
   getAllVariables: async () => {
     set({ variablesLoading: true });
     try {
-      const response = await axiosInstance.get('/variables');
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const response = await axiosInstance.get(`/variables/${user?.userId}`);
       set({
         variables: response.data.length ? response.data : [],
         variablesLoading: false,
@@ -114,6 +119,12 @@ const useVariableStore = create<VariableState>((set) => ({
   },
   resetDetail: () => {
     set({
+      variableById: null,
+    });
+  },
+  clearVariables: () => {
+    set({
+      variables: null,
       variableById: null,
     });
   },

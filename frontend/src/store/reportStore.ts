@@ -38,6 +38,7 @@ interface ReportState {
   getMeasurementEditData: (report_id: number, subject_id: number) => void;
   onDeleteMeasurement: (report_id: number, measurement_id: number) => void;
   setCreateReportId: (report_id: number) => void;
+  clearReports: () => void;
 }
 
 const useReportStore = create<ReportState>((set) => ({
@@ -100,7 +101,7 @@ const useReportStore = create<ReportState>((set) => ({
     }
   },
 
-  update: async (report_id: number, reportUpdate: any, field_id) => {
+  update: async (report_id: number, reportUpdate: any, field_id: any) => {
     set({ reportsLoading: true });
     try {
       await axiosInstance.patch(`/reports/${report_id}`, reportUpdate);
@@ -215,6 +216,16 @@ const useReportStore = create<ReportState>((set) => ({
       set({ reportsLoading: false });
       console.error('Error fetching report by ID:', error);
     }
+  },
+  clearReports: () => {
+    set({
+      reportsByFielId: null,
+      reportById: null,
+      reportByIdNameAndComment: null,
+      createReportId: null,
+      measurementVariablesData: null,
+      measurementEditData: null,
+    });
   },
 }));
 

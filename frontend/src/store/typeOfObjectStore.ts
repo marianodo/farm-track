@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import useAuthStore, { axiosInstance } from './authStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Renombrar 'Object' a 'MyTypeOfObject' para evitar conflictos
 export interface Variable {
@@ -22,6 +23,7 @@ interface TypeOfObjectState {
   onUpdate: (id: string, object: Partial<MyTypeOfObject>) => Promise<void>;
   getAllTypeOfObjects: () => void;
   getTypeOfObjectById: (id: string | null) => Promise<void>;
+  clearTypeOfObjects: () => void;
 }
 
 const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
@@ -31,7 +33,8 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   createTypeOfObject: async (object: MyTypeOfObject): Promise<void> => {
     set({ typeOfObjectsLoading: true });
     try {
-      await axiosInstance.post('/type-of-objects', object);
+      const userId = useAuthStore.getState().userId;
+      await axiosInstance.post(`/type-of-objects/${userId}`, object);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
@@ -88,7 +91,11 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   getAllTypeOfObjects: async () => {
     set({ typeOfObjectsLoading: true });
     try {
-      const response = await axiosInstance.get('/type-of-objects');
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const response = await axiosInstance.get(
+        `/type-of-objects/${user.userId}`
+      );
       const sortedData = response.data.sort(
         (a: MyTypeOfObject, b: MyTypeOfObject) => a.name.localeCompare(b.name)
       );
@@ -116,6 +123,12 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       set({ typeOfObjectsLoading: false });
       console.log('error gettypeOfObjectById:', error);
     }
+  },
+  clearTypeOfObjects: () => {
+    set({
+      typeOfObjects: null,
+      typeOfObjectById: null,
+    });
   },
 }));
 

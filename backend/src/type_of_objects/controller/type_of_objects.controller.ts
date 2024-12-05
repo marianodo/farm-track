@@ -18,10 +18,16 @@ export class TypeOfObjectsController {
   constructor(private readonly typeOfObjectsService: TypeOfObjectsService) {}
 
   @HttpCode(HttpStatus.CREATED)
-  @Post()
-  async create(@Body() createTypeOfObjectDto: CreateTypeOfObjectDto) {
+  @Post(':userId')
+  async create(
+    @Param('userId') userId: string,
+    @Body() createTypeOfObjectDto: CreateTypeOfObjectDto,
+  ) {
     try {
-      return await this.typeOfObjectsService.create(createTypeOfObjectDto);
+      return await this.typeOfObjectsService.create(
+        userId,
+        createTypeOfObjectDto,
+      );
     } catch (error) {
       throw error;
     }
@@ -32,6 +38,16 @@ export class TypeOfObjectsController {
   async findAll() {
     try {
       return await this.typeOfObjectsService.findAll();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get(':byUserId')
+  async findAllByUserId(@Param('byUserId') byUserId: string) {
+    try {
+      return await this.typeOfObjectsService.findAllByUserId(byUserId);
     } catch (error) {
       throw error;
     }

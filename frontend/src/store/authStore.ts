@@ -4,7 +4,6 @@ import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { useTranslation } from 'react-i18next';
 import * as SecureStore from 'expo-secure-store';
-
 export enum Role {
   ADMIN = 'admin',
   USER = 'user',
@@ -47,14 +46,17 @@ const useAuthStore = create<AuthState>((set: any) => ({
       const { accessToken, refreshToken } = response.data;
       const decodedToken: any = jwtDecode(accessToken);
       await AsyncStorage.setItem('accessToken', accessToken);
+      await AsyncStorage.setItem('user', JSON.stringify(decodedToken));
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
       await SecureStore.setItemAsync('refreshToken', refreshToken);
 
       set({
-        authenticated: decodedToken.isVerified,
-        userId: decodedToken.userId,
-        username: decodedToken.username,
-        email: decodedToken.email,
-        role: decodedToken.role,
+        authenticated: user.isVerified,
+        userId: user.userId,
+        username: user.username,
+        email: user.email,
+        role: user.role,
         token: await AsyncStorage.getItem('accessToken'),
         authLoading: false,
       });
@@ -71,18 +73,17 @@ const useAuthStore = create<AuthState>((set: any) => ({
     set({ authLoading: true });
     try {
       await AsyncStorage.removeItem('accessToken');
+      await AsyncStorage.removeItem('user');
       await SecureStore.deleteItemAsync('refreshToken');
-      setTimeout(() => {
-        set({
-          userId: null,
-          authLoading: false,
-          authenticated: false,
-          username: null,
-          email: null,
-          token: null,
-          role: null,
-        });
-      }, 100);
+      set({
+        userId: null,
+        authLoading: false,
+        authenticated: false,
+        username: null,
+        email: null,
+        token: null,
+        role: null,
+      });
     } catch (error) {
       set({ authLoading: false });
       alert(error);

@@ -25,6 +25,13 @@ import { useTranslation } from 'react-i18next';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useAuthStore from '@/store/authStore';
 import Loader from '@/components/Loader';
+import useFieldStore from '@/store/fieldStore';
+import usePenVariableTypeOfObjectStore from '@/store/pen_variable_typeOfObject_store';
+import usePenStore from '@/store/penStore';
+import useReportStore from '@/store/reportStore';
+import useTypeOfObjectStore from '@/store/typeOfObjectStore';
+import useVariableStore from '@/store/variableStore';
+import { use } from 'i18next';
 
 const { width, height } = Dimensions.get('window');
 const Page = () => {
@@ -33,6 +40,29 @@ const Page = () => {
     onLogin: state.onLogin,
     authLoading: state.authLoading,
   }));
+
+  const { clearVariables } = useVariableStore((state) => ({
+    clearVariables: state.clearVariables,
+  }));
+  const { clearFields } = useFieldStore((state) => ({
+    clearFields: state.clearFields,
+  }));
+
+  const { clearReports } = useReportStore((state) => ({
+    clearReports: state.clearReports,
+  }));
+  const { clearPens } = usePenStore((state) => ({
+    clearPens: state.clearPens,
+  }));
+  const { clearPenVariableTypeOfObjects } = usePenVariableTypeOfObjectStore(
+    (state) => ({
+      clearPenVariableTypeOfObjects: state.clearPenVariableTypeOfObjects,
+    })
+  );
+  const { clearTypeOfObjects } = useTypeOfObjectStore((state) => ({
+    clearTypeOfObjects: state.clearTypeOfObjects,
+  }));
+
   const { required, minLength, email } = useValidationRules();
   interface FormData {
     email: string;
@@ -141,6 +171,12 @@ const Page = () => {
       // Limpio los errores al volver al componente
       setErrors({});
       setFormModified(false);
+      clearVariables();
+      clearFields();
+      clearReports();
+      clearPens();
+      clearPenVariableTypeOfObjects();
+      clearTypeOfObjects();
     }, [])
   );
 

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import useAuthStore, { axiosInstance } from './authStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface Field {
   id: string;
@@ -33,6 +34,7 @@ interface FieldState {
   getFieldsByUser: (id: string | null) => void;
   getFieldById: (id: string) => void;
   resetDetail: () => void;
+  clearFields: () => void;
 }
 
 const useFieldStore = create<FieldState>((set: any) => ({
@@ -103,7 +105,11 @@ const useFieldStore = create<FieldState>((set: any) => ({
   getFieldsByUser: async (id: string | null) => {
     set({ fieldLoading: true });
     try {
-      const response = await axiosInstance.get(`/fields/byUserId/${id}`);
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const response = await axiosInstance.get(
+        `/fields/byUserId/${user.userId}`
+      );
       set({
         fieldsByUserId: response.data.length ? response.data : [],
         fieldLoading: false,
@@ -128,6 +134,14 @@ const useFieldStore = create<FieldState>((set: any) => ({
   },
   resetDetail: () => {
     set({
+      fieldDetail: null,
+    });
+  },
+
+  clearFields: () => {
+    set({
+      fields: null,
+      fieldsByUserId: null,
       fieldDetail: null,
     });
   },

@@ -18,10 +18,13 @@ export class VariableController {
   constructor(private readonly variableService: VariableService) {}
 
   @HttpCode(HttpStatus.CREATED)
-  @Post()
-  async create(@Body() createVariableDto: CreateVariableDto) {
+  @Post(':userId')
+  async create(
+    @Param('userId') userId: string,
+    @Body() createVariableDto: CreateVariableDto,
+  ) {
     try {
-      return await this.variableService.create(createVariableDto);
+      return await this.variableService.create(userId, createVariableDto);
     } catch (error) {
       throw error;
     }
@@ -47,6 +50,16 @@ export class VariableController {
   async findAll() {
     try {
       return await this.variableService.findAll();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Get(':byUserId')
+  async findAllByUserId(@Param('byUserId') byUserId: string) {
+    try {
+      return await this.variableService.findAllByUserId(byUserId);
     } catch (error) {
       throw error;
     }
