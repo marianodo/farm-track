@@ -11,6 +11,7 @@ import {
   Dimensions,
   BackHandler,
 } from 'react-native';
+import { useNavigation } from 'expo-router';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -44,6 +45,7 @@ const CreateMeasurement: React.FC = () => {
     title: '',
     subtitle: '',
   });
+  const navigation = useNavigation();
   const [showWarningError, setShowWarningError] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -75,7 +77,7 @@ const CreateMeasurement: React.FC = () => {
       });
     }
   };
-
+  const [sliderKey, setSliderKey] = useState<number>(0);
   const router = useRouter();
   const {
     createReportId,
@@ -101,6 +103,15 @@ const CreateMeasurement: React.FC = () => {
           ...prevValues,
           [e.pen_variable_type_of_object_id]: null,
         }));
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    // Inicializa el valor del slider al mínimo cada vez que el componente se monte
+    if (measurementVariablesData) {
+      measurementVariablesData.forEach((e: any) => {
+        setSliderKey((prevKey) => prevKey + 1);
       });
     }
   }, []);
@@ -175,7 +186,7 @@ const CreateMeasurement: React.FC = () => {
             // router.dismiss(3);
             {
               Platform.OS === 'ios'
-                ? router.push({
+                ? router.replace({
                     pathname: `/pen/[fieldId]`,
                     params: {
                       fieldId: fieldId as string,
@@ -308,6 +319,12 @@ const CreateMeasurement: React.FC = () => {
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     };
+  }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: false, // Deshabilitar el gesto de deslizamiento hacia atrás
+    });
   }, []);
 
   const handleInputChange = (
@@ -685,15 +702,22 @@ const CreateMeasurement: React.FC = () => {
                               }}
                             />
                             <Slider
+                              key={sliderKey}
                               style={{
                                 width: width * 0.9 - rMS(100) - rMS(12),
                               }}
                               minimumValue={e.custom_parameters.value.min}
                               maximumValue={e.custom_parameters.value.max ?? 0}
                               step={e.custom_parameters.value.granularity}
-                              // value={
-                              //   values[e.pen_variable_type_of_object_id] || 0
-                              // }
+                              value={
+                                Platform.OS === 'android'
+                                  ? undefined
+                                  : Number(
+                                      values[
+                                        e.pen_variable_type_of_object_id
+                                      ] || 0
+                                    )
+                              }
                               onValueChange={(value) =>
                                 handleSliderChange(
                                   e.pen_variable_type_of_object_id,
@@ -704,14 +728,6 @@ const CreateMeasurement: React.FC = () => {
                                   e.custom_parameters.value.granularity
                                 )
                               }
-                              // onValueChange={(value) => {
-                              //   console.log('value', value.toFixed(1));
-                              //   setValues((prevValues) => ({
-                              //     ...prevValues,
-                              //     [e.pen_variable_type_of_object_id]:
-                              //       parseFloat(value.toFixed(2)),
-                              //   }));
-                              // }}
                               minimumTrackTintColor="#486732"
                               thumbTintColor="#FFFFFF"
                             />

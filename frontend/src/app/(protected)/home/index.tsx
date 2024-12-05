@@ -10,6 +10,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   View,
+  BackHandler,
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
@@ -99,6 +100,20 @@ export default function HomeScreen() {
       getAllTypeOfObjects();
     }
   }, [typeOfObjects, getAllTypeOfObjects, fieldsByUserId]);
+
+  useEffect(() => {
+    const backAction = () => {
+      BackHandler.exitApp(); // Cierra la aplicación
+      return true; // Prevenir comportamiento por defecto
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <View style={styles.titleContainer}>

@@ -20,6 +20,7 @@ import {
   Keyboard,
   KeyboardEvent,
 } from 'react-native';
+import { BackHandler } from 'react-native';
 import styles from './styles';
 import PenList from '../../components/penAndReport/PenList';
 import ReportList from '../../components/penAndReport/ReportList';
@@ -65,6 +66,19 @@ export default function PenScreen() {
   );
 
   const router = useRouter();
+  useEffect(() => {
+    const backAction = () => {
+      router.replace('/'); // Ruta a Home
+      return true; // Prevenir comportamiento por defecto
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, [router]);
 
   const { role, userName } = useAuthStore((state) => ({
     role: state.role,
@@ -215,7 +229,7 @@ export default function PenScreen() {
               icon="chevron-left"
               iconColor="#fff"
               style={{ marginHorizontal: 0 }}
-              onPress={() => router.back()}
+              onPress={() => router.replace('/(protected)/home')}
             />
             <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
           </View>
