@@ -107,13 +107,15 @@ const useFieldStore = create<FieldState>((set: any) => ({
     try {
       const userString = await AsyncStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
-      const response = await axiosInstance.get(
-        `/fields/byUserId/${user.userId}`
-      );
-      set({
-        fieldsByUserId: response.data.length ? response.data : [],
-        fieldLoading: false,
-      });
+      if (user) {
+        const response = await axiosInstance.get(
+          `/fields/byUserId/${user?.userId ?? null}`
+        );
+        set({
+          fieldsByUserId: response.data.length ? response.data : [],
+          fieldLoading: false,
+        });
+      }
     } catch (error) {
       set({ fieldLoading: false });
       console.log('error getFieldByUser:', error);
