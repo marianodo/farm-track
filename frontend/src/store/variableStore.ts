@@ -79,11 +79,13 @@ const useVariableStore = create<VariableState>((set) => ({
     try {
       const userString = await AsyncStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
-      const response = await axiosInstance.get(`/variables/${user?.userId}`);
-      set({
-        variables: response.data.length ? response.data : [],
-        variablesLoading: false,
-      });
+      if (user) {
+        const response = await axiosInstance.get(`/variables/${user?.userId}`);
+        set({
+          variables: response.data.length ? response.data : [],
+          variablesLoading: false,
+        });
+      }
     } catch (error) {
       set({ variablesLoading: false });
       console.error('Error fetching variables:', error);
