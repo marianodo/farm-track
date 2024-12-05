@@ -32,6 +32,8 @@ model User {
   role               Role     @default(USER)
   verification_token String?
   fields             Field[]
+  variables          Variable[]
+  type_of_objects    TypeOfObject[]
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
 
@@ -62,6 +64,8 @@ model Variable {
   name              String @unique
   type              VariableType
   defaultValue      Json
+  userId            String
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   type_of_objects    TypeOfObject_Variable[]
   pen_variable_type_of_objects PenVariableTypeOfObject[]
 }
@@ -70,6 +74,8 @@ model TypeOfObject {
   name              String @unique
   variables         TypeOfObject_Variable[]
   pens              PenTypeOfObject[]
+  userId            String
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pen_variable_type_of_objects PenVariableTypeOfObject[]
   subjects          Subject[]
 }

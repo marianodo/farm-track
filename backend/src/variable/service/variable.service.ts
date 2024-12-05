@@ -6,9 +6,9 @@ import { VariableRepository } from '../repository/variable.repository';
 @Injectable()
 export class VariableService {
   constructor(private readonly variableRepository: VariableRepository) {}
-  async create(createVariableDto: CreateVariableDto) {
+  async create(userId: string, createVariableDto: CreateVariableDto) {
     try {
-      return await this.variableRepository.create(createVariableDto);
+      return await this.variableRepository.create(userId, createVariableDto);
     } catch (error) {
       throw error;
     }
@@ -25,6 +25,14 @@ export class VariableService {
   async findAll() {
     try {
       return await this.variableRepository.findAll();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findAllByUserId(byUserId: string) {
+    try {
+      return await this.variableRepository.findAllByUserId(byUserId);
     } catch (error) {
       throw error;
     }

@@ -8,13 +8,24 @@ export class TypeOfObjectsService {
   constructor(
     private readonly typeOfObjectsRepository: TypeOfObjectsRepository,
   ) {}
-  async create(createTypeOfObjectDto: CreateTypeOfObjectDto) {
-    return await this.typeOfObjectsRepository.create(createTypeOfObjectDto);
+  async create(userId: string, createTypeOfObjectDto: CreateTypeOfObjectDto) {
+    return await this.typeOfObjectsRepository.create(
+      userId,
+      createTypeOfObjectDto,
+    );
   }
 
   async findAll() {
     try {
       return await this.typeOfObjectsRepository.findAll();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async findAllByUserId(byUserId: string) {
+    try {
+      return await this.typeOfObjectsRepository.findAllByUserId(byUserId);
     } catch (error) {
       throw error;
     }

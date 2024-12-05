@@ -18,11 +18,14 @@ export class TypeOfObjectsRepository {
     private readonly penVariableTypeOfObjectRepository: PenVariableTypeOfObjectRepository,
   ) {}
 
-  async create(createTypeOfObjectDto: CreateTypeOfObjectDto) {
+  async create(userId: string, createTypeOfObjectDto: CreateTypeOfObjectDto) {
     try {
       return await this.db.typeOfObject.create({
         data: {
           ...createTypeOfObjectDto,
+          user: {
+            connect: { id: userId },
+          },
           // Solo se crean las relaciones con variables si se pasan variables
           variables: createTypeOfObjectDto.variables?.length
             ? {
@@ -101,6 +104,40 @@ export class TypeOfObjectsRepository {
   async findAll() {
     try {
       const objects = await this.db.typeOfObject.findMany({
+        include: {
+          variables: {
+            include: {
+              variable: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return objects.map((object) => ({
+        ...object,
+        variables: object.variables.map((e) => ({
+          id: e.variable.id,
+          name: e.variable.name,
+        })),
+      }));
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving type_of_objects.',
+      );
+    }
+  }
+
+  async findAllByUserId(byUserId: string) {
+    try {
+      const objects = await this.db.typeOfObject.findMany({
+        where: { userId: byUserId },
         include: {
           variables: {
             include: {
