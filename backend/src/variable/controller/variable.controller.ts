@@ -56,7 +56,7 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get(':byUserId')
+  @Get('byUser/:byUserId')
   async findAllByUserId(@Param('byUserId') byUserId: string) {
     try {
       return await this.variableService.findAllByUserId(byUserId);
