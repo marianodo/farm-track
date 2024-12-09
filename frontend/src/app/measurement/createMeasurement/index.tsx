@@ -915,9 +915,7 @@ const CreateMeasurement: React.FC = () => {
           />
 
           {/* este view es para poner el boton debajo de todo */}
-          <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
-          />
+          <View style={{}} />
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>
             <Pressable
