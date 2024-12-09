@@ -25,7 +25,7 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
@@ -155,7 +155,8 @@ const CreatePen: React.FC = () => {
   useEffect(() => {
     setFormData((prevValues) => ({
       ...prevValues,
-      name: subjectName as string,
+      name: subjectName ? (subjectName as string) : null,
+      subject_id: Number(subjectId),
     }));
     if (measurementEditData) {
       measurementEditData.map((e: any) => {
@@ -166,13 +167,17 @@ const CreatePen: React.FC = () => {
       });
     }
   }, [measurementEditData]);
-
+  console.log('VALUES', values);
   useEffect(() => {
     validateValues();
   }, [values]);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
-    setFormData({ ...formData, [field]: inputValue });
+    console.log('inputValue', inputValue);
+    setFormData({
+      ...formData,
+      [field]: inputValue === undefined ? null : inputValue,
+    });
   };
 
   const validateValues = () => {
@@ -188,31 +193,38 @@ const CreatePen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validateValues();
-    if (
-      (validationErrors.length > 0 &&
-        validationErrors.length !== measurementEditData.length) ||
-      validationErrors.length === measurementEditData.length
-    ) {
-      setFormOk(false);
-      setTexts({
-        title: 'Faltan campos por completar',
-        subtitle: `No has completado el campo: ${validationErrors.join(', ')}.`,
-      });
-      setModalVisible(null);
+    console.log('hola');
+    // const validationErrors = validateValues();
+    // if (
+    //   (validationErrors.length > 0 &&
+    //     validationErrors.length !== measurementEditData.length) ||
+    //   validationErrors.length === measurementEditData.length
+    // ) {
+    //   setFormOk(false);
+    //   setTexts({
+    //     title: 'Faltan campos por completar',
+    //     subtitle: `No has completado el campo: ${validationErrors.join(', ')}.`,
+    //   });
+    //   setModalVisible(null);
 
-      // Alert.alert(
-      //   'Faltan algunos campos por completar',
-      //   'Por favor, complete los campos faltantes.'
-      // );
-      return;
+    //   // Alert.alert(
+    //   //   'Faltan algunos campos por completar',
+    //   //   'Por favor, complete los campos faltantes.'
+    //   // );
+    //   return;
+    // }
+    // setFormOk(true);
+    // setTexts({
+    //   title: '¿Estás seguro de guardar la medición?',
+    //   subtitle: `Una vez guardada, no podrás modificarla.`,
+    // });
+    // setModalVisible(null);
+    try {
+      editNewsMeasurements();
+      setModalVisible('success');
+    } catch (error) {
+      console.log('ERROR2:', error);
     }
-    setFormOk(true);
-    setTexts({
-      title: '¿Estás seguro de guardar la medición?',
-      subtitle: `Una vez guardada, no podrás modificarla.`,
-    });
-    setModalVisible(null);
   };
 
   const getModalButtons = () => {
@@ -233,37 +245,76 @@ const CreatePen: React.FC = () => {
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        if (formData.name) {
-          Alert.alert(
-            t('attributeView.unsavedChangesTitle'),
-            t('attributeView.unsavedChangesMessage'),
-            [
-              {
-                text: t('attributeView.leaveButtonText'),
-                style: 'cancel',
-                onPress: () => router.back(),
-              },
-              {
-                text: t('attributeView.cancelButtonText'),
-              },
-            ],
-            { cancelable: false }
-          );
-          return true;
-        }
-        return false;
-      };
+  const showUnsavedChangesModal = () => {
+    setTexts({
+      title: t('attributeView.unsavedChangesTitle'),
+      subtitle: t('attributeView.unsavedChangesMessage'),
+    });
+    setModalVisible('unsavedChanges');
+  };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  useEffect(() => {
+    const onBackPress = () => {
+      router.back();
+      return true;
+    };
 
-      return () =>
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [formData])
-  );
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    };
+  }, [formData]);
+  console.log('LA DATA:', formData);
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const onBackPress = () => {
+  //       if (formData.name || Object.keys(values).length > 0) {
+  //         Alert.alert(
+  //           t('attributeView.unsavedChangesTitle'),
+  //           t('attributeView.unsavedChangesMessage'),
+  //           [
+  //             {
+  //               text: t('attributeView.leaveButtonText'),
+  //               style: 'cancel',
+  //               onPress: () => router.back(),
+  //             },
+  //             {
+  //               text: t('attributeView.cancelButtonText'),
+  //             },
+  //           ],
+  //           { cancelable: false }
+  //         );
+  //         return true;
+  //       }
+  //       return false;
+  //     };
+
+  //     BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+  //     return () =>
+  //       BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  //   }, [formData])
+  // );
+
+  const [sliderValue, setSliderValue] = useState<number | null>(null);
+  const editNewsMeasurements = async () => {
+    const editsMeasurements = {
+      name: formData.name,
+      subject_id: formData.subject_id,
+      measurements: Object.entries(values)
+        .filter(([key, value]) => value !== null)
+        .map(([key, value]) => ({
+          id: key,
+          value: value,
+        })),
+    };
+    try {
+      await onUpdate(reportId, editsMeasurements);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleInputChange = (
     key: string,
     name: string,
@@ -272,48 +323,71 @@ const CreatePen: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      [key]: value,
-    }));
-
-    if (value === '') {
+    const sanitizedValue = value.replace(',', '.');
+    const pointCount = (sanitizedValue.match(/\./g) || []).length;
+    if (pointCount > 1) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
+        [name]: 'El valor no puede tener más de un punto decimal.',
       }));
+      return;
+    }
+    setValues((prevValues) => ({
+      ...prevValues,
+      [key]: sanitizedValue,
+    }));
+
+    if (sanitizedValue === '') {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: 'El campo no puede estar vacío.',
+      }));
+
       setValues((prevValues) => ({
         ...prevValues,
         [key]: null,
       }));
-    } else {
-      const numericValue = parseInt(value, 10);
-      if (!isNaN(numericValue)) {
-        if (
-          numericValue < min ||
-          numericValue > max ||
-          ((numericValue - min) % step !== 0 &&
-            numericValue !== min &&
-            numericValue !== max)
-        ) {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-          }));
-        } else {
-          const newErrors = { ...errors };
-          delete newErrors[name];
-          setErrors(newErrors);
-        }
-      } else {
+      return;
+    }
+
+    const numericValue = parseFloat(sanitizedValue);
+    if (!isNaN(numericValue)) {
+      // Validar rango
+      if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: 'El valor debe ser un número.',
+          [name]: `El valor debe estar entre ${min} y ${max}.`,
         }));
+        return;
       }
+
+      // Validar que el valor sea un paso válido a partir del mínimo
+      const validValues = [];
+      for (let current = min; current <= max; current += step) {
+        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+      }
+
+      if (!validValues.includes(numericValue)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: `El valor debe incrementarse en pasos de ${step} a partir de ${min}.`,
+        }));
+        return;
+      }
+
+      // Si pasa todas las validaciones, eliminar errores
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors;
+        return newErrors;
+      });
+    } else {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: 'El valor debe ser un número.',
+      }));
     }
   };
-
+  console.log('ALTURA', Dimensions.get('window').height);
   const handleSliderChange = (
     key: string,
     name: string,
@@ -322,32 +396,18 @@ const CreatePen: React.FC = () => {
     max: number,
     step: number
   ) => {
-    console.log('NOMRBEEE', name);
-    if (value === null || value === undefined) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
-    } else if (
-      value < min ||
-      value > max ||
-      ((value - min) % step !== 0 && value !== min && value !== max)
-    ) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-      }));
-    } else {
-      setErrors((prevErrors) => {
-        const newErrors = { ...prevErrors };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[name];
+      return newErrors;
+    });
     setValues((prevValues) => ({
       ...prevValues,
       [key]: value,
+    }));
+    setValues((prevValues) => ({
+      ...prevValues,
+      [key]: parseFloat(value.toFixed(2)),
     }));
   };
 
@@ -444,7 +504,12 @@ const CreatePen: React.FC = () => {
           <View
             style={{
               // flex: 1,
-              height: Dimensions.get('window').height > 640 ? '82%' : '64%',
+              height:
+                Dimensions.get('window').height > 860
+                  ? '80%'
+                  : Dimensions.get('window').height > 640
+                  ? '70%'
+                  : '74%',
             }}
           >
             <KeyboardAwareScrollView
@@ -613,8 +678,8 @@ const CreatePen: React.FC = () => {
                                 e.pen_variable_type_of_object.custom_parameters
                                   .value.granularity
                               }
-                              value={Number(values[e.id] || 0)}
-                              onValueChange={(value) =>
+                              value={Number(values[e.id])}
+                              onSlidingComplete={(value) => {
                                 handleSliderChange(
                                   e.id,
                                   e.pen_variable_type_of_object.variable.name,
@@ -625,8 +690,21 @@ const CreatePen: React.FC = () => {
                                     .custom_parameters.value.max,
                                   e.pen_variable_type_of_object
                                     .custom_parameters.value.granularity
-                                )
-                              }
+                                );
+                              }}
+                              // onValueChange={(value) =>
+                              //   handleSliderChange(
+                              //     e.id,
+                              //     e.pen_variable_type_of_object.variable.name,
+                              //     value,
+                              //     e.pen_variable_type_of_object
+                              //       .custom_parameters.value.min,
+                              //     e.pen_variable_type_of_object
+                              //       .custom_parameters.value.max,
+                              //     e.pen_variable_type_of_object
+                              //       .custom_parameters.value.granularity
+                              //   )
+                              // }
                               minimumTrackTintColor="#486732"
                               // maximumTrackTintColor="#000000"
                               thumbTintColor="#FFFFFF"
@@ -827,8 +905,8 @@ const CreatePen: React.FC = () => {
           />
           {/* este view es para poner el boton debajo de todo */}
           <SuccessModal
-            visible={modalSuccess}
-            onDismiss={() => setIsModalSuccess(false)}
+            visible={modalVisible === 'success'}
+            onDismiss={() => setModalVisible(null)}
             title={'Medicion guardada'}
             icon={
               <IconButton
@@ -842,7 +920,7 @@ const CreatePen: React.FC = () => {
           />
 
           <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
+            style={{ flex: Dimensions.get('window').height > 640 ? 0.1 : 0.5 }}
           />
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>

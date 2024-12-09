@@ -291,7 +291,7 @@ const ReportDetail: React.FC<PenListProps> = ({
           <View
             style={{
               display: 'flex',
-              flexDirection: 'column',
+              flexDirection: 'row',
               flexWrap: 'wrap',
               paddingHorizontal: rMS(10),
               paddingTop: rMS(8),

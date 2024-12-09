@@ -155,7 +155,7 @@ const EditAttribute: React.FC = () => {
         type_of_object_ids: variableById.type_of_object_ids ?? null,
       });
       setItemsValue(
-        variableById.type_of_objects.map(
+        variableById?.type_of_objects?.map(
           (item: { id: number; name: string }) => item.id
         )
       );
