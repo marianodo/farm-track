@@ -11,10 +11,11 @@ import {
   Dimensions,
   BackHandler,
 } from 'react-native';
-import { useNavigation } from 'expo-router';
+// import { useNavigation } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import useReportStore from '@/store/reportStore';
 import Slider from '@react-native-community/slider';
 import {
@@ -184,29 +185,28 @@ const CreateMeasurement: React.FC = () => {
           onPress: () => {
             setModalVisible(null);
             // router.dismiss(3);
-            {
-              Platform.OS === 'ios'
-                ? router.replace({
-                    pathname: `/pen/[fieldId]`,
-                    params: {
-                      fieldId: fieldId as string,
-                      fieldName: fieldName,
-                      withFields: 'false',
-                      withObjects: 'true',
-                      onReport: 'true',
-                    },
-                  })
-                : router.replace({
-                    pathname: `/pen/[fieldId]`,
-                    params: {
-                      fieldId: fieldId as string,
-                      fieldName: fieldName,
-                      withFields: 'false',
-                      withObjects: 'true',
-                      onReport: 'true',
-                    },
-                  });
-            }
+            navigation.reset({
+              index: 1, // Define qué pantalla será la "actual"
+              routes: [
+                {
+                  name: 'index' as never, // La ruta inicial (index 0)
+                  params: {
+                    param1: 'value1',
+                    param2: 'value2',
+                  },
+                },
+                {
+                  name: 'pen/[fieldId]' as never, // La ruta actual (index 1)
+                  params: {
+                    fieldId: fieldId as string,
+                    fieldName: fieldName,
+                    withFields: 'false',
+                    withObjects: 'true',
+                    onReport: 'true',
+                  },
+                },
+              ],
+            });
           },
         },
       ];
@@ -320,13 +320,21 @@ const CreateMeasurement: React.FC = () => {
       BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     };
   }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        showUnsavedChangesModal();
+        return true;
 
-  useEffect(() => {
-    navigation.setOptions({
-      gestureEnabled: false, // Deshabilitar el gesto de deslizamiento hacia atrás
-    });
-  }, []);
+        // return false;
+      };
 
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () =>
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, [formData])
+  );
   const handleInputChange = (
     key: string,
     name: string,
@@ -495,17 +503,11 @@ const CreateMeasurement: React.FC = () => {
 
         <View
           style={{
-            backgroundColor: 'white',
-            width: '100%',
             flex: 1,
-            // height: Dimensions.get('window').height,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
+            backgroundColor: 'white',
             borderTopLeftRadius: 54,
             borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
+            marginTop: -50,
           }}
         >
           <Text
@@ -561,67 +563,219 @@ const CreateMeasurement: React.FC = () => {
             </View>
           </View>
           {/* contenido scroll  */}
-          <View
-            style={{
-              height: Dimensions.get('window').height > 640 ? '74%' : '64%',
-            }}
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            enableOnAndroid
+            extraHeight={10}
+            extraScrollHeight={30}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingVertical: 10 },
+            ]}
           >
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { paddingVertical: 10 },
-              ]}
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`Objeto a medir: ${typeOfObjectName}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
+            <View style={{ marginBottom: 20 }}>
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#486732"
+                placeholder={`Objeto a medir: ${typeOfObjectName}`}
+                editable={false}
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                style={styles.input}
+              />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder="Nombre del objeto"
-                  value={formData.name as string}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#292929"
+                placeholder="Nombre del objeto"
+                value={formData.name as string}
+                onChangeText={(value) => onChange('name', value)}
+                autoCapitalize="sentences"
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                cursorColor="#486732"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                style={styles.input}
+              />
 
-                {measurementVariablesData &&
-                  measurementVariablesData.map((e: any, i: any) => (
-                    <View key={e.pen_variable_type_of_object_id}>
-                      {e.variable.type === 'NUMBER' ? (
+              {measurementVariablesData &&
+                measurementVariablesData.map((e: any, i: any) => (
+                  <View key={e.pen_variable_type_of_object_id}>
+                    {e.variable.type === 'NUMBER' ? (
+                      <View
+                        style={{
+                          alignSelf: 'center',
+                          justifyContent: 'center',
+                          marginVertical: height * 0.01,
+                          width: width * 0.9,
+                          height: 'auto',
+                          borderWidth: 1,
+                          paddingVertical: rMS(10),
+                          borderColor: '#F1F1F1',
+                          backgroundColor:
+                            errors[e.variable.name] === 'true'
+                              ? 'rgba(217, 162, 32, 0.12)'
+                              : '#F1F1F1',
+                          borderRadius: 8,
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                        }}
+                      >
                         <View
                           style={{
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            marginVertical: height * 0.01,
-                            width: width * 0.9,
-                            height: 'auto',
-                            borderWidth: 1,
-                            paddingVertical: rMS(10),
-                            borderColor: '#F1F1F1',
-                            backgroundColor:
-                              errors[e.variable.name] === 'true'
-                                ? 'rgba(217, 162, 32, 0.12)'
-                                : '#F1F1F1',
-                            borderRadius: 8,
-                            flexDirection: 'column',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            paddingHorizontal: rMS(16),
+                            paddingRight: rMS(6),
                             alignItems: 'center',
+                            height: rMS(28),
+                          }}
+                        >
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              fontFamily: 'Pro-Regular',
+                              fontSize: rMS(14),
+                            }}
+                          >
+                            {e.variable.name}
+                          </Text>
+                          <Text>
+                            {`Min: ${e.custom_parameters.value.min}; Max: ${e.custom_parameters.value.max}`}
+                          </Text>
+                          {errors[e.variable.name] === 'true' ? (
+                            <IconButton
+                              icon={'alert-circle-outline'}
+                              iconColor="#D9A220"
+                              size={rMS(20)}
+                              style={{ margin: 0 }}
+                            />
+                          ) : null}
+                        </View>
+                        <View
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            width: width * 0.9,
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            paddingHorizontal: rMS(12),
+                            marginTop: rMV(10),
+                          }}
+                        >
+                          <TextInput
+                            mode="outlined"
+                            placeholderTextColor="#292929"
+                            placeholder=""
+                            value={String(
+                              values[e.pen_variable_type_of_object_id] || ''
+                            )}
+                            onChangeText={(value) =>
+                              handleInputChange(
+                                e.pen_variable_type_of_object_id,
+                                e.variable.name,
+                                e.custom_parameters.value.min,
+                                e.custom_parameters.value.max,
+                                value,
+                                e.custom_parameters.value.granularity
+                              )
+                            }
+                            keyboardType="numeric"
+                            autoCapitalize="sentences"
+                            activeOutlineColor="transparent"
+                            outlineColor="#F1F1F1"
+                            cursorColor="#486732"
+                            selectionColor={
+                              Platform.OS == 'ios' ? '#486732' : '#486732'
+                            }
+                            style={{
+                              height: rMS(48),
+                              width: rMS(100),
+                              borderRadius: rMS(4),
+                              borderColor: '#486732',
+                              borderWidth: 1,
+                            }}
+                          />
+                          <Slider
+                            key={sliderKey}
+                            style={{
+                              width: width * 0.9 - rMS(100) - rMS(12),
+                            }}
+                            minimumValue={e.custom_parameters.value.min}
+                            maximumValue={e.custom_parameters.value.max ?? 0}
+                            step={e.custom_parameters.value.granularity}
+                            value={
+                              Platform.OS === 'android'
+                                ? undefined
+                                : Number(
+                                    values[e.pen_variable_type_of_object_id] ||
+                                      0
+                                  )
+                            }
+                            onValueChange={(value) =>
+                              handleSliderChange(
+                                e.pen_variable_type_of_object_id,
+                                e.variable.name,
+                                value,
+                                e.custom_parameters.value.min,
+                                e.custom_parameters.value.max,
+                                e.custom_parameters.value.granularity
+                              )
+                            }
+                            minimumTrackTintColor="#486732"
+                            thumbTintColor="#FFFFFF"
+                          />
+                        </View>
+                        {errors[e.variable.name] &&
+                          errors[e.variable.name] !== 'true' && (
+                            <Text style={styles.errorText}>
+                              {errors[e.variable.name]}
+                            </Text>
+                          )}
+                        <View
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            width: width * 0.9,
+                            paddingHorizontal: rMS(14),
+                            marginTop: rMV(10),
+                          }}
+                        >
+                          <Text style={{ color: '#96A59A' }}>
+                            Granularidad:{' '}
+                            {e.custom_parameters.value.granularity}
+                          </Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <View
+                        style={{
+                          alignSelf: 'center',
+                          justifyContent: 'center',
+                          marginVertical: height * 0.01,
+                          width: width * 0.9,
+                          height: 'auto',
+                          borderWidth: 1,
+                          paddingVertical: rMS(10),
+                          borderColor: '#F1F1F1',
+                          backgroundColor:
+                            errors[e.variable.name] === 'true'
+                              ? 'rgba(217, 162, 32, 0.12)'
+                              : '#F1F1F1',
+                          borderRadius: 8,
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: width * 0.9,
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            flexDirection: 'column',
+                            gap: rMS(4),
                           }}
                         >
                           <View
@@ -645,9 +799,6 @@ const CreateMeasurement: React.FC = () => {
                             >
                               {e.variable.name}
                             </Text>
-                            <Text>
-                              {`Min: ${e.custom_parameters.value.min}; Max: ${e.custom_parameters.value.max}`}
-                            </Text>
                             {errors[e.variable.name] === 'true' ? (
                               <IconButton
                                 icon={'alert-circle-outline'}
@@ -657,232 +808,99 @@ const CreateMeasurement: React.FC = () => {
                               />
                             ) : null}
                           </View>
-                          <View
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              width: width * 0.9,
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              paddingHorizontal: rMS(12),
-                              marginTop: rMV(10),
-                            }}
-                          >
-                            <TextInput
-                              mode="outlined"
-                              placeholderTextColor="#292929"
-                              placeholder=""
-                              value={String(
-                                values[e.pen_variable_type_of_object_id] || ''
-                              )}
-                              onChangeText={(value) =>
-                                handleInputChange(
-                                  e.pen_variable_type_of_object_id,
-                                  e.variable.name,
-                                  e.custom_parameters.value.min,
-                                  e.custom_parameters.value.max,
-                                  value,
-                                  e.custom_parameters.value.granularity
-                                )
-                              }
-                              keyboardType="numeric"
-                              autoCapitalize="sentences"
-                              activeOutlineColor="transparent"
-                              outlineColor="#F1F1F1"
-                              cursorColor="#486732"
-                              selectionColor={
-                                Platform.OS == 'ios' ? '#486732' : '#486732'
-                              }
-                              style={{
-                                height: rMS(48),
-                                width: rMS(100),
-                                borderRadius: rMS(4),
-                                borderColor: '#486732',
-                                borderWidth: 1,
-                              }}
-                            />
-                            <Slider
-                              key={sliderKey}
-                              style={{
-                                width: width * 0.9 - rMS(100) - rMS(12),
-                              }}
-                              minimumValue={e.custom_parameters.value.min}
-                              maximumValue={e.custom_parameters.value.max ?? 0}
-                              step={e.custom_parameters.value.granularity}
-                              value={
-                                Platform.OS === 'android'
-                                  ? undefined
-                                  : Number(
-                                      values[
-                                        e.pen_variable_type_of_object_id
-                                      ] || 0
-                                    )
-                              }
-                              onValueChange={(value) =>
-                                handleSliderChange(
-                                  e.pen_variable_type_of_object_id,
-                                  e.variable.name,
-                                  value,
-                                  e.custom_parameters.value.min,
-                                  e.custom_parameters.value.max,
-                                  e.custom_parameters.value.granularity
-                                )
-                              }
-                              minimumTrackTintColor="#486732"
-                              thumbTintColor="#FFFFFF"
-                            />
-                          </View>
-                          {errors[e.variable.name] &&
-                            errors[e.variable.name] !== 'true' && (
-                              <Text style={styles.errorText}>
-                                {errors[e.variable.name]}
-                              </Text>
-                            )}
-                          <View
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'flex-start',
-                              width: width * 0.9,
-                              paddingHorizontal: rMS(14),
-                              marginTop: rMV(10),
-                            }}
-                          >
-                            <Text style={{ color: '#96A59A' }}>
-                              Granularidad:{' '}
-                              {e.custom_parameters.value.granularity}
-                            </Text>
-                          </View>
-                        </View>
-                      ) : (
-                        <View
-                          style={{
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            marginVertical: height * 0.01,
-                            width: width * 0.9,
-                            height: 'auto',
-                            borderWidth: 1,
-                            paddingVertical: rMS(10),
-                            borderColor: '#F1F1F1',
-                            backgroundColor:
-                              errors[e.variable.name] === 'true'
-                                ? 'rgba(217, 162, 32, 0.12)'
-                                : '#F1F1F1',
-                            borderRadius: 8,
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: width * 0.9,
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              flexDirection: 'column',
-                              gap: rMS(4),
-                            }}
-                          >
+                          <View style={{}}>
                             <View
                               style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                width: '100%',
+                                flexWrap: 'wrap',
+                                columnGap: 10,
                                 paddingHorizontal: rMS(16),
-                                paddingRight: rMS(6),
-                                alignItems: 'center',
-                                height: rMS(28),
+                                rowGap: 0,
                               }}
                             >
-                              <Text
-                                style={{
-                                  textAlign: 'center',
-                                  fontFamily: 'Pro-Regular',
-                                  fontSize: rMS(14),
-                                }}
-                              >
-                                {e.variable.name}
-                              </Text>
-                              {errors[e.variable.name] === 'true' ? (
-                                <IconButton
-                                  icon={'alert-circle-outline'}
-                                  iconColor="#D9A220"
-                                  size={rMS(20)}
-                                  style={{ margin: 0 }}
-                                />
-                              ) : null}
-                            </View>
-                            <View style={{}}>
-                              <View
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  flexWrap: 'wrap',
-                                  columnGap: 10,
-                                  paddingHorizontal: rMS(16),
-                                  rowGap: 0,
-                                }}
-                              >
-                                {e.custom_parameters.value.map(
-                                  (item: any, index: number) => (
-                                    <Pressable
-                                      key={index}
-                                      onPress={() =>
-                                        handlePress(
-                                          e.pen_variable_type_of_object_id,
-                                          e.variable.name,
-                                          item
-                                        )
-                                      }
+                              {e.custom_parameters.value.map(
+                                (item: any, index: number) => (
+                                  <Pressable
+                                    key={index}
+                                    onPress={() =>
+                                      handlePress(
+                                        e.pen_variable_type_of_object_id,
+                                        e.variable.name,
+                                        item
+                                      )
+                                    }
+                                  >
+                                    <View
+                                      style={{
+                                        width: 'auto',
+                                        height: 32,
+                                        marginVertical: 6,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        paddingHorizontal: 4,
+                                        borderWidth: 1,
+                                        borderColor: '#486732',
+                                        borderRadius: 4,
+                                        backgroundColor:
+                                          values[
+                                            e.pen_variable_type_of_object_id
+                                          ] === item
+                                            ? '#486732'
+                                            : 'transparent',
+                                      }}
                                     >
-                                      <View
+                                      <Text
                                         style={{
-                                          width: 'auto',
-                                          height: 32,
-                                          marginVertical: 6,
-                                          flexDirection: 'row',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between',
+                                          textAlign: 'center',
                                           paddingHorizontal: 4,
-                                          borderWidth: 1,
-                                          borderColor: '#486732',
-                                          borderRadius: 4,
-                                          backgroundColor:
+                                          color:
                                             values[
                                               e.pen_variable_type_of_object_id
                                             ] === item
-                                              ? '#486732'
-                                              : 'transparent',
+                                              ? 'white'
+                                              : '#486732',
                                         }}
                                       >
-                                        <Text
-                                          style={{
-                                            textAlign: 'center',
-                                            paddingHorizontal: 4,
-                                            color:
-                                              values[
-                                                e.pen_variable_type_of_object_id
-                                              ] === item
-                                                ? 'white'
-                                                : '#486732',
-                                          }}
-                                        >
-                                          {item}
-                                        </Text>
-                                      </View>
-                                    </Pressable>
-                                  )
-                                )}
-                              </View>
+                                        {item}
+                                      </Text>
+                                    </View>
+                                  </Pressable>
+                                )
+                              )}
                             </View>
                           </View>
                         </View>
-                      )}
-                    </View>
-                  ))}
-              </View>
-            </KeyboardAwareScrollView>
+                      </View>
+                    )}
+                  </View>
+                ))}
+            </View>
+          </KeyboardAwareScrollView>
+          {/* Botón fijo */}
+          <View style={styles.fixedButtonContainer}>
+            <Pressable
+              onPress={handleSubmit}
+              disabled={
+                Object.values(errors).filter((e: any) => e !== 'true').length >
+                0
+              }
+              style={[
+                styles.button,
+                {
+                  opacity:
+                    Object.values(errors).filter((e: any) => e !== 'true')
+                      .length > 0
+                      ? 0.5
+                      : 1,
+                },
+              ]}
+            >
+              <Text style={styles.buttonText}>Guardar medición</Text>
+            </Pressable>
           </View>
+
           <ModalComponent
             visible={modalVisible === 'modal'}
             onDismiss={() => setModalVisible(null)}
@@ -913,31 +931,6 @@ const CreateMeasurement: React.FC = () => {
             }
             marginVertical={'38%'}
           />
-
-          {/* este view es para poner el boton debajo de todo */}
-          <View style={{}} />
-          {/* Botón fijo */}
-          <View style={styles.fixedButtonContainer}>
-            <Pressable
-              onPress={handleSubmit}
-              disabled={
-                Object.values(errors).filter((e: any) => e !== 'true').length >
-                0
-              }
-              style={[
-                styles.button,
-                {
-                  opacity:
-                    Object.values(errors).filter((e: any) => e !== 'true')
-                      .length > 0
-                      ? 0.5
-                      : 1,
-                },
-              ]}
-            >
-              <Text style={styles.buttonText}>Guardar medición</Text>
-            </Pressable>
-          </View>
         </View>
       </View>
     </View>

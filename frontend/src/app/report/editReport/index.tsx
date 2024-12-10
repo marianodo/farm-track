@@ -231,211 +231,189 @@ const CreateReport: React.FC = () => {
         </View>
       )}
       {/* header */}
-      <View style={{ flex: 1, width: '100%', height: 900 }}>
-        <ImageBackground
-          source={require('../../../../assets/images/penAndReport-bg-image.png')}
-          style={{ height: rV(174), width: '100%', zIndex: 0 }}
-          resizeMode="cover"
-        >
-          <View>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <IconButton
-                icon="chevron-left"
-                iconColor="#fff"
-                style={{ marginHorizontal: 0 }}
-                onPress={() => router.back()}
-              />
-              <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
-            </View>
-            <View
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                flexDirection: 'row',
-              }}
-            >
-              <Text style={styles.welcome}>Editar reporte</Text>
-              <Text
-                style={[styles.welcome, { marginLeft: 0, marginRight: 20 }]}
-              >
-                ID: {reportId}
-              </Text>
-            </View>
-          </View>
-        </ImageBackground>
-
-        <View
-          style={{
-            backgroundColor: 'white',
-            width: '100%',
-            flex: 1,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
-            borderTopLeftRadius: 54,
-            borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
-          }}
-        >
-          <Text
-            style={{
-              textAlign: 'center',
-              marginTop: rMS(10),
-              fontSize: 18,
-              fontWeight: 'bold',
-              fontFamily: 'Pro-Regular',
-            }}
-          >
-            {t('reportsView.detailReportText')}
-          </Text>
+      <ImageBackground
+        source={require('../../../../assets/images/penAndReport-bg-image.png')}
+        style={{ height: rV(174), width: '100%', zIndex: 0 }}
+        resizeMode="cover"
+      >
+        <View>
           <View
             style={{
-              width: '100%',
+              display: 'flex',
+              flexDirection: 'row',
+              alignContent: 'center',
               alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
-            <View
+            <IconButton
+              icon="chevron-left"
+              iconColor="#fff"
+              style={{ marginHorizontal: 0 }}
+              onPress={() => router.back()}
+            />
+            <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
+          </View>
+          <View
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+            }}
+          >
+            <Text style={styles.welcome}>Editar reporte</Text>
+            <Text style={[styles.welcome, { marginLeft: 0, marginRight: 20 }]}>
+              ID: {reportId}
+            </Text>
+          </View>
+        </View>
+      </ImageBackground>
+
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+          borderTopLeftRadius: 54,
+          borderTopRightRadius: 54,
+          marginTop: -50,
+        }}
+      >
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: rMS(10),
+            fontSize: 18,
+            fontWeight: 'bold',
+            fontFamily: 'Pro-Regular',
+          }}
+        >
+          {t('reportsView.detailReportText')}
+        </Text>
+        <View
+          style={{
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <View
+            style={{
+              width: '90%',
+              backgroundColor: '#ebf2ed',
+              height: rMV(44),
+              borderRadius: rMS(6),
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: rMV(6),
+              display: 'flex',
+              flexDirection: 'row',
+              paddingRight: rMS(12),
+            }}
+          >
+            <IconButton
+              icon={'alert-circle-outline'}
+              iconColor="#487632"
+              size={rMS(20)}
+              style={{ margin: 0 }}
+            />
+            <Text
               style={{
-                width: '90%',
-                backgroundColor: '#ebf2ed',
-                height: rMV(44),
-                borderRadius: rMS(6),
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: rMV(6),
-                display: 'flex',
-                flexDirection: 'row',
-                paddingRight: rMS(12),
+                color: '#487632',
+                fontFamily: 'Pro-Regular',
+                fontSize: rMS(10),
+                flexShrink: 1,
+                flexWrap: 'wrap',
+                textAlign: 'center',
               }}
             >
-              <IconButton
-                icon={'alert-circle-outline'}
-                iconColor="#487632"
-                size={rMS(20)}
-                style={{ margin: 0 }}
-              />
-              <Text
-                style={{
-                  color: '#487632',
-                  fontFamily: 'Pro-Regular',
-                  fontSize: rMS(10),
-                  flexShrink: 1,
-                  flexWrap: 'wrap',
-                  textAlign: 'center',
-                }}
-              >
-                {/* {t('reportsView.createReportInfoText')} */}
-                Puedes editar el nombre y el comentario del reporte si lo
-                deseas.
-              </Text>
-            </View>
+              {/* {t('reportsView.createReportInfoText')} */}
+              Puedes editar el nombre y el comentario del reporte si lo deseas.
+            </Text>
           </View>
-          {/* contenido scroll  */}
-          <View style={styles.spacer}>
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(360) : null, paddingVertical: 10 },
-              ]}
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`${t(
-                    'reportsView.reportFieldNamePlaceHolder'
-                  )}: ${fieldName as string}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
+        </View>
+        {/* contenido scroll  */}
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraHeight={10}
+          extraScrollHeight={30}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { height: open ? rMS(360) : null, paddingVertical: 10 },
+          ]}
+        >
+          <View style={{ marginBottom: 20 }}>
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#486732"
+              placeholder={`${t('reportsView.reportFieldNamePlaceHolder')}: ${
+                fieldName as string
+              }`}
+              editable={false}
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              style={styles.input}
+            />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`${t(
-                    'reportsView.reportDatePlaceHolder'
-                  )}: ${new Date().toLocaleDateString('es-Es')}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#486732"
+              placeholder={`${t(
+                'reportsView.reportDatePlaceHolder'
+              )}: ${new Date().toLocaleDateString('es-Es')}`}
+              editable={false}
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              style={styles.input}
+            />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`ID del reporte: ${reportId}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#486732"
+              placeholder={`ID del reporte: ${reportId}`}
+              editable={false}
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              style={styles.input}
+            />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('reportsView.reportNamePlaceHolder')}
-                  value={formData?.name as string}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#292929"
+              placeholder={t('reportsView.reportNamePlaceHolder')}
+              value={formData?.name as string}
+              onChangeText={(value) => onChange('name', value)}
+              autoCapitalize="sentences"
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              cursorColor="#486732"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+              style={styles.input}
+            />
+            {error?.name && <Text style={styles.errorText}>{error?.name}</Text>}
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('reportsView.reportObservationsPlaceHolder')}
-                  value={formData?.comment as string}
-                  onChangeText={(value) => onChange('comment', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
-              </View>
-            </KeyboardAwareScrollView>
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#292929"
+              placeholder={t('reportsView.reportObservationsPlaceHolder')}
+              value={formData?.comment as string}
+              onChangeText={(value) => onChange('comment', value)}
+              autoCapitalize="sentences"
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              cursorColor="#486732"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+              style={styles.input}
+            />
+            {error?.name && <Text style={styles.errorText}>{error?.name}</Text>}
           </View>
-          {/* este view es para poner el boton debajo de todo */}
-
-          {/* <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
-          /> */}
-          {/* Botón fijo */}
-          <View style={styles.fixedButtonContainer}>
-            <Pressable onPress={handleSubmit} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {/* {t('reportsView.createReportTextButton')} */}
-                Agregar nueva medición
-              </Text>
-            </Pressable>
-          </View>
+        </KeyboardAwareScrollView>
+        <View style={styles.fixedButtonContainer}>
+          <Pressable onPress={handleSubmit} style={styles.button}>
+            <Text style={styles.buttonText}>
+              {/* {t('reportsView.createReportTextButton')} */}
+              Agregar nueva medición
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>

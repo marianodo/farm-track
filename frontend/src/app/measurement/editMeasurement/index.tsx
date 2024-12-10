@@ -164,6 +164,12 @@ const CreatePen: React.FC = () => {
           ...prevValues,
           [e.id]: e.value,
         }));
+        if (!isNaN(e.value)) {
+          setSliderValue((prevValues) => ({
+            ...prevValues,
+            [e.id]: e.value,
+          }));
+        }
       });
     }
   }, [measurementEditData]);
@@ -266,6 +272,7 @@ const CreatePen: React.FC = () => {
     };
   }, [formData]);
   console.log('LA DATA:', formData);
+
   // useFocusEffect(
   //   React.useCallback(() => {
   //     const onBackPress = () => {
@@ -297,7 +304,10 @@ const CreatePen: React.FC = () => {
   //   }, [formData])
   // );
 
-  const [sliderValue, setSliderValue] = useState<number | null>(null);
+  const [sliderValue, setSliderValue] = useState<{
+    [key: string]: number | string | null;
+  }>({});
+
   const editNewsMeasurements = async () => {
     const editsMeasurements = {
       name: formData.name,
@@ -349,7 +359,6 @@ const CreatePen: React.FC = () => {
       }));
       return;
     }
-
     const numericValue = parseFloat(sanitizedValue);
     if (!isNaN(numericValue)) {
       // Validar rango
@@ -388,6 +397,7 @@ const CreatePen: React.FC = () => {
     }
   };
   console.log('ALTURA', Dimensions.get('window').height);
+  console.log('SLIDER VALUE:', sliderValue);
   const handleSliderChange = (
     key: string,
     name: string,
@@ -407,7 +417,7 @@ const CreatePen: React.FC = () => {
     }));
     setValues((prevValues) => ({
       ...prevValues,
-      [key]: parseFloat(value.toFixed(2)),
+      [key]: parseFloat(value.toFixed(2)).toString(),
     }));
   };
 
@@ -678,8 +688,14 @@ const CreatePen: React.FC = () => {
                                 e.pen_variable_type_of_object.custom_parameters
                                   .value.granularity
                               }
-                              value={Number(values[e.id])}
+                              value={Number(sliderValue[e.id])}
                               onSlidingComplete={(value) => {
+                                setSliderValue((prevValues) => ({
+                                  ...prevValues,
+                                  [e.id]: value,
+                                }));
+                              }}
+                              onValueChange={(value) =>
                                 handleSliderChange(
                                   e.id,
                                   e.pen_variable_type_of_object.variable.name,
@@ -690,21 +706,8 @@ const CreatePen: React.FC = () => {
                                     .custom_parameters.value.max,
                                   e.pen_variable_type_of_object
                                     .custom_parameters.value.granularity
-                                );
-                              }}
-                              // onValueChange={(value) =>
-                              //   handleSliderChange(
-                              //     e.id,
-                              //     e.pen_variable_type_of_object.variable.name,
-                              //     value,
-                              //     e.pen_variable_type_of_object
-                              //       .custom_parameters.value.min,
-                              //     e.pen_variable_type_of_object
-                              //       .custom_parameters.value.max,
-                              //     e.pen_variable_type_of_object
-                              //       .custom_parameters.value.granularity
-                              //   )
-                              // }
+                                )
+                              }
                               minimumTrackTintColor="#486732"
                               // maximumTrackTintColor="#000000"
                               thumbTintColor="#FFFFFF"

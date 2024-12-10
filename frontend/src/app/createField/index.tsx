@@ -241,6 +241,7 @@ export default function CreateField() {
   }
 
   return (
+    //contenedor
     <View style={styles.container}>
       {/* header */}
       <ImageBackground
@@ -248,6 +249,7 @@ export default function CreateField() {
         style={styles.header}
         resizeMode="cover"
       >
+        {/* Inicio contenedor del volver y la leyenda nuevo campo */}
         <View style={styles.headerContent}>
           <View
             style={{
@@ -269,10 +271,10 @@ export default function CreateField() {
             <Text style={styles.welcome}>{t('detailField.newFieldText')}</Text>
           </View>
         </View>
+        {/* Fin contenedor del volver y la leyenda nuevo campo */}
       </ImageBackground>
 
       {/* contenedor contenido campo */}
-
       <View style={styles.contentContainer}>
         <Text style={styles.fieldTitle}>
           {t('detailField.detailFieldText')}

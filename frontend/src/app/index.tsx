@@ -9,7 +9,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  BackHandler,
 } from 'react-native';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -17,7 +16,7 @@ import { rMS, rS, rV } from '@/styles/responsive';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Language } from '@/components/Language';
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, useSegments } from 'expo-router';
 import { TextInput } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { useFocusEffect } from 'expo-router';
@@ -35,6 +34,7 @@ import { use } from 'i18next';
 
 const { width, height } = Dimensions.get('window');
 const Page = () => {
+  const segments = useSegments();
   const router = useRouter();
   const { onLogin, authLoading } = useAuthStore((state) => ({
     onLogin: state.onLogin,
@@ -147,24 +147,6 @@ const Page = () => {
       }
     }
   };
-
-  useEffect(() => {
-    const backAction = () => {
-      // Solo cerrar la app si estamos en esta pantalla específica
-      BackHandler.exitApp(); // Cierra la aplicación
-      return true; // Prevenir el comportamiento por defecto (volver atrás)
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    // Limpiar el listener cuando el componente se desmonte
-    return () => {
-      backHandler.remove();
-    };
-  }, []);
 
   useFocusEffect(
     useCallback(() => {

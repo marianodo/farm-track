@@ -381,419 +381,403 @@ const CreateAttribute: React.FC = () => {
         </View>
       )}
       {/* header */}
-      <View style={{ flex: 1, width: '100%', height: 900 }}>
-        <ImageBackground
-          source={require('../../../../../assets/images/objects-bg-image.png')}
-          style={{ height: rV(174), width: '100%', zIndex: 0 }}
-          resizeMode="cover"
-        >
-          <View>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <IconButton
-                icon="chevron-left"
-                iconColor="#fff"
-                style={{ marginHorizontal: 0 }}
-                onPress={() => router.back()}
-              />
-              <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
-            </View>
-            <View>
-              <Text style={styles.welcome}>
-                {t('attributeView.createAttributeTextTitle')}
-              </Text>
-            </View>
-          </View>
-
-          {/* contenedor contenido variable */}
-        </ImageBackground>
-
-        <View
-          style={{
-            backgroundColor: 'white',
-            width: '100%',
-            height: '100%',
-            zIndex: 200,
-            top: rMS(-50),
-            borderTopLeftRadius: 54,
-            borderTopRightRadius: 54,
-          }}
-        >
-          <Text
+      <ImageBackground
+        source={require('../../../../../assets/images/objects-bg-image.png')}
+        style={{ height: rV(174), width: '100%', zIndex: 0 }}
+        resizeMode="cover"
+      >
+        <View>
+          <View
             style={{
-              textAlign: 'center',
-              marginTop: rMS(10),
-              fontSize: 18,
-              fontWeight: 'bold',
-              fontFamily: 'Pro-Regular',
+              display: 'flex',
+              flexDirection: 'row',
+              alignContent: 'center',
+              alignItems: 'center',
             }}
           >
-            {formData.type !== null
-              ? `${t('attributeView.createAttributeText')} ${t(
-                  `attributeView.${formData.type}`
-                )}`
-              : t('attributeView.createAttributeText')}
-          </Text>
-          {/* contenido scroll  */}
-          <View style={styles.spacer}>
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(360) : null },
+            <IconButton
+              icon="chevron-left"
+              iconColor="#fff"
+              style={{ marginHorizontal: 0 }}
+              onPress={() => router.back()}
+            />
+            <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
+          </View>
+          <View>
+            <Text style={styles.welcome}>
+              {t('attributeView.createAttributeTextTitle')}
+            </Text>
+          </View>
+        </View>
+
+        {/* contenedor contenido variable */}
+      </ImageBackground>
+
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+          borderTopLeftRadius: 54,
+          borderTopRightRadius: 54,
+          marginTop: -50,
+        }}
+      >
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: rMS(10),
+            fontSize: 18,
+            fontWeight: 'bold',
+            fontFamily: 'Pro-Regular',
+          }}
+        >
+          {formData.type !== null
+            ? `${t('attributeView.createAttributeText')} ${t(
+                `attributeView.${formData.type}`
+              )}`
+            : t('attributeView.createAttributeText')}
+        </Text>
+        {/* contenido scroll  */}
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraHeight={10}
+          extraScrollHeight={30}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { height: open ? rMS(360) : null },
+          ]}
+        >
+          <View style={[styles.spacer, { marginBottom: 20 }]}>
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#292929"
+              placeholder={t('attributeView.createPlaceHolderName')}
+              // value={formData.name ?? ''}
+              onChangeText={(value) => onChange('name', value)}
+              autoCapitalize="sentences"
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              cursorColor="#486732"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+              style={styles.input}
+            />
+            {error?.name && <Text style={styles.errorText}>{error?.name}</Text>}
+            <DropDownPicker
+              placeholder={t('attributeView.createPlaceHolderTypeOfObject')}
+              placeholderStyle={{
+                fontSize: width * 0.04,
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                paddingLeft: rMS(4),
+              }}
+              style={[styles.input, { marginBottom: 12 }]}
+              dropDownContainerStyle={{
+                marginTop: 4,
+                backgroundColor: '#fafafa',
+                borderColor: '#dadada',
+                borderRadius: 20,
+                borderTopStartRadius: 12,
+                borderTopEndRadius: 12,
+              }}
+              listMode="SCROLLVIEW"
+              zIndex={open ? 1 : 0}
+              zIndexInverse={open ? 1 : 0}
+              arrowIconStyle={{ tintColor: '#486732' }}
+              open={open}
+              value={itemsValue as ValueType}
+              items={items ?? []}
+              setOpen={setOpen}
+              setValue={setItemsValue}
+              setItems={setItems as Dispatch<SetStateAction<any[]>>}
+              onChangeValue={() =>
+                onChange(
+                  'type_of_object_ids',
+                  (itemsValue ?? []).length > 0 ? itemsValue : null
+                )
+              }
+              multiple={true}
+              mode="BADGE"
+              badgeDotColors={[
+                '#e76f51',
+                '#00b4d8',
+                '#e9c46a',
+                '#e76f51',
+                '#8ac926',
+                '#00b4d8',
+                '#e9c46a',
+              ]}
+              dropDownDirection="BOTTOM"
+              onOpen={() => setOpen(true)}
+              onClose={() => setOpen(false)}
+            />
+            {error?.type_of_object_ids && (
+              <Text style={styles.errorText}>{error?.type_of_object_ids}</Text>
+            )}
+            <View
+              style={[
+                styles.input,
+                { height: rMV(70), paddingHorizontal: rMS(14) },
               ]}
             >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('attributeView.createPlaceHolderName')}
-                  // value={formData.name ?? ''}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
-                <DropDownPicker
-                  placeholder={t('attributeView.createPlaceHolderTypeOfObject')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
+              <Text
+                style={{
+                  fontSize: width * 0.04,
+                  marginBottom: 10,
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                }}
+              >
+                {t('attributeView.createPlaceHolderVariableType')}
+              </Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Pressable
+                  onPress={() => {
+                    onChange('type', 'NUMBER');
                   }}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
                   }}
-                  listMode="SCROLLVIEW"
-                  zIndex={open ? 1 : 0}
-                  zIndexInverse={open ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  open={open}
-                  value={itemsValue as ValueType}
-                  items={items ?? []}
-                  setOpen={setOpen}
-                  setValue={setItemsValue}
-                  setItems={setItems as Dispatch<SetStateAction<any[]>>}
-                  onChangeValue={() =>
-                    onChange(
-                      'type_of_object_ids',
-                      (itemsValue ?? []).length > 0 ? itemsValue : null
-                    )
-                  }
-                  multiple={true}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  onOpen={() => setOpen(true)}
-                  onClose={() => setOpen(false)}
-                />
-                {error?.type_of_object_ids && (
-                  <Text style={styles.errorText}>
-                    {error?.type_of_object_ids}
-                  </Text>
-                )}
-                <View
-                  style={[
-                    styles.input,
-                    { height: rMV(70), paddingHorizontal: rMS(14) },
-                  ]}
                 >
+                  <View
+                    style={{
+                      height: 18,
+                      width: 18,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: '#486732',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 5,
+                    }}
+                  >
+                    {formData.type === 'NUMBER' && (
+                      <View
+                        style={{
+                          height: 8,
+                          width: 8,
+                          borderRadius: 5,
+                          backgroundColor: '#486732',
+                        }}
+                      />
+                    )}
+                  </View>
                   <Text
                     style={{
                       fontSize: width * 0.04,
-                      marginBottom: 10,
                       fontFamily: 'Pro-Regular',
                       color: '#292929',
                     }}
                   >
-                    {t('attributeView.createPlaceHolderVariableType')}
+                    {t(`attributeView.mayusType.NUMBER`)}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    onChange('type', 'CATEGORICAL');
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <View
+                    style={{
+                      height: 18,
+                      width: 18,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: '#486732',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: 5,
+                    }}
+                  >
+                    {formData.type === 'CATEGORICAL' && (
+                      <View
+                        style={{
+                          height: 8,
+                          width: 8,
+                          borderRadius: 5,
+                          backgroundColor: '#486732',
+                        }}
+                      />
+                    )}
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: width * 0.04,
+                      fontFamily: 'Pro-Regular',
+                      color: '#292929',
+                    }}
+                  >
+                    {t(`attributeView.mayusType.CATEGORICAL`)}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+            {formData.type !== null && formData.type === 'NUMBER' ? (
+              <>
+                <View style={[styles.input, styles.inputContainerNumber]}>
+                  <Text style={styles.textDefaultValues}>
+                    {t('attributeView.createPlaceHolderDefaultValues')}
+                  </Text>
+                  <View style={styles.row}>
+                    <TextInput
+                      mode="outlined"
+                      placeholderTextColor="#486732"
+                      placeholder={t('attributeView.createPlaceHolderMinValue')}
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      keyboardType="numeric"
+                      value={
+                        (formData.type === 'NUMBER'
+                          ? (
+                              formData.defaultValue?.value as NumericValue
+                            )?.min.toString()
+                          : '') ?? ''
+                      }
+                      onChangeText={(value) =>
+                        onChangeDefaultValue(value, 'min')
+                      }
+                      selectionColor={
+                        Platform.OS == 'ios' ? '#486732' : '#486732'
+                      }
+                      style={[styles.input, styles.textInput]}
+                    />
+                    <TextInput
+                      mode="outlined"
+                      placeholderTextColor="#486732"
+                      placeholder={t('attributeView.createPlaceHolderMaxValue')}
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      keyboardType="numeric"
+                      onChangeText={(value) =>
+                        onChangeDefaultValue(value, 'max')
+                      }
+                      selectionColor={
+                        Platform.OS == 'ios' ? '#486732' : '#486732'
+                      }
+                      style={[styles.input, styles.textInput]}
+                    />
+                  </View>
+                  {error?.defaultValue?.minMax && (
+                    <Text style={styles.errorText}>
+                      {error?.defaultValue?.minMax}
+                    </Text>
+                  )}
+                  <Text style={styles.textOptimalValues}>
+                    {t('attributeView.createPlaceHolderOptimalValues')}
+                  </Text>
+                  <View style={styles.row}>
+                    <TextInput
+                      mode="outlined"
+                      placeholderTextColor="#486732"
+                      placeholder={t('attributeView.createPlaceHolderMinValue')}
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      keyboardType="numeric"
+                      onChangeText={(value) =>
+                        onChangeDefaultValue(value, 'optimal_min')
+                      }
+                      selectionColor={
+                        Platform.OS == 'ios' ? '#486732' : '#486732'
+                      }
+                      style={[styles.input, styles.textInput]}
+                    />
+                    <TextInput
+                      mode="outlined"
+                      placeholderTextColor="#486732"
+                      placeholder={t('attributeView.createPlaceHolderMaxValue')}
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      keyboardType="numeric"
+                      onChangeText={(value) =>
+                        onChangeDefaultValue(value, 'optimal_max')
+                      }
+                      selectionColor={
+                        Platform.OS == 'ios' ? '#486732' : '#486732'
+                      }
+                      style={[styles.input, styles.textInput]}
+                    />
+                  </View>
+                  {error?.defaultValue?.optimalMinMax && (
+                    <Text style={styles.errorText}>
+                      {error?.defaultValue?.optimalMinMax}
+                    </Text>
+                  )}
+                  <Text style={styles.textGranularity}>
+                    {t('attributeView.createTextGranularity')}
                   </Text>
                   <View
                     style={{
                       flexDirection: 'row',
                       justifyContent: 'space-between',
+                      width: '100%',
+                      paddingVertical: rMV(10),
+                      paddingTop: rMV(20),
                     }}
                   >
-                    <Pressable
-                      onPress={() => {
-                        onChange('type', 'NUMBER');
-                      }}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <View
-                        style={{
-                          height: 18,
-                          width: 18,
-                          borderRadius: 10,
-                          borderWidth: 1,
-                          borderColor: '#486732',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 5,
+                    {options.map((value) => (
+                      <Pressable
+                        key={value}
+                        onPress={() => {
+                          onChangeDefaultValue(value, 'granularity');
                         }}
-                      >
-                        {formData.type === 'NUMBER' && (
-                          <View
-                            style={{
-                              height: 8,
-                              width: 8,
-                              borderRadius: 5,
-                              backgroundColor: '#486732',
-                            }}
-                          />
-                        )}
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: width * 0.04,
-                          fontFamily: 'Pro-Regular',
-                          color: '#292929',
-                        }}
-                      >
-                        {t(`attributeView.mayusType.NUMBER`)}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => {
-                        onChange('type', 'CATEGORICAL');
-                      }}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <View
-                        style={{
-                          height: 18,
-                          width: 18,
-                          borderRadius: 10,
-                          borderWidth: 1,
-                          borderColor: '#486732',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 5,
-                        }}
-                      >
-                        {formData.type === 'CATEGORICAL' && (
-                          <View
-                            style={{
-                              height: 8,
-                              width: 8,
-                              borderRadius: 5,
-                              backgroundColor: '#486732',
-                            }}
-                          />
-                        )}
-                      </View>
-                      <Text
-                        style={{
-                          fontSize: width * 0.04,
-                          fontFamily: 'Pro-Regular',
-                          color: '#292929',
-                        }}
-                      >
-                        {t(`attributeView.mayusType.CATEGORICAL`)}
-                      </Text>
-                    </Pressable>
-                  </View>
-                </View>
-                {formData.type !== null && formData.type === 'NUMBER' ? (
-                  <>
-                    <View style={[styles.input, styles.inputContainerNumber]}>
-                      <Text style={styles.textDefaultValues}>
-                        {t('attributeView.createPlaceHolderDefaultValues')}
-                      </Text>
-                      <View style={styles.row}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMinValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          value={
-                            (formData.type === 'NUMBER'
-                              ? (
-                                  formData.defaultValue?.value as NumericValue
-                                )?.min.toString()
-                              : '') ?? ''
-                          }
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'min')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMaxValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'max')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                      </View>
-                      {error?.defaultValue?.minMax && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.minMax}
-                        </Text>
-                      )}
-                      <Text style={styles.textOptimalValues}>
-                        {t('attributeView.createPlaceHolderOptimalValues')}
-                      </Text>
-                      <View style={styles.row}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMinValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'optimal_min')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderMaxValue'
-                          )}
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          keyboardType="numeric"
-                          onChangeText={(value) =>
-                            onChangeDefaultValue(value, 'optimal_max')
-                          }
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                      </View>
-                      {error?.defaultValue?.optimalMinMax && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.optimalMinMax}
-                        </Text>
-                      )}
-                      <Text style={styles.textGranularity}>
-                        {t('attributeView.createTextGranularity')}
-                      </Text>
-                      <View
                         style={{
                           flexDirection: 'row',
-                          justifyContent: 'space-between',
-                          width: '100%',
-                          paddingVertical: rMV(10),
-                          paddingTop: rMV(20),
+                          alignItems: 'center',
                         }}
                       >
-                        {options.map((value) => (
-                          <Pressable
-                            key={value}
-                            onPress={() => {
-                              onChangeDefaultValue(value, 'granularity');
-                            }}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                            }}
-                          >
+                        <View
+                          style={{
+                            height: 18,
+                            width: 18,
+                            borderRadius: 10,
+                            borderWidth: 1,
+                            borderColor: '#486732',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginRight: 5,
+                          }}
+                        >
+                          {formData.defaultValue?.value['granularity'] ===
+                            value && (
                             <View
                               style={{
-                                height: 18,
-                                width: 18,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                borderColor: '#486732',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginRight: 5,
+                                height: 8,
+                                width: 8,
+                                borderRadius: 5,
+                                backgroundColor: '#486732',
                               }}
-                            >
-                              {formData.defaultValue?.value['granularity'] ===
-                                value && (
-                                <View
-                                  style={{
-                                    height: 8,
-                                    width: 8,
-                                    borderRadius: 5,
-                                    backgroundColor: '#486732',
-                                  }}
-                                />
-                              )}
-                            </View>
-                            <Text
-                              style={{
-                                fontSize: width * 0.04,
-                                fontFamily: 'Pro-Regular',
-                                color: '#292929',
-                              }}
-                            >
-                              {value}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
+                            />
+                          )}
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: width * 0.04,
+                            fontFamily: 'Pro-Regular',
+                            color: '#292929',
+                          }}
+                        >
+                          {value}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
 
-                      {/* <View style={styles.row}> */}
-                      {/* <TextInput
+                  {/* <View style={styles.row}> */}
+                  {/* <TextInput
                           mode="outlined"
                           placeholderTextColor="#486732"
                           placeholder={t(
@@ -811,118 +795,107 @@ const CreateAttribute: React.FC = () => {
                           }
                           style={[styles.input, styles.textInput]}
                         /> */}
-                      {/* <View
+                  {/* <View
                           style={[
                             styles.input,
                             { height: rMV(70), paddingHorizontal: rMS(14) },
                           ]}
                         ></View>
                       </View> */}
-                      {error?.defaultValue?.granularity && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.granularity}
-                        </Text>
+                  {error?.defaultValue?.granularity && (
+                    <Text style={styles.errorText}>
+                      {error?.defaultValue?.granularity}
+                    </Text>
+                  )}
+                </View>
+              </>
+            ) : formData.type !== null && formData.type === 'CATEGORICAL' ? (
+              <>
+                <View style={[styles.input, styles.inputContainerCategorical]}>
+                  <Text style={styles.textDefaultValues}>
+                    {t('attributeView.createPlaceHolderDefaultValues')}
+                  </Text>
+                  <View style={styles.rowCategorical}>
+                    <TextInput
+                      mode="outlined"
+                      placeholderTextColor="#486732"
+                      placeholder={t(
+                        'attributeView.createPlaceHolderExampleDefaultValues'
                       )}
-                    </View>
-                  </>
-                ) : formData.type !== null &&
-                  formData.type === 'CATEGORICAL' ? (
-                  <>
-                    <View
-                      style={[styles.input, styles.inputContainerCategorical]}
+                      autoCapitalize="sentences"
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      value={categoricalValue ?? ''}
+                      onChangeText={(value) => setCategoricalValue(value)}
+                      selectionColor={
+                        Platform.OS == 'ios' ? '#486732' : '#486732'
+                      }
+                      style={[styles.input, styles.textInput]}
+                    />
+                    <Pressable
+                      onPress={() => {
+                        onChangeDefaultValue(categoricalValue, '');
+                        setCategoricalValue(null);
+                      }}
+                      style={styles.pressableButton}
                     >
-                      <Text style={styles.textDefaultValues}>
-                        {t('attributeView.createPlaceHolderDefaultValues')}
+                      <Text style={styles.pressableButtonText}>+</Text>
+                    </Pressable>
+                  </View>
+                  {error?.defaultValue?.categoricalEmpty && (
+                    <Text style={styles.errorText}>
+                      {error?.defaultValue?.categoricalEmpty}
+                    </Text>
+                  )}
+                </View>
+
+                {formData.defaultValue?.value &&
+                  Array.isArray(formData.defaultValue.value) &&
+                  formData.defaultValue?.value.length > 0 && (
+                    <View style={[styles.input, styles.definedValuesContainer]}>
+                      <Text style={styles.definedValuesText}>
+                        {t('attributeView.createTextDefinedValues')}
                       </Text>
-                      <View style={styles.rowCategorical}>
-                        <TextInput
-                          mode="outlined"
-                          placeholderTextColor="#486732"
-                          placeholder={t(
-                            'attributeView.createPlaceHolderExampleDefaultValues'
-                          )}
-                          autoCapitalize="sentences"
-                          activeOutlineColor="#486732"
-                          outlineColor="#486732"
-                          cursorColor="#486732"
-                          value={categoricalValue ?? ''}
-                          onChangeText={(value) => setCategoricalValue(value)}
-                          selectionColor={
-                            Platform.OS == 'ios' ? '#486732' : '#486732'
-                          }
-                          style={[styles.input, styles.textInput]}
-                        />
-                        <Pressable
-                          onPress={() => {
-                            onChangeDefaultValue(categoricalValue, '');
-                            setCategoricalValue(null);
-                          }}
-                          style={styles.pressableButton}
-                        >
-                          <Text style={styles.pressableButtonText}>+</Text>
-                        </Pressable>
+                      <View style={styles.definedValuesRow}>
+                        {formData.defaultValue.value.length > 0 &&
+                          formData.defaultValue.value.map((item, index) => (
+                            <Pressable
+                              key={index}
+                              onPress={() =>
+                                onChangeDefaultValue(item, 'delete')
+                              }
+                            >
+                              <View style={styles.definedValueItem}>
+                                <Text style={styles.definedValueText}>
+                                  {item}
+                                </Text>
+                                <View style={styles.definedValueSeparator} />
+                                <Text style={styles.definedValueDeleteText}>
+                                  x
+                                </Text>
+                              </View>
+                            </Pressable>
+                          ))}
                       </View>
-                      {error?.defaultValue?.categoricalEmpty && (
+                      {error?.defaultValue?.categorical && (
                         <Text style={styles.errorText}>
-                          {error?.defaultValue?.categoricalEmpty}
+                          {error?.defaultValue?.categorical}
                         </Text>
                       )}
                     </View>
-
-                    {formData.defaultValue?.value &&
-                      Array.isArray(formData.defaultValue.value) &&
-                      formData.defaultValue?.value.length > 0 && (
-                        <View
-                          style={[styles.input, styles.definedValuesContainer]}
-                        >
-                          <Text style={styles.definedValuesText}>
-                            {t('attributeView.createTextDefinedValues')}
-                          </Text>
-                          <View style={styles.definedValuesRow}>
-                            {formData.defaultValue.value.length > 0 &&
-                              formData.defaultValue.value.map((item, index) => (
-                                <Pressable
-                                  key={index}
-                                  onPress={() =>
-                                    onChangeDefaultValue(item, 'delete')
-                                  }
-                                >
-                                  <View style={styles.definedValueItem}>
-                                    <Text style={styles.definedValueText}>
-                                      {item}
-                                    </Text>
-                                    <View
-                                      style={styles.definedValueSeparator}
-                                    />
-                                    <Text style={styles.definedValueDeleteText}>
-                                      x
-                                    </Text>
-                                  </View>
-                                </Pressable>
-                              ))}
-                          </View>
-                          {error?.defaultValue?.categorical && (
-                            <Text style={styles.errorText}>
-                              {error?.defaultValue?.categorical}
-                            </Text>
-                          )}
-                        </View>
-                      )}
-                  </>
-                ) : null}
-              </View>
-              {console.log('defaultValue', formData.defaultValue)}
-              {console.log('error', error)}
-            </KeyboardAwareScrollView>
+                  )}
+              </>
+            ) : null}
           </View>
-          {/* Botón fijo */}
-          <View style={styles.fixedButtonContainer}>
-            <Pressable onPress={handleSubmit} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {t('attributeView.createVariableTextButton')}
-              </Text>
-            </Pressable>
-          </View>
+        </KeyboardAwareScrollView>
+        {/* Botón fijo */}
+        <View style={styles.fixedButtonContainer}>
+          <Pressable onPress={handleSubmit} style={styles.button}>
+            <Text style={styles.buttonText}>
+              {t('attributeView.createVariableTextButton')}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>

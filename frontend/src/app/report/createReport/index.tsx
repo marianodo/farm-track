@@ -229,16 +229,11 @@ const CreateReport: React.FC = () => {
 
         <View
           style={{
-            backgroundColor: 'white',
-            width: '100%',
             flex: 1,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
+            backgroundColor: 'white',
             borderTopLeftRadius: 54,
             borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
+            marginTop: -50,
           }}
         >
           <Text
@@ -294,82 +289,75 @@ const CreateReport: React.FC = () => {
             </View>
           </View>
           {/* contenido scroll  */}
-          <View style={styles.spacer}>
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(360) : null, paddingVertical: 10 },
-              ]}
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`${t(
-                    'reportsView.reportFieldNamePlaceHolder'
-                  )}: ${fieldName as string}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`${t(
-                    'reportsView.reportDatePlaceHolder'
-                  )}: ${new Date().toLocaleDateString('es-Es')}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            enableOnAndroid
+            extraHeight={10}
+            extraScrollHeight={30}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { height: open ? rMS(360) : null, paddingVertical: 10 },
+            ]}
+          >
+            <View style={[styles.spacer, { marginBottom: 20 }]}>
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#486732"
+                placeholder={`${t('reportsView.reportFieldNamePlaceHolder')}: ${
+                  fieldName as string
+                }`}
+                editable={false}
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                style={styles.input}
+              />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('reportsView.reportNamePlaceHolder')}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#486732"
+                placeholder={`${t(
+                  'reportsView.reportDatePlaceHolder'
+                )}: ${new Date().toLocaleDateString('es-Es')}`}
+                editable={false}
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                style={styles.input}
+              />
 
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('reportsView.reportObservationsPlaceHolder')}
-                  onChangeText={(value) => onChange('comment', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-          {/* este view es para poner el boton debajo de todo */}
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#292929"
+                placeholder={t('reportsView.reportNamePlaceHolder')}
+                onChangeText={(value) => onChange('name', value)}
+                autoCapitalize="sentences"
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                cursorColor="#486732"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                style={styles.input}
+              />
+              {error?.name && (
+                <Text style={styles.errorText}>{error?.name}</Text>
+              )}
 
-          {/* <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
-          /> */}
-          {/* Botón fijo */}
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#292929"
+                placeholder={t('reportsView.reportObservationsPlaceHolder')}
+                onChangeText={(value) => onChange('comment', value)}
+                autoCapitalize="sentences"
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                cursorColor="#486732"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                style={styles.input}
+              />
+              {error?.name && (
+                <Text style={styles.errorText}>{error?.name}</Text>
+              )}
+            </View>
+          </KeyboardAwareScrollView>
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>
               <Text style={styles.buttonText}>

@@ -12,8 +12,6 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Image, StyleSheet, View } from 'react-native';
-import useAuthStore from '@/store/authStore';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 const StackLayout = () => {
   const { fontsLoaded } = useLoadFonts();

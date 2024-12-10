@@ -5,16 +5,10 @@ const { height, width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   titleContainer: {
     flex: 1,
-    position: 'relative',
-    height: '100%',
-    alignItems: 'center',
-    display: 'flex',
-    justifyContent: 'center',
-    flexDirection: 'column',
   },
   spacer: {
     // flex: 1,
-    height: '64%',
+    // height: '64%',
   },
   greeting: {
     color: '#fff',
@@ -145,7 +139,8 @@ const styles = StyleSheet.create({
     fontSize: rMS(17),
   },
   fixedButtonContainer: {
-    paddingHorizontal: rMS(20),
+    paddingHorizontal: 20,
+    paddingBottom: rMV(12),
   },
   button: {
     width: '100%',
