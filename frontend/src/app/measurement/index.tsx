@@ -380,17 +380,11 @@ const CreatePen: React.FC = () => {
 
         <View
           style={{
-            backgroundColor: 'white',
-            width: '100%',
             flex: 1,
-            // height: Dimensions.get('window').height,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
+            backgroundColor: 'white',
             borderTopLeftRadius: 54,
             borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
+            marginTop: -50,
           }}
         >
           <Text
@@ -406,217 +400,200 @@ const CreatePen: React.FC = () => {
           </Text>
 
           {/* contenido scroll  */}
-          <View
-            style={{
-              height: Dimensions.get('window').height > 640 ? '70%' : '72%',
-            }}
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            enableOnAndroid
+            extraHeight={10}
+            extraScrollHeight={30}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingVertical: 10 },
+            ]}
+            // height: open ? rMS(360) : null,
           >
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { paddingVertical: 10 },
-              ]}
-              // height: open ? rMS(360) : null,
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <DropDownPicker
-                  placeholder={t('measurementView.penPlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={openDropdown === 'pen' ? 1 : 0}
-                  zIndexInverse={openDropdown === 'pen' ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  closeAfterSelecting={true}
-                  ActivityIndicatorComponent={() => (
-                    <ActivityIndicator size="large" color="#486732" />
-                  )}
-                  open={openDropdown === 'pen'}
-                  value={penDropDownValue}
-                  items={pensDropDown ?? []}
-                  setValue={setPenDropDownValue}
-                  setItems={setPensDropdown as Dispatch<SetStateAction<any[]>>}
-                  onChangeValue={() => onChange('penId', penDropDownValue)}
-                  scrollViewProps={{
-                    style: {
-                      height:
-                        Dimensions.get('window').height > 640
-                          ? 'auto'
-                          : rMS(156),
-                    },
-                  }}
-                  multiple={false}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  onOpen={() => setOpenDropdown('pen')}
-                  onClose={() => setOpenDropdown(null)}
-                  ListEmptyComponent={() => (
-                    <Text style={{ textAlign: 'center', padding: 10 }}>
-                      {t('measurementView.dropDownDontInfo')}
-                    </Text>
-                  )}
-                />
+            <View style={{ marginBottom: 20 }}>
+              <DropDownPicker
+                placeholder={t('measurementView.penPlaceHolder')}
+                placeholderStyle={{
+                  fontSize: width * 0.04,
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  paddingLeft: rMS(4),
+                }}
+                style={[styles.input, { marginBottom: 12 }]}
+                dropDownContainerStyle={{
+                  marginTop: 4,
+                  backgroundColor: '#fafafa',
+                  borderColor: '#dadada',
+                  borderRadius: 20,
+                  borderTopStartRadius: 12,
+                  borderTopEndRadius: 12,
+                }}
+                listMode="SCROLLVIEW"
+                zIndex={openDropdown === 'pen' ? 1 : 0}
+                zIndexInverse={openDropdown === 'pen' ? 1 : 0}
+                arrowIconStyle={{ tintColor: '#486732' }}
+                closeAfterSelecting={true}
+                ActivityIndicatorComponent={() => (
+                  <ActivityIndicator size="large" color="#486732" />
+                )}
+                open={openDropdown === 'pen'}
+                value={penDropDownValue}
+                items={pensDropDown ?? []}
+                setValue={setPenDropDownValue}
+                setItems={setPensDropdown as Dispatch<SetStateAction<any[]>>}
+                onChangeValue={() => onChange('penId', penDropDownValue)}
+                scrollViewProps={{
+                  style: {
+                    height:
+                      Dimensions.get('window').height > 640 ? 'auto' : rMS(156),
+                  },
+                }}
+                multiple={false}
+                mode="BADGE"
+                badgeDotColors={[
+                  '#e76f51',
+                  '#00b4d8',
+                  '#e9c46a',
+                  '#e76f51',
+                  '#8ac926',
+                  '#00b4d8',
+                  '#e9c46a',
+                ]}
+                dropDownDirection="BOTTOM"
+                onOpen={() => setOpenDropdown('pen')}
+                onClose={() => setOpenDropdown(null)}
+                ListEmptyComponent={() => (
+                  <Text style={{ textAlign: 'center', padding: 10 }}>
+                    {t('measurementView.dropDownDontInfo')}
+                  </Text>
+                )}
+              />
 
-                <DropDownPicker
-                  placeholder={t('measurementView.typeOfObjectPlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={openDropdown === 'typeOfObject' ? 1 : 0}
-                  zIndexInverse={openDropdown === 'typeOfObject' ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  closeAfterSelecting={true}
-                  open={openDropdown === 'typeOfObject'}
-                  value={typeOfObjectDropDownValue as ValueType}
-                  items={typeOfObjectDropDown ?? []}
-                  setValue={setTypeOfObjectDropDownValue}
-                  setItems={
-                    setTypeOfObjectDropDown as Dispatch<SetStateAction<any[]>>
-                  }
-                  onChangeValue={() =>
-                    onChange('typeOfObjectId', typeOfObjectDropDownValue)
-                  }
-                  multiple={false}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  disabled={formData.penId ? false : true}
-                  disabledStyle={{ opacity: 0.5 }}
-                  dropDownDirection="BOTTOM"
-                  scrollViewProps={{
-                    style: {
-                      height:
-                        Dimensions.get('window').height > 640
-                          ? 'auto'
-                          : rMS(156),
-                    },
-                  }}
-                  onOpen={() => setOpenDropdown('typeOfObject')}
-                  onClose={() => setOpenDropdown(null)}
-                  ListEmptyComponent={() => (
-                    <Text style={{ textAlign: 'center', padding: 10 }}>
-                      {t('measurementView.dropDownDontInfo')}
-                    </Text>
-                  )}
-                />
-                <DropDownPicker
-                  placeholder={t('measurementView.variablePlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  // stickyHeader={true}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={openDropdown === 'variables' ? 1 : 0}
-                  zIndexInverse={openDropdown === 'variables' ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  open={openDropdown === 'variables'}
-                  value={variablesDropDownValue as ValueType}
-                  items={variablesDropDown ?? []}
-                  setValue={setVariablesDropDownValue}
-                  setItems={
-                    setVariablesDropDown as Dispatch<SetStateAction<any[]>>
-                  }
-                  onChangeValue={() =>
-                    onChange('variablesIds', variablesDropDownValue)
-                  }
-                  multiple={true}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  scrollViewProps={{
-                    style: {
-                      height:
-                        Dimensions.get('window').height > 640
-                          ? 'auto'
-                          : rMS(156),
-                    },
-                  }}
-                  showsHorizontalScrollIndicator={true}
-                  showsVerticalScrollIndicator={true}
-                  disabled={formData.typeOfObjectId ? false : true}
-                  disabledStyle={{ opacity: 0.5 }}
-                  onOpen={() => setOpenDropdown('variables')}
-                  onClose={() => setOpenDropdown(null)}
-                  ListEmptyComponent={() => (
-                    <Text style={{ textAlign: 'center', padding: 10 }}>
-                      {t('measurementView.dropDownDontInfo')}
-                    </Text>
-                  )}
-                />
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-          {/* este view es para poner el boton debajo de todo */}
-
-          {/* <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.6 }}
-          /> */}
+              <DropDownPicker
+                placeholder={t('measurementView.typeOfObjectPlaceHolder')}
+                placeholderStyle={{
+                  fontSize: width * 0.04,
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  paddingLeft: rMS(4),
+                }}
+                style={[styles.input, { marginBottom: 12 }]}
+                dropDownContainerStyle={{
+                  marginTop: 4,
+                  backgroundColor: '#fafafa',
+                  borderColor: '#dadada',
+                  borderRadius: 20,
+                  borderTopStartRadius: 12,
+                  borderTopEndRadius: 12,
+                }}
+                listMode="SCROLLVIEW"
+                zIndex={openDropdown === 'typeOfObject' ? 1 : 0}
+                zIndexInverse={openDropdown === 'typeOfObject' ? 1 : 0}
+                arrowIconStyle={{ tintColor: '#486732' }}
+                closeAfterSelecting={true}
+                open={openDropdown === 'typeOfObject'}
+                value={typeOfObjectDropDownValue as ValueType}
+                items={typeOfObjectDropDown ?? []}
+                setValue={setTypeOfObjectDropDownValue}
+                setItems={
+                  setTypeOfObjectDropDown as Dispatch<SetStateAction<any[]>>
+                }
+                onChangeValue={() =>
+                  onChange('typeOfObjectId', typeOfObjectDropDownValue)
+                }
+                multiple={false}
+                mode="BADGE"
+                badgeDotColors={[
+                  '#e76f51',
+                  '#00b4d8',
+                  '#e9c46a',
+                  '#e76f51',
+                  '#8ac926',
+                  '#00b4d8',
+                  '#e9c46a',
+                ]}
+                disabled={formData.penId ? false : true}
+                disabledStyle={{ opacity: 0.5 }}
+                dropDownDirection="BOTTOM"
+                scrollViewProps={{
+                  style: {
+                    height:
+                      Dimensions.get('window').height > 640 ? 'auto' : rMS(156),
+                  },
+                }}
+                onOpen={() => setOpenDropdown('typeOfObject')}
+                onClose={() => setOpenDropdown(null)}
+                ListEmptyComponent={() => (
+                  <Text style={{ textAlign: 'center', padding: 10 }}>
+                    {t('measurementView.dropDownDontInfo')}
+                  </Text>
+                )}
+              />
+              <DropDownPicker
+                placeholder={t('measurementView.variablePlaceHolder')}
+                placeholderStyle={{
+                  fontSize: width * 0.04,
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  paddingLeft: rMS(4),
+                }}
+                // stickyHeader={true}
+                style={[styles.input, { marginBottom: 12 }]}
+                dropDownContainerStyle={{
+                  marginTop: 4,
+                  backgroundColor: '#fafafa',
+                  borderColor: '#dadada',
+                  borderRadius: 20,
+                  borderTopStartRadius: 12,
+                  borderTopEndRadius: 12,
+                }}
+                listMode="SCROLLVIEW"
+                zIndex={openDropdown === 'variables' ? 1 : 0}
+                zIndexInverse={openDropdown === 'variables' ? 1 : 0}
+                arrowIconStyle={{ tintColor: '#486732' }}
+                open={openDropdown === 'variables'}
+                value={variablesDropDownValue as ValueType}
+                items={variablesDropDown ?? []}
+                setValue={setVariablesDropDownValue}
+                setItems={
+                  setVariablesDropDown as Dispatch<SetStateAction<any[]>>
+                }
+                onChangeValue={() =>
+                  onChange('variablesIds', variablesDropDownValue)
+                }
+                multiple={true}
+                mode="BADGE"
+                badgeDotColors={[
+                  '#e76f51',
+                  '#00b4d8',
+                  '#e9c46a',
+                  '#e76f51',
+                  '#8ac926',
+                  '#00b4d8',
+                  '#e9c46a',
+                ]}
+                dropDownDirection="BOTTOM"
+                scrollViewProps={{
+                  style: {
+                    height:
+                      Dimensions.get('window').height > 640 ? 'auto' : rMS(156),
+                  },
+                }}
+                showsHorizontalScrollIndicator={true}
+                showsVerticalScrollIndicator={true}
+                disabled={formData.typeOfObjectId ? false : true}
+                disabledStyle={{ opacity: 0.5 }}
+                onOpen={() => setOpenDropdown('variables')}
+                onClose={() => setOpenDropdown(null)}
+                ListEmptyComponent={() => (
+                  <Text style={{ textAlign: 'center', padding: 10 }}>
+                    {t('measurementView.dropDownDontInfo')}
+                  </Text>
+                )}
+              />
+            </View>
+          </KeyboardAwareScrollView>
           {/* Botón fijo */}
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>

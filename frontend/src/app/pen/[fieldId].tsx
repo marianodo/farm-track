@@ -66,19 +66,6 @@ export default function PenScreen() {
   );
 
   const router = useRouter();
-  useEffect(() => {
-    const backAction = () => {
-      router.replace('/'); // Ruta a Home
-      return true; // Prevenir comportamiento por defecto
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, [router]);
 
   const { role, userName } = useAuthStore((state) => ({
     role: state.role,

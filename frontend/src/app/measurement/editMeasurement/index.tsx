@@ -25,7 +25,7 @@ import DropDownPicker, { ValueType } from 'react-native-dropdown-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator, IconButton, TextInput } from 'react-native-paper';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
@@ -155,7 +155,8 @@ const CreatePen: React.FC = () => {
   useEffect(() => {
     setFormData((prevValues) => ({
       ...prevValues,
-      name: subjectName as string,
+      name: subjectName ? (subjectName as string) : null,
+      subject_id: Number(subjectId),
     }));
     if (measurementEditData) {
       measurementEditData.map((e: any) => {
@@ -163,16 +164,24 @@ const CreatePen: React.FC = () => {
           ...prevValues,
           [e.id]: e.value,
         }));
+        if (!isNaN(e.value)) {
+          setSliderValue((prevValues) => ({
+            ...prevValues,
+            [e.id]: e.value,
+          }));
+        }
       });
     }
   }, [measurementEditData]);
-
   useEffect(() => {
     validateValues();
   }, [values]);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
-    setFormData({ ...formData, [field]: inputValue });
+    setFormData({
+      ...formData,
+      [field]: inputValue === undefined ? null : inputValue,
+    });
   };
 
   const validateValues = () => {
@@ -188,31 +197,37 @@ const CreatePen: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validateValues();
-    if (
-      (validationErrors.length > 0 &&
-        validationErrors.length !== measurementEditData.length) ||
-      validationErrors.length === measurementEditData.length
-    ) {
-      setFormOk(false);
-      setTexts({
-        title: 'Faltan campos por completar',
-        subtitle: `No has completado el campo: ${validationErrors.join(', ')}.`,
-      });
-      setModalVisible(null);
+    // const validationErrors = validateValues();
+    // if (
+    //   (validationErrors.length > 0 &&
+    //     validationErrors.length !== measurementEditData.length) ||
+    //   validationErrors.length === measurementEditData.length
+    // ) {
+    //   setFormOk(false);
+    //   setTexts({
+    //     title: 'Faltan campos por completar',
+    //     subtitle: `No has completado el campo: ${validationErrors.join(', ')}.`,
+    //   });
+    //   setModalVisible(null);
 
-      // Alert.alert(
-      //   'Faltan algunos campos por completar',
-      //   'Por favor, complete los campos faltantes.'
-      // );
-      return;
+    //   // Alert.alert(
+    //   //   'Faltan algunos campos por completar',
+    //   //   'Por favor, complete los campos faltantes.'
+    //   // );
+    //   return;
+    // }
+    // setFormOk(true);
+    // setTexts({
+    //   title: '¿Estás seguro de guardar la medición?',
+    //   subtitle: `Una vez guardada, no podrás modificarla.`,
+    // });
+    // setModalVisible(null);
+    try {
+      editNewsMeasurements();
+      setModalVisible('success');
+    } catch (error) {
+      console.log('ERROR2:', error);
     }
-    setFormOk(true);
-    setTexts({
-      title: '¿Estás seguro de guardar la medición?',
-      subtitle: `Una vez guardada, no podrás modificarla.`,
-    });
-    setModalVisible(null);
   };
 
   const getModalButtons = () => {
@@ -233,37 +248,79 @@ const CreatePen: React.FC = () => {
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const onBackPress = () => {
-        if (formData.name) {
-          Alert.alert(
-            t('attributeView.unsavedChangesTitle'),
-            t('attributeView.unsavedChangesMessage'),
-            [
-              {
-                text: t('attributeView.leaveButtonText'),
-                style: 'cancel',
-                onPress: () => router.back(),
-              },
-              {
-                text: t('attributeView.cancelButtonText'),
-              },
-            ],
-            { cancelable: false }
-          );
-          return true;
-        }
-        return false;
-      };
+  const showUnsavedChangesModal = () => {
+    setTexts({
+      title: t('attributeView.unsavedChangesTitle'),
+      subtitle: t('attributeView.unsavedChangesMessage'),
+    });
+    setModalVisible('unsavedChanges');
+  };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  // useEffect(() => {
+  //   const onBackPress = () => {
+  //     router.back();
+  //     return true;
+  //   };
 
-      return () =>
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [formData])
-  );
+  //   BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
+  //   return () => {
+  //     BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  //   };
+  // }, [formData]);
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     const onBackPress = () => {
+  //       if (formData.name || Object.keys(values).length > 0) {
+  //         Alert.alert(
+  //           t('attributeView.unsavedChangesTitle'),
+  //           t('attributeView.unsavedChangesMessage'),
+  //           [
+  //             {
+  //               text: t('attributeView.leaveButtonText'),
+  //               style: 'cancel',
+  //               onPress: () => router.back(),
+  //             },
+  //             {
+  //               text: t('attributeView.cancelButtonText'),
+  //             },
+  //           ],
+  //           { cancelable: false }
+  //         );
+  //         return true;
+  //       }
+  //       return false;
+  //     };
+
+  //     BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+  //     return () =>
+  //       BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  //   }, [formData])
+  // );
+
+  const [sliderValue, setSliderValue] = useState<{
+    [key: string]: number | string | null;
+  }>({});
+
+  const editNewsMeasurements = async () => {
+    const editsMeasurements = {
+      name: formData.name,
+      subject_id: formData.subject_id,
+      measurements: Object.entries(values)
+        .filter(([key, value]) => value !== null)
+        .map(([key, value]) => ({
+          id: key,
+          value: value,
+        })),
+    };
+    try {
+      await onUpdate(reportId, editsMeasurements);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const handleInputChange = (
     key: string,
     name: string,
@@ -272,48 +329,69 @@ const CreatePen: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
-    setValues((prevValues) => ({
-      ...prevValues,
-      [key]: value,
-    }));
-
-    if (value === '') {
+    const sanitizedValue = value.replace(',', '.');
+    const pointCount = (sanitizedValue.match(/\./g) || []).length;
+    if (pointCount > 1) {
       setErrors((prevErrors) => ({
         ...prevErrors,
-        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
+        [name]: 'El valor no puede tener más de un punto decimal.',
       }));
+      return;
+    }
+    setValues((prevValues) => ({
+      ...prevValues,
+      [key]: sanitizedValue,
+    }));
+
+    if (sanitizedValue === '') {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: 'El campo no puede estar vacío.',
+      }));
+
       setValues((prevValues) => ({
         ...prevValues,
         [key]: null,
       }));
-    } else {
-      const numericValue = parseInt(value, 10);
-      if (!isNaN(numericValue)) {
-        if (
-          numericValue < min ||
-          numericValue > max ||
-          ((numericValue - min) % step !== 0 &&
-            numericValue !== min &&
-            numericValue !== max)
-        ) {
-          setErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-          }));
-        } else {
-          const newErrors = { ...errors };
-          delete newErrors[name];
-          setErrors(newErrors);
-        }
-      } else {
+      return;
+    }
+    const numericValue = parseFloat(sanitizedValue);
+    if (!isNaN(numericValue)) {
+      // Validar rango
+      if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: 'El valor debe ser un número.',
+          [name]: `El valor debe estar entre ${min} y ${max}.`,
         }));
+        return;
       }
+
+      // Validar que el valor sea un paso válido a partir del mínimo
+      const validValues = [];
+      for (let current = min; current <= max; current += step) {
+        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+      }
+
+      if (!validValues.includes(numericValue)) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: `El valor debe incrementarse en pasos de ${step} a partir de ${min}.`,
+        }));
+        return;
+      }
+
+      // Si pasa todas las validaciones, eliminar errores
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors;
+        return newErrors;
+      });
+    } else {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: 'El valor debe ser un número.',
+      }));
     }
   };
-
   const handleSliderChange = (
     key: string,
     name: string,
@@ -322,32 +400,18 @@ const CreatePen: React.FC = () => {
     max: number,
     step: number
   ) => {
-    console.log('NOMRBEEE', name);
-    if (value === null || value === undefined) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
-    } else if (
-      value < min ||
-      value > max ||
-      ((value - min) % step !== 0 && value !== min && value !== max)
-    ) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: `El valor debe estar entre ${min} y ${max} y respetar la granularidad de ${step}.`,
-      }));
-    } else {
-      setErrors((prevErrors) => {
-        const newErrors = { ...prevErrors };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[name];
+      return newErrors;
+    });
     setValues((prevValues) => ({
       ...prevValues,
       [key]: value,
+    }));
+    setValues((prevValues) => ({
+      ...prevValues,
+      [key]: parseFloat(value.toFixed(2)).toString(),
     }));
   };
 
@@ -382,482 +446,458 @@ const CreatePen: React.FC = () => {
         </View>
       )}
       {/* header */}
-      <View style={{ flex: 1, width: '100%', height: 900 }}>
-        <ImageBackground
-          source={require('../../../../assets/images/penAndReport-bg-image.png')}
-          style={{ height: rV(174), width: '100%', zIndex: 0 }}
-          resizeMode="cover"
-        >
+      <ImageBackground
+        source={require('../../../../assets/images/penAndReport-bg-image.png')}
+        style={{ height: rV(174), width: '100%', zIndex: 0 }}
+        resizeMode="cover"
+      >
+        <View>
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <IconButton
+              icon="chevron-left"
+              iconColor="#fff"
+              style={{ marginHorizontal: 0 }}
+              onPress={() => router.back()}
+            />
+            <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
+          </View>
           <View>
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <IconButton
-                icon="chevron-left"
-                iconColor="#fff"
-                style={{ marginHorizontal: 0 }}
-                onPress={() => router.back()}
-              />
-              <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
-            </View>
-            <View>
-              <Text style={styles.welcome}>Editar medición</Text>
-            </View>
-          </View>
-
-          {/* contenedor contenido variable */}
-        </ImageBackground>
-
-        <View
-          style={{
-            backgroundColor: 'white',
-            width: '100%',
-            flex: 1,
-            // height: Dimensions.get('window').height,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
-            borderTopLeftRadius: 54,
-            borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
-          }}
-        >
-          <Text
-            style={{
-              textAlign: 'center',
-              marginTop: rMS(10),
-              fontSize: 18,
-              fontWeight: 'bold',
-              fontFamily: 'Pro-Regular',
-            }}
-          >
-            Medición de objetos
-          </Text>
-
-          {/* contenido scroll  */}
-          <View
-            style={{
-              // flex: 1,
-              height: Dimensions.get('window').height > 640 ? '82%' : '64%',
-            }}
-          >
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(360) : null, paddingVertical: 10 },
-              ]}
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#486732"
-                  placeholder={`Objeto a medir: ${typeOfObjectName}`}
-                  editable={false}
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  style={styles.input}
-                />
-
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder="Nombre del objeto"
-                  value={formData.name as string}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-
-                {measurementEditData &&
-                  measurementEditData.map((e: any) => (
-                    <View key={e.id}>
-                      {e.pen_variable_type_of_object.variable.type ===
-                      'NUMBER' ? (
-                        <View
-                          style={{
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            marginVertical: height * 0.01,
-                            width: width * 0.9,
-                            height: 'auto',
-                            borderWidth: 1,
-                            paddingVertical: rMS(10),
-                            borderColor: '#F1F1F1',
-                            backgroundColor:
-                              errors[
-                                e.pen_variable_type_of_object.variable.name
-                              ] ||
-                              errorsName.includes(
-                                e.pen_variable_type_of_object.variable.name
-                              )
-                                ? 'rgba(217, 162, 32, 0.12)'
-                                : '#F1F1F1',
-                            borderRadius: 8,
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <View
-                            style={{
-                              display: 'flex',
-                              width: width * 0.9,
-                              paddingHorizontal: rMS(16),
-                              flexDirection: 'row',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <Text
-                              style={{
-                                textAlign: 'center',
-                                fontFamily: 'Pro-Regular',
-                                fontSize: rMS(14),
-                              }}
-                            >
-                              {e.pen_variable_type_of_object.variable.name}
-                            </Text>
-
-                            <Text>
-                              {`Min: ${e.pen_variable_type_of_object.custom_parameters.value.min}; Max: ${e.pen_variable_type_of_object.custom_parameters.value.max}`}
-                            </Text>
-                            {errors[
-                              e.pen_variable_type_of_object.variable.name
-                            ] ||
-                            errorsName.includes(
-                              e.pen_variable_type_of_object.variable.name
-                            ) ? (
-                              <IconButton
-                                icon={'alert-circle-outline'}
-                                iconColor="#D9A220"
-                                size={rMS(20)}
-                                style={{
-                                  margin: 0,
-                                  // marginVertical: rMV(-7),
-                                }}
-                              />
-                            ) : null}
-                          </View>
-                          <View
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              width: width * 0.9,
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              paddingHorizontal: rMS(12),
-                              marginTop: rMV(10),
-                            }}
-                          >
-                            <TextInput
-                              mode="outlined"
-                              placeholderTextColor="#292929"
-                              placeholder=""
-                              value={String(values[e.id] || '')}
-                              onChangeText={(value) =>
-                                handleInputChange(
-                                  e.id,
-                                  e.pen_variable_type_of_object.variable.name,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.min,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.max,
-                                  value,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.granularity
-                                )
-                              }
-                              keyboardType="numeric"
-                              autoCapitalize="sentences"
-                              activeOutlineColor="transparent"
-                              outlineColor="#F1F1F1"
-                              cursorColor="#486732"
-                              selectionColor={
-                                Platform.OS == 'ios' ? '#486732' : '#486732'
-                              }
-                              style={{
-                                height: rMS(48),
-                                width: rMS(100),
-                                borderRadius: rMS(4),
-                                borderColor: '#486732',
-                                borderWidth: 1,
-                              }}
-                            />
-
-                            <Slider
-                              style={{
-                                width: width * 0.9 - rMS(100) - rMS(12),
-                              }}
-                              minimumValue={
-                                e.pen_variable_type_of_object.custom_parameters
-                                  .value.min
-                              }
-                              maximumValue={
-                                e.pen_variable_type_of_object.custom_parameters
-                                  .value.max ?? 0
-                              }
-                              step={
-                                e.pen_variable_type_of_object.custom_parameters
-                                  .value.granularity
-                              }
-                              value={Number(values[e.id] || 0)}
-                              onValueChange={(value) =>
-                                handleSliderChange(
-                                  e.id,
-                                  e.pen_variable_type_of_object.variable.name,
-                                  value,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.min,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.max,
-                                  e.pen_variable_type_of_object
-                                    .custom_parameters.value.granularity
-                                )
-                              }
-                              minimumTrackTintColor="#486732"
-                              // maximumTrackTintColor="#000000"
-                              thumbTintColor="#FFFFFF"
-                            />
-                          </View>
-                          {errors[
-                            e.pen_variable_type_of_object.variable.name
-                          ] &&
-                            errors[
-                              e.pen_variable_type_of_object.variable.name
-                            ] !== 'true' && (
-                              <Text style={styles.errorText}>
-                                {
-                                  errors[
-                                    e.pen_variable_type_of_object.variable.name
-                                  ]
-                                }
-                              </Text>
-                            )}
-                          <View
-                            style={{
-                              display: 'flex',
-                              justifyContent: 'flex-start',
-                              width: width * 0.9,
-                              paddingHorizontal: rMS(14),
-                              marginTop: rMV(10),
-                            }}
-                          >
-                            <Text style={{ color: '#96A59A' }}>
-                              Granularidad:{' '}
-                              {
-                                e.pen_variable_type_of_object.custom_parameters
-                                  .value.granularity
-                              }
-                            </Text>
-                          </View>
-                        </View>
-                      ) : (
-                        <View
-                          style={{
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            marginVertical: height * 0.01,
-                            width: width * 0.9,
-                            height: 'auto',
-                            borderWidth: 1,
-                            paddingVertical: rMS(10),
-                            // fontSize: width * 0.04,
-                            // fontFamily: 'Pro-Regular',
-                            // color: '#292929',
-                            borderColor: '#F1F1F1',
-                            backgroundColor:
-                              errors[
-                                e.pen_variable_type_of_object.variable.name
-                              ] ||
-                              errorsName.includes(
-                                e.pen_variable_type_of_object.variable.name
-                              )
-                                ? 'rgba(217, 162, 32, 0.12)'
-                                : '#F1F1F1',
-                            borderRadius: 8,
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                          }}
-                        >
-                          <View
-                            style={{
-                              width: width * 0.9,
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              flexDirection: 'column',
-                              gap: rMS(4),
-                            }}
-                          >
-                            <View
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'row',
-                                justifyContent: 'space-between',
-                                width: '100%',
-                                paddingHorizontal: rMS(16),
-                                paddingRight: rMS(6),
-                                alignItems: 'center',
-                                height: rMS(28),
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  textAlign: 'center',
-                                  fontFamily: 'Pro-Regular',
-                                  fontSize: rMS(14),
-                                }}
-                              >
-                                {e.pen_variable_type_of_object.variable.name}
-                              </Text>
-                              {errors[
-                                e.pen_variable_type_of_object.variable.name
-                              ] ||
-                              errorsName.includes(
-                                e.pen_variable_type_of_object.variable.name
-                              ) ? (
-                                <IconButton
-                                  icon={'alert-circle-outline'}
-                                  iconColor="#D9A220"
-                                  size={rMS(20)}
-                                  style={{ margin: 0 }}
-                                />
-                              ) : null}
-                            </View>
-                            <View style={{}}>
-                              <View
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  flexWrap: 'wrap',
-                                  columnGap: 10,
-                                  paddingHorizontal: rMS(16),
-                                  rowGap: 0,
-                                }}
-                              >
-                                {e.pen_variable_type_of_object.custom_parameters.value.map(
-                                  (item: string, index: number) => (
-                                    <Pressable
-                                      key={index}
-                                      onPress={() =>
-                                        handlePress(
-                                          e.id,
-                                          e.pen_variable_type_of_object.variable
-                                            .name,
-                                          item
-                                        )
-                                      }
-                                    >
-                                      <View
-                                        style={{
-                                          width: 'auto',
-                                          height: 32,
-                                          marginVertical: 6,
-                                          flexDirection: 'row',
-                                          alignItems: 'center',
-                                          justifyContent: 'space-between',
-                                          paddingHorizontal: 4,
-                                          borderWidth: 1,
-                                          borderColor: '#486732',
-                                          borderRadius: 4,
-                                          backgroundColor:
-                                            values[e.id] === item
-                                              ? '#486732'
-                                              : 'transparent',
-                                        }}
-                                      >
-                                        <Text
-                                          style={{
-                                            textAlign: 'center',
-                                            paddingHorizontal: 4,
-                                            color:
-                                              values[e.id] === item
-                                                ? 'white'
-                                                : '#486732',
-                                          }}
-                                        >
-                                          {item}
-                                        </Text>
-                                      </View>
-                                    </Pressable>
-                                  )
-                                )}
-                              </View>
-
-                              {errors[
-                                e.pen_variable_type_of_object.variable.name
-                              ] && (
-                                <Text style={styles.errorText}>
-                                  {
-                                    errors[
-                                      e.pen_variable_type_of_object.variable
-                                        .name
-                                    ]
-                                  }
-                                </Text>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                  ))}
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-          <UnsavedModalComponent
-            visible={modalVisible === 'unsavedChanges'}
-            onDismiss={() => setModalVisible(null)}
-            title={texts.title}
-            subtitle={texts.subtitle}
-            buttons={getModalButtons()}
-            marginVertical={'30%'}
-          />
-          {/* este view es para poner el boton debajo de todo */}
-          <SuccessModal
-            visible={modalSuccess}
-            onDismiss={() => setIsModalSuccess(false)}
-            title={'Medicion guardada'}
-            icon={
-              <IconButton
-                icon="check-circle-outline"
-                iconColor="#486732"
-                size={rMS(82)}
-              />
-            }
-            marginVertical={'38%'}
-            back={true}
-          />
-
-          <View
-            style={{ flex: Dimensions.get('window').height > 640 ? 1 : 0.5 }}
-          />
-          {/* Botón fijo */}
-          <View style={styles.fixedButtonContainer}>
-            <Pressable
-              style={[
-                styles.button,
-                { opacity: Object.keys(errors).length > 0 ? 0.5 : 1 },
-              ]}
-              disabled={Object.keys(errors).length > 0}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.buttonText}>Terminar edición</Text>
-            </Pressable>
+            <Text style={styles.welcome}>Editar medición</Text>
           </View>
         </View>
+
+        {/* contenedor contenido variable */}
+      </ImageBackground>
+
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'white',
+          borderTopLeftRadius: 54,
+          borderTopRightRadius: 54,
+          marginTop: -50,
+        }}
+      >
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: rMS(10),
+            fontSize: 18,
+            fontWeight: 'bold',
+            fontFamily: 'Pro-Regular',
+          }}
+        >
+          Medición de objetos
+        </Text>
+
+        {/* contenido scroll  */}
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraHeight={10}
+          extraScrollHeight={30}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { height: open ? rMS(360) : null, paddingVertical: 10 },
+          ]}
+        >
+          <View style={{ marginBottom: 20 }}>
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#486732"
+              placeholder={`Objeto a medir: ${typeOfObjectName}`}
+              editable={false}
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              style={styles.input}
+            />
+
+            <TextInput
+              mode="outlined"
+              placeholderTextColor="#292929"
+              placeholder="Nombre del objeto"
+              value={formData.name as string}
+              onChangeText={(value) => onChange('name', value)}
+              autoCapitalize="sentences"
+              activeOutlineColor="transparent"
+              outlineColor="#F1F1F1"
+              cursorColor="#486732"
+              selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+              style={styles.input}
+            />
+
+            {measurementEditData &&
+              measurementEditData.map((e: any) => (
+                <View key={e.id}>
+                  {e.pen_variable_type_of_object.variable.type === 'NUMBER' ? (
+                    <View
+                      style={{
+                        alignSelf: 'center',
+                        justifyContent: 'center',
+                        marginVertical: height * 0.01,
+                        width: width * 0.9,
+                        height: 'auto',
+                        borderWidth: 1,
+                        paddingVertical: rMS(10),
+                        borderColor: '#F1F1F1',
+                        backgroundColor:
+                          errors[e.pen_variable_type_of_object.variable.name] ||
+                          errorsName.includes(
+                            e.pen_variable_type_of_object.variable.name
+                          )
+                            ? 'rgba(217, 162, 32, 0.12)'
+                            : '#F1F1F1',
+                        borderRadius: 8,
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <View
+                        style={{
+                          display: 'flex',
+                          width: width * 0.9,
+                          paddingHorizontal: rMS(16),
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            textAlign: 'center',
+                            fontFamily: 'Pro-Regular',
+                            fontSize: rMS(14),
+                          }}
+                        >
+                          {e.pen_variable_type_of_object.variable.name}
+                        </Text>
+
+                        <Text>
+                          {`Min: ${e.pen_variable_type_of_object.custom_parameters.value.min}; Max: ${e.pen_variable_type_of_object.custom_parameters.value.max}`}
+                        </Text>
+                        {errors[e.pen_variable_type_of_object.variable.name] ||
+                        errorsName.includes(
+                          e.pen_variable_type_of_object.variable.name
+                        ) ? (
+                          <IconButton
+                            icon={'alert-circle-outline'}
+                            iconColor="#D9A220"
+                            size={rMS(20)}
+                            style={{
+                              margin: 0,
+                              // marginVertical: rMV(-7),
+                            }}
+                          />
+                        ) : null}
+                      </View>
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          width: width * 0.9,
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          paddingHorizontal: rMS(12),
+                          marginTop: rMV(10),
+                        }}
+                      >
+                        <TextInput
+                          mode="outlined"
+                          placeholderTextColor="#292929"
+                          placeholder=""
+                          value={String(values[e.id] || '')}
+                          onChangeText={(value) =>
+                            handleInputChange(
+                              e.id,
+                              e.pen_variable_type_of_object.variable.name,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.min,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.max,
+                              value,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.granularity
+                            )
+                          }
+                          keyboardType="numeric"
+                          autoCapitalize="sentences"
+                          activeOutlineColor="transparent"
+                          outlineColor="#F1F1F1"
+                          cursorColor="#486732"
+                          selectionColor={
+                            Platform.OS == 'ios' ? '#486732' : '#486732'
+                          }
+                          style={{
+                            height: rMS(48),
+                            width: rMS(100),
+                            borderRadius: rMS(4),
+                            borderColor: '#486732',
+                            borderWidth: 1,
+                          }}
+                        />
+
+                        <Slider
+                          style={{
+                            width: width * 0.9 - rMS(100) - rMS(12),
+                          }}
+                          minimumValue={
+                            e.pen_variable_type_of_object.custom_parameters
+                              .value.min
+                          }
+                          maximumValue={
+                            e.pen_variable_type_of_object.custom_parameters
+                              .value.max ?? 0
+                          }
+                          step={
+                            e.pen_variable_type_of_object.custom_parameters
+                              .value.granularity
+                          }
+                          value={Number(sliderValue[e.id])}
+                          onSlidingComplete={(value) => {
+                            setSliderValue((prevValues) => ({
+                              ...prevValues,
+                              [e.id]: value,
+                            }));
+                          }}
+                          onValueChange={(value) =>
+                            handleSliderChange(
+                              e.id,
+                              e.pen_variable_type_of_object.variable.name,
+                              value,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.min,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.max,
+                              e.pen_variable_type_of_object.custom_parameters
+                                .value.granularity
+                            )
+                          }
+                          minimumTrackTintColor="#486732"
+                          // maximumTrackTintColor="#000000"
+                          thumbTintColor="#FFFFFF"
+                        />
+                      </View>
+                      {errors[e.pen_variable_type_of_object.variable.name] &&
+                        errors[e.pen_variable_type_of_object.variable.name] !==
+                          'true' && (
+                          <Text style={styles.errorText}>
+                            {
+                              errors[
+                                e.pen_variable_type_of_object.variable.name
+                              ]
+                            }
+                          </Text>
+                        )}
+                      <View
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'flex-start',
+                          width: width * 0.9,
+                          paddingHorizontal: rMS(14),
+                          marginTop: rMV(10),
+                        }}
+                      >
+                        <Text style={{ color: '#96A59A' }}>
+                          Granularidad:{' '}
+                          {
+                            e.pen_variable_type_of_object.custom_parameters
+                              .value.granularity
+                          }
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <View
+                      style={{
+                        alignSelf: 'center',
+                        justifyContent: 'center',
+                        marginVertical: height * 0.01,
+                        width: width * 0.9,
+                        height: 'auto',
+                        borderWidth: 1,
+                        paddingVertical: rMS(10),
+                        // fontSize: width * 0.04,
+                        // fontFamily: 'Pro-Regular',
+                        // color: '#292929',
+                        borderColor: '#F1F1F1',
+                        backgroundColor:
+                          errors[e.pen_variable_type_of_object.variable.name] ||
+                          errorsName.includes(
+                            e.pen_variable_type_of_object.variable.name
+                          )
+                            ? 'rgba(217, 162, 32, 0.12)'
+                            : '#F1F1F1',
+                        borderRadius: 8,
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <View
+                        style={{
+                          width: width * 0.9,
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          flexDirection: 'column',
+                          gap: rMS(4),
+                        }}
+                      >
+                        <View
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            paddingHorizontal: rMS(16),
+                            paddingRight: rMS(6),
+                            alignItems: 'center',
+                            height: rMS(28),
+                          }}
+                        >
+                          <Text
+                            style={{
+                              textAlign: 'center',
+                              fontFamily: 'Pro-Regular',
+                              fontSize: rMS(14),
+                            }}
+                          >
+                            {e.pen_variable_type_of_object.variable.name}
+                          </Text>
+                          {errors[
+                            e.pen_variable_type_of_object.variable.name
+                          ] ||
+                          errorsName.includes(
+                            e.pen_variable_type_of_object.variable.name
+                          ) ? (
+                            <IconButton
+                              icon={'alert-circle-outline'}
+                              iconColor="#D9A220"
+                              size={rMS(20)}
+                              style={{ margin: 0 }}
+                            />
+                          ) : null}
+                        </View>
+                        <View style={{}}>
+                          <View
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'row',
+                              flexWrap: 'wrap',
+                              columnGap: 10,
+                              paddingHorizontal: rMS(16),
+                              rowGap: 0,
+                            }}
+                          >
+                            {e.pen_variable_type_of_object.custom_parameters.value.map(
+                              (item: string, index: number) => (
+                                <Pressable
+                                  key={index}
+                                  onPress={() =>
+                                    handlePress(
+                                      e.id,
+                                      e.pen_variable_type_of_object.variable
+                                        .name,
+                                      item
+                                    )
+                                  }
+                                >
+                                  <View
+                                    style={{
+                                      width: 'auto',
+                                      height: 32,
+                                      marginVertical: 6,
+                                      flexDirection: 'row',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      paddingHorizontal: 4,
+                                      borderWidth: 1,
+                                      borderColor: '#486732',
+                                      borderRadius: 4,
+                                      backgroundColor:
+                                        values[e.id] === item
+                                          ? '#486732'
+                                          : 'transparent',
+                                    }}
+                                  >
+                                    <Text
+                                      style={{
+                                        textAlign: 'center',
+                                        paddingHorizontal: 4,
+                                        color:
+                                          values[e.id] === item
+                                            ? 'white'
+                                            : '#486732',
+                                      }}
+                                    >
+                                      {item}
+                                    </Text>
+                                  </View>
+                                </Pressable>
+                              )
+                            )}
+                          </View>
+
+                          {errors[
+                            e.pen_variable_type_of_object.variable.name
+                          ] && (
+                            <Text style={styles.errorText}>
+                              {
+                                errors[
+                                  e.pen_variable_type_of_object.variable.name
+                                ]
+                              }
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+                    </View>
+                  )}
+                </View>
+              ))}
+          </View>
+        </KeyboardAwareScrollView>
+        {/* Botón fijo */}
+        <View style={styles.fixedButtonContainer}>
+          <Pressable
+            style={[
+              styles.button,
+              { opacity: Object.keys(errors).length > 0 ? 0.5 : 1 },
+            ]}
+            disabled={Object.keys(errors).length > 0}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.buttonText}>Terminar edición</Text>
+          </Pressable>
+        </View>
+        <UnsavedModalComponent
+          visible={modalVisible === 'unsavedChanges'}
+          onDismiss={() => setModalVisible(null)}
+          title={texts.title}
+          subtitle={texts.subtitle}
+          buttons={getModalButtons()}
+          marginVertical={'30%'}
+        />
+        {/* este view es para poner el boton debajo de todo */}
+        <SuccessModal
+          visible={modalVisible === 'success'}
+          onDismiss={() => setModalVisible(null)}
+          title={'Medicion guardada'}
+          icon={
+            <IconButton
+              icon="check-circle-outline"
+              iconColor="#486732"
+              size={rMS(82)}
+            />
+          }
+          marginVertical={'38%'}
+          back={true}
+        />
       </View>
     </View>
   );

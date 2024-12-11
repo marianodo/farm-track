@@ -250,16 +250,11 @@ const EditPen: React.FC = () => {
 
         <View
           style={{
+            flex: 1,
             backgroundColor: 'white',
-            width: '100%',
-            // height: Dimensions.get('window').height,
-            maxHeight: Dimensions.get('window').height + rMS(140),
-            minHeight: Dimensions.get('window').height - rMS(130),
-            zIndex: 200,
-            top: rMS(-50),
             borderTopLeftRadius: 54,
             borderTopRightRadius: 54,
-            paddingBottom: rMS(20),
+            marginTop: -50,
           }}
         >
           <Text
@@ -274,100 +269,96 @@ const EditPen: React.FC = () => {
             {t('penView.createPenTextDetail')}
           </Text>
           {/* contenido scroll  */}
-          <View style={styles.spacer}>
-            <KeyboardAwareScrollView
-              keyboardShouldPersistTaps="handled"
-              enableOnAndroid
-              extraHeight={10}
-              extraScrollHeight={30}
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(360) : null },
-              ]}
-            >
-              <View style={[styles.spacer, { marginBottom: 20 }]}>
-                <TextInput
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={t('penView.penNamePlaceHolder')}
-                  value={formData.name ?? ''}
-                  onChangeText={(value) => onChange('name', value)}
-                  autoCapitalize="sentences"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-                {error?.name && (
-                  <Text style={styles.errorText}>{error?.name}</Text>
-                )}
-                <DropDownPicker
-                  placeholder={t('penView.penObjectsPlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  style={[styles.input, { marginBottom: 12 }]}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={open ? 1 : 0}
-                  zIndexInverse={open ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  open={open}
-                  value={itemsValue as ValueType}
-                  items={items ?? []}
-                  setOpen={setOpen}
-                  setValue={setItemsValue}
-                  setItems={setItems as Dispatch<SetStateAction<any[]>>}
-                  onChangeValue={() =>
-                    onChange(
-                      'type_of_object_ids',
-                      (itemsValue ?? []).length > 0 ? itemsValue : null
-                    )
-                  }
-                  multiple={true}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  onOpen={() => setOpen(true)}
-                  onClose={() => setOpen(false)}
-                />
-                {error?.type_of_object_ids && (
-                  <Text style={styles.errorText}>
-                    {error?.type_of_object_ids}
-                  </Text>
-                )}
-              </View>
-            </KeyboardAwareScrollView>
-          </View>
-          {/* este view es para poner el boton debajo de todo */}
-          <View style={{ flex: 1 }} />
-          {/* Botón fijo */}
-          <View style={styles.fixedButtonContainer}>
-            <Pressable onPress={handleSubmit} style={styles.button}>
-              <Text style={styles.buttonText}>
-                {t('penView.updatePenTextButton')}
-              </Text>
-            </Pressable>
-          </View>
+          <KeyboardAwareScrollView
+            keyboardShouldPersistTaps="handled"
+            enableOnAndroid
+            extraHeight={10}
+            extraScrollHeight={30}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { height: open ? rMS(360) : null },
+            ]}
+          >
+            <View style={{ marginBottom: 20 }}>
+              <TextInput
+                mode="outlined"
+                placeholderTextColor="#292929"
+                placeholder={t('penView.penNamePlaceHolder')}
+                value={formData.name ?? ''}
+                onChangeText={(value) => onChange('name', value)}
+                autoCapitalize="sentences"
+                activeOutlineColor="transparent"
+                outlineColor="#F1F1F1"
+                cursorColor="#486732"
+                selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                style={styles.input}
+              />
+              {error?.name && (
+                <Text style={styles.errorText}>{error?.name}</Text>
+              )}
+              <DropDownPicker
+                placeholder={t('penView.penObjectsPlaceHolder')}
+                placeholderStyle={{
+                  fontSize: width * 0.04,
+                  fontFamily: 'Pro-Regular',
+                  color: '#292929',
+                  paddingLeft: rMS(4),
+                }}
+                style={[styles.input, { marginBottom: 12 }]}
+                dropDownContainerStyle={{
+                  marginTop: 4,
+                  backgroundColor: '#fafafa',
+                  borderColor: '#dadada',
+                  borderRadius: 20,
+                  borderTopStartRadius: 12,
+                  borderTopEndRadius: 12,
+                }}
+                listMode="SCROLLVIEW"
+                zIndex={open ? 1 : 0}
+                zIndexInverse={open ? 1 : 0}
+                arrowIconStyle={{ tintColor: '#486732' }}
+                open={open}
+                value={itemsValue as ValueType}
+                items={items ?? []}
+                setOpen={setOpen}
+                setValue={setItemsValue}
+                setItems={setItems as Dispatch<SetStateAction<any[]>>}
+                onChangeValue={() =>
+                  onChange(
+                    'type_of_object_ids',
+                    (itemsValue ?? []).length > 0 ? itemsValue : null
+                  )
+                }
+                multiple={true}
+                mode="BADGE"
+                badgeDotColors={[
+                  '#e76f51',
+                  '#00b4d8',
+                  '#e9c46a',
+                  '#e76f51',
+                  '#8ac926',
+                  '#00b4d8',
+                  '#e9c46a',
+                ]}
+                dropDownDirection="BOTTOM"
+                onOpen={() => setOpen(true)}
+                onClose={() => setOpen(false)}
+              />
+              {error?.type_of_object_ids && (
+                <Text style={styles.errorText}>
+                  {error?.type_of_object_ids}
+                </Text>
+              )}
+            </View>
+          </KeyboardAwareScrollView>
+        </View>
+        {/* Botón fijo */}
+        <View style={styles.fixedButtonContainer}>
+          <Pressable onPress={handleSubmit} style={styles.button}>
+            <Text style={styles.buttonText}>
+              {t('penView.updatePenTextButton')}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>

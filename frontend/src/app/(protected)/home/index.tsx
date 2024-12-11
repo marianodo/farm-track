@@ -17,12 +17,12 @@ import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import Loader from '@/components/Loader';
 import { useAuth } from '@/context/AuthContext';
 import useAuthStore from '@/store/authStore';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
-import { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect } from 'react';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 
 export default function HomeScreen() {
@@ -101,19 +101,21 @@ export default function HomeScreen() {
     }
   }, [typeOfObjects, getAllTypeOfObjects, fieldsByUserId]);
 
-  useEffect(() => {
-    const backAction = () => {
-      BackHandler.exitApp(); // Cierra la aplicación
-      return true; // Prevenir comportamiento por defecto
-    };
+  useFocusEffect(
+    React.useCallback(() => {
+      const onBackPress = () => {
+        BackHandler.exitApp(); // Cierra la aplicación
+        return true; // Prevenir el comportamiento por defecto
+      };
 
-    const backHandler = BackHandler.addEventListener(
-      'hardwareBackPress',
-      backAction
-    );
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-    return () => backHandler.remove();
-  }, []);
+      // Limpiamos el listener cuando el componente pierde el foco o se desmonta
+      return () => {
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+      };
+    }, [])
+  );
 
   return (
     <View style={styles.titleContainer}>
