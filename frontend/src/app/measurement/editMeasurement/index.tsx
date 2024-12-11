@@ -259,18 +259,18 @@ const CreatePen: React.FC = () => {
     setModalVisible('unsavedChanges');
   };
 
-  useEffect(() => {
-    const onBackPress = () => {
-      router.back();
-      return true;
-    };
+  // useEffect(() => {
+  //   const onBackPress = () => {
+  //     router.back();
+  //     return true;
+  //   };
 
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+  //   BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    };
-  }, [formData]);
+  //   return () => {
+  //     BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  //   };
+  // }, [formData]);
   console.log('LA DATA:', formData);
 
   // useFocusEffect(

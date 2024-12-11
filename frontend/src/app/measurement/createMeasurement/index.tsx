@@ -10,6 +10,7 @@ import {
   ImageBackground,
   Dimensions,
   BackHandler,
+  Alert,
 } from 'react-native';
 // import { useNavigation } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
@@ -308,33 +309,29 @@ const CreateMeasurement: React.FC = () => {
     setModalVisible('unsavedChanges');
   };
 
-  useEffect(() => {
-    const onBackPress = () => {
-      showUnsavedChangesModal();
-      return true;
-    };
-
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    };
-  }, []);
   useFocusEffect(
     React.useCallback(() => {
+      // Constatar que values halla sido modificado
+      const hasNullValues =
+        Object.keys(values).length > 0 &&
+        Object.values(values).some((value) => value === null);
+      if (hasNullValues) {
+        // si no se modifico nada, entra a este if y retornamos. Eso es para no configurar el evento.
+        return;
+      }
       const onBackPress = () => {
         showUnsavedChangesModal();
         return true;
-
-        // return false;
       };
 
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
-      return () =>
+      return () => {
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    }, [formData])
+      };
+    }, [values])
   );
+
   const handleInputChange = (
     key: string,
     name: string,
@@ -816,6 +813,7 @@ const CreateMeasurement: React.FC = () => {
                                 flexWrap: 'wrap',
                                 columnGap: 10,
                                 paddingHorizontal: rMS(16),
+                                width: '100%',
                                 rowGap: 0,
                               }}
                             >
@@ -830,6 +828,10 @@ const CreateMeasurement: React.FC = () => {
                                         item
                                       )
                                     }
+                                    style={{
+                                      width: 'auto',
+                                      display: 'flex',
+                                    }}
                                   >
                                     <View
                                       style={{
