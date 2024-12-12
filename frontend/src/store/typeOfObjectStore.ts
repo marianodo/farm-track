@@ -94,7 +94,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       const userString = await AsyncStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
       const response = await axiosInstance.get(
-        `/type-of-objects/${user.userId}`
+        `/type-of-objects/byUser/${user.userId}`
       );
       const sortedData = response.data.sort(
         (a: MyTypeOfObject, b: MyTypeOfObject) => a.name.localeCompare(b.name)
