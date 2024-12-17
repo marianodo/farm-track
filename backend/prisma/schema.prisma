@@ -71,13 +71,15 @@ model Variable {
 }
 model TypeOfObject {
   id                Int   @id @default(autoincrement())
-  name              String @unique
+  name              String
   variables         TypeOfObject_Variable[]
   pens              PenTypeOfObject[]
   userId            String
   user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   pen_variable_type_of_objects PenVariableTypeOfObject[]
   subjects          Subject[]
+
+  @@unique([name, userId])
 }
 model Pen {
   id        Int    @id @default(autoincrement())
