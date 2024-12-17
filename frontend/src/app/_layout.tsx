@@ -13,6 +13,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Platform } from 'react-native';
 const StackLayout = () => {
   const { fontsLoaded } = useLoadFonts();
   const colorScheme = useColorScheme();
@@ -32,7 +33,13 @@ const StackLayout = () => {
           <SafeAreaView style={{ flex: 1 }}>
             <Stack
               screenOptions={{
+                // statusBarBackgroundColor:
+                //   colorScheme === 'dark' ? undefined : undefined,
+                statusBarStyle: Platform.OS === 'android' ? 'auto' : undefined,
+                animation: Platform.OS === 'android' ? 'fade' : 'default', // Cambia la animación
                 gestureEnabled: false,
+                presentation:
+                  Platform.OS === 'android' ? 'transparentModal' : undefined,
               }}
             >
               <Stack.Screen name="index" options={{ headerShown: false }} />

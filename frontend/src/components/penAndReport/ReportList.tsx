@@ -63,23 +63,24 @@ interface PenListProps {
   setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>;
   rMS: (value: number) => number;
   styles: any;
-  getAllPens: (fieldId: string) => void;
-  onDelete: (id: number, fieldId: string) => void;
-  fieldId: string;
+  setShowModal: any;
+  setTexts: any;
+  setSelectedReportDelete: any;
   lng: string | null;
   fieldName: string | null;
 }
 
 const ReportList: React.FC<PenListProps> = ({
   reports,
-  onDelete,
   expandedItems,
   toggleExpand,
   setExpandedItems,
+  setShowModal,
+  setTexts,
+  setSelectedReportDelete,
   rMS,
   styles,
   lng,
-  fieldId,
   fieldName,
 }) => {
   const { reportsLoading } = useReportStore((state) => ({
@@ -87,21 +88,6 @@ const ReportList: React.FC<PenListProps> = ({
   }));
   const router = useRouter();
   const { t } = useTranslation();
-  const deleteButtonAlert = (id: number, name: string) =>
-    Alert.alert(
-      `${t('penView.deleteAlertTitle')} '${name ? name : id}'?`,
-      t('penView.deleteAlertSubTitle'),
-      [
-        {
-          text: `${t('penView.cancelButtonAlertText')}`,
-          style: 'cancel',
-        },
-        {
-          text: t('penView.deleteButtonAlertText'),
-          onPress: async () => onDelete(id, fieldId),
-        },
-      ]
-    );
 
   const renderRightActions = (progress: any, dragX: any, pen: any) => {
     const reportName = (pen?.name as string)
@@ -137,7 +123,19 @@ const ReportList: React.FC<PenListProps> = ({
         </Pressable>
         <Pressable
           style={styles.deleteButton}
-          onPress={() => deleteButtonAlert(pen.id, pen.name ? pen.name : '')}
+          // onPress={() => deleteButtonAlert(pen.id, pen.name ? pen.name : '')}
+          onPress={() => {
+            setSelectedReportDelete({ id: pen.id });
+            setTexts({
+              title: `${t('reportsView.deleteAlertTitle')} "${
+                pen.name
+                  ? pen.name
+                  : `${t('reportsView.reportListNameText')} ${pen.id}`
+              }"?`,
+              subtitle: `${t('reportsView.deleteAlertSubTitle')}`,
+            });
+            setShowModal(true);
+          }}
         >
           <IconButton
             icon="trash-can-outline"

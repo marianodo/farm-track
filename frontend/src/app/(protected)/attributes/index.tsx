@@ -42,6 +42,8 @@ import Animated, {
 import { useValidationRules } from '@/utils/validation/validationRules';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
+import MessageModal from '@/components/modal/MessageModal';
+import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 
 interface ListItemProps {
   item: any;
@@ -55,6 +57,22 @@ export default function AttributeScreen() {
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
+
+  // modal delete y success or error
+
+  const [selectedAttributesDelete, setSelectedAttributesDelete] = useState<{
+    id: string;
+  } | null>(null);
+  const [texts, setTexts] = useState<{
+    title: string;
+  } | null>(null);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSucces] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+
+  // end modal delete y success or error
+
   const [inputValue, setInputValue] = useState<Record<string, any>>({
     name: '',
   });
@@ -173,7 +191,6 @@ export default function AttributeScreen() {
     }
   };
 
-  // Dentro de tu componente HomeScreen
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -223,18 +240,27 @@ export default function AttributeScreen() {
 
   const { t } = useTranslation();
 
-  const deleteButtonAlert = (id: string, name: string) =>
-    Alert.alert(
-      `${t('attributeView.deleteAlertTitle')} '${name}'?`,
-      undefined,
-      [
-        {
-          text: `${t('fieldView.deleteAlertText')}`,
-          style: 'cancel',
-        },
-        { text: 'OK', onPress: async () => await onDelete(id) },
-      ]
-    );
+  const deleteButtonAlert = async () => {
+    if (selectedAttributesDelete && selectedAttributesDelete.id) {
+      try {
+        await onDelete(selectedAttributesDelete.id); // Espera a que onDelete sea exitoso
+        setShowDeleteModal(false); // Cierra el modal solo si no hubo errores
+        setSucces(true);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+      } catch (error) {
+        setShowDeleteModal(false);
+        setSucces(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        console.log('Error en deleteButtonAlert:', error);
+      }
+    }
+  };
 
   const renderRightActions = (progress: any, dragX: any, attribute: any) => (
     <View style={styles.rightActions}>
@@ -247,7 +273,16 @@ export default function AttributeScreen() {
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(attribute.id, attribute.name)}
+        // onPress={() => deleteButtonAlert(attribute.id, attribute.name)}
+        onPress={() => {
+          setSelectedAttributesDelete({ id: attribute.id });
+          setTexts({
+            title: `${t('attributeView.deleteAlertTitle')} "${
+              attribute.name
+            }"?`,
+          });
+          setShowDeleteModal(true);
+        }}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -620,6 +655,19 @@ export default function AttributeScreen() {
           </View>
         )}
       </View>
+      <TwoButtonsModal
+        isVisible={showDeleteModal}
+        onDismiss={() => setShowDeleteModal(false)}
+        title={texts?.title as string}
+        onPress={() => deleteButtonAlert()}
+        vertical={false}
+        textOkButton={t('fieldView.deleteButton')}
+      />
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 }

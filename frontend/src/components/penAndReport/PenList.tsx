@@ -1,8 +1,8 @@
 import { Pen } from '@/store/interface/pen.interface';
 import usePenStore from '@/store/penStore';
 import { rMS, rMV } from '@/styles/responsive';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -29,15 +29,14 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import MessageModal from '../modal/MessageModal';
+import TwoButtonsModal from '../modal/TwoButtonsModal';
 
 interface ListItemProps {
   item: any;
   index: number;
   isExpanded: boolean;
-  toggleExpand: (
-    index: number,
-    setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>
-  ) => void;
+  toggleExpand: (index: number) => void;
   setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>;
 }
 
@@ -50,50 +49,41 @@ interface Variable {
 interface PenListProps {
   pens: Pen[] | null;
   expandedItems: number[];
-  toggleExpand: (
-    index: number,
-    setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>
-  ) => void;
+  toggleExpand: (index: number) => void;
   setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>;
   rMS: (value: number) => number;
   styles: any;
-  getAllPens: (fieldId: string) => void;
-  onDelete: (id: number, fieldId: string) => void;
   fieldId: string;
+  setSelectedPenDelete: any;
+  setShowModal: any;
+  setTexts: any;
 }
 
 const PenList: React.FC<PenListProps> = ({
   pens,
-  onDelete,
   expandedItems,
+  setSelectedPenDelete,
   toggleExpand,
+  setShowModal,
   setExpandedItems,
   rMS,
   styles,
-  getAllPens,
   fieldId,
+  setTexts,
 }) => {
   const { pensLoading } = usePenStore((state) => ({
     pensLoading: state.pensLoading,
   }));
   const router = useRouter();
   const { t } = useTranslation();
-  const deleteButtonAlert = (id: number, name: string) =>
-    Alert.alert(
-      `${t('penView.deleteAlertTitle')} '${name}'?`,
-      t('penView.deleteAlertSubTitle'),
-      [
-        {
-          text: `${t('penView.cancelButtonAlertText')}`,
-          style: 'cancel',
-        },
-        {
-          text: t('penView.deleteButtonAlertText'),
-          onPress: async () => onDelete(id, fieldId),
-        },
-      ]
-    );
 
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setExpandedItems([]);
+      };
+    }, [])
+  );
   const renderRightActions = (progress: any, dragX: any, pen: any) => (
     <View style={styles.rightActions}>
       <Pressable
@@ -115,7 +105,14 @@ const PenList: React.FC<PenListProps> = ({
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(pen.id, pen.name)}
+        onPress={() => {
+          setSelectedPenDelete({ id: pen.id });
+          setTexts({
+            title: `${t('penView.deleteAlertTitle')} "${pen.name}"?`,
+            subtitle: `${t('penView.deleteAlertSubTitle')}`,
+          });
+          setShowModal(true);
+        }}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -166,7 +163,7 @@ const PenList: React.FC<PenListProps> = ({
             item.type_of_objects.length > 0
               ? () => {
                   Keyboard.dismiss();
-                  toggleExpand(index, setExpandedItems);
+                  toggleExpand(index);
                 }
               : () => {
                   Keyboard.dismiss();

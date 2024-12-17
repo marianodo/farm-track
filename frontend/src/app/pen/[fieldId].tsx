@@ -24,7 +24,7 @@ import { BackHandler } from 'react-native';
 import styles from './styles';
 import PenList from '../../components/penAndReport/PenList';
 import ReportList from '../../components/penAndReport/ReportList';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import useAuthStore from '@/store/authStore';
@@ -34,7 +34,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import Animated, {
@@ -48,6 +48,8 @@ import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import useReportStore from '@/store/reportStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import MessageModal from '@/components/modal/MessageModal';
+import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 
 interface ListItemProps {
   item: any;
@@ -73,13 +75,35 @@ export default function PenScreen() {
     userName: state.username,
   }));
 
+  // Start modal's variables
+
+  const [selectedPenDelete, setSelectedPenDelete] = useState<{
+    id: number;
+  } | null>(null);
+  const [selectedReportDelete, setSelectedReportDelete] = useState<{
+    id: number;
+  } | null>(null);
+  const [texts, setTexts] = useState<{
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
+
+  // End modal's variables
+
   const [penExpandedItems, setPenExpandedItems] = useState<number[]>([]);
   const [reportExpandedItems, setReportExpandedItems] = useState<number[]>([]);
+  const [expandedItems, setExpandedItems] = useState<number[]>([]);
+  const toggleExpandPen = (index: number) => {
+    setPenExpandedItems((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+    );
+  };
 
-  const toggleExpand = (
-    index: number,
-    setExpandedItems: React.Dispatch<React.SetStateAction<number[]>>
-  ) => {
+  const toggleExpand = (index: number) => {
     setExpandedItems((prev) =>
       prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
     );
@@ -98,6 +122,48 @@ export default function PenScreen() {
     onUpdate: state.onUpdate,
     getAllVariables: state.getAllVariables,
   }));
+
+  const deleteButtonAlert = async () => {
+    if (selectedPenDelete && selectedPenDelete.id) {
+      try {
+        await onDelete(selectedPenDelete.id, fieldId as string);
+        setShowModal(false);
+        setSuccess(true);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+      } catch (error) {
+        setShowModal(false);
+        setSuccess(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        console.log('Error en deleteButtonAlert:', error);
+      }
+      return;
+    }
+    if (selectedReportDelete && selectedReportDelete.id) {
+      try {
+        await onDeleteReport(selectedReportDelete.id, fieldId as string);
+        setShowModal(false);
+        setSuccess(true);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+      } catch (error) {
+        setShowModal(false);
+        setSuccess(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        console.log('Error en deleteButtonAlert:', error);
+      }
+    }
+  };
 
   const { pensLoading, penById, onDelete, pens, getAllPens, resetDetail } =
     usePenStore((state) => ({
@@ -132,30 +198,43 @@ export default function PenScreen() {
     getLanguage();
   }, []);
 
-  useEffect(() => {
-    if (!reportsByFielId || reportsByFielId[`${fieldId}`] === null) {
-      getAllReportsByField(fieldId as string);
-    }
-    if (!pens || pens[`${fieldId}`] === null) {
-      getAllPens(fieldId as string, false, true);
-    }
-    if (typeOfObjects === null) {
-      getAllTypeOfObjects();
-    }
-  }, [
-    getAllTypeOfObjects,
-    getAllPens,
-    getAllReportsByField,
-    pens,
-    reportsByFielId,
-    typeOfObjects,
-    fieldId,
-  ]);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (
+        !reportsByFielId ||
+        reportsByFielId[`${fieldId}`] === undefined ||
+        reportsByFielId[`${fieldId}`] === null
+      ) {
+        getAllReportsByField(fieldId as string);
+      }
+      if (
+        !pens ||
+        pens[`${fieldId}`] === undefined ||
+        pens[`${fieldId}`] === null
+      ) {
+        getAllPens(fieldId as string, false, true);
+      }
+      if (typeOfObjects === null) {
+        getAllTypeOfObjects();
+      }
+      return () => {};
+    }, [
+      getAllTypeOfObjects,
+      getAllPens,
+      getAllReportsByField,
+      pens,
+      reportsByFielId,
+      typeOfObjects,
+      fieldId,
+    ])
+  );
 
   return (
     <View style={styles.titleContainer}>
       {Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
+        Array.isArray(variables) &&
+        variables.length > 0 &&
         (Platform.OS === 'ios' ? (
           <SafeAreaView style={styles.floatingButton}>
             <IconButton
@@ -322,14 +401,16 @@ export default function PenScreen() {
           /* contenido scroll */
           <PenList
             pens={pens && pens[`${fieldId}`]}
-            getAllPens={getAllPens}
             fieldId={fieldId as string}
-            onDelete={onDelete}
             expandedItems={penExpandedItems}
-            toggleExpand={toggleExpand}
+            toggleExpand={toggleExpandPen}
             setExpandedItems={setPenExpandedItems}
             rMS={rMS}
+            setTexts={setTexts}
+            fieldId={fieldId as string}
             styles={styles}
+            setSelectedPenDelete={setSelectedPenDelete}
+            setShowModal={setShowModal}
           />
         ) : (
           <ReportList
@@ -339,14 +420,28 @@ export default function PenScreen() {
             setExpandedItems={setReportExpandedItems}
             rMS={rMS}
             styles={styles}
-            getAllReports={getAllReportsByField}
             lng={lng}
-            onDelete={onDeleteReport}
-            fieldName={fieldName}
-            fieldId={fieldId as string}
+            fieldName={fieldName as string}
+            setSelectedReportDelete={setSelectedReportDelete}
+            setTexts={setTexts}
+            setShowModal={setShowModal}
           />
         )}
       </View>
+      <TwoButtonsModal
+        isVisible={showModal}
+        onDismiss={() => setShowModal(false)}
+        title={texts?.title as string}
+        subtitle={texts?.subtitle as string}
+        onPress={() => deleteButtonAlert()}
+        vertical={false}
+        textOkButton={t('fieldView.deleteButton')}
+      />
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 }

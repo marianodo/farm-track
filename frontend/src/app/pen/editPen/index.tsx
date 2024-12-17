@@ -29,6 +29,8 @@ import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
+import MessageModal from '@/components/modal/MessageModal';
+import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -68,6 +70,24 @@ const EditPen: React.FC = () => {
     name: null,
     type_of_object_ids: null,
   });
+  // Start modal message
+
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+
+  // End modal message
+
+  // Start TwoButtonsModal
+
+  const [texts, setTexts] = useState<{
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+
+  // End TwoButtonsModal
+
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
@@ -142,11 +162,29 @@ const EditPen: React.FC = () => {
     if (!validateForm()) {
       try {
         await onUpdate(penId, formData, fieldId);
-        alert(t('penView.updatePenOkText'));
-        router.back();
+        setMessageModalText(t('penView.formUpdateOkText'));
+        setSuccess(true);
+        setShowMessageModal(true);
+        if (Platform.OS === 'ios') {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            setTimeout(() => {
+              router.back();
+            }, 480);
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            router.back();
+          }, 2000);
+        }
       } catch (error) {
-        console.log(error);
-        alert(t('attributeView.formErrorText'));
+        setMessageModalText(t('penview.editAttributeError'));
+        setSuccess(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
       }
     } else {
       alert(t('attributeView.formErrorText'));
@@ -156,22 +194,17 @@ const EditPen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       const onBackPress = () => {
-        if (formData.name || formData.type_of_object_ids) {
-          Alert.alert(
-            t('attributeView.unsavedChangesTitle'),
-            t('attributeView.unsavedChangesMessage'),
-            [
-              {
-                text: t('attributeView.leaveButtonText'),
-                style: 'cancel',
-                onPress: () => router.back(),
-              },
-              {
-                text: t('attributeView.cancelButtonText'),
-              },
-            ],
-            { cancelable: false }
-          );
+        if (
+          formData.name ||
+          formData.type ||
+          formData.defaultValue ||
+          formData.type_of_object_ids
+        ) {
+          setShowModal(true);
+          setTexts({
+            title: t('attributeView.unsavedChangesTitle'),
+            subtitle: t('attributeView.unsavedChangesMessage'),
+          });
           return true;
         }
         return false;
@@ -234,13 +267,19 @@ const EditPen: React.FC = () => {
                 icon="chevron-left"
                 iconColor="#fff"
                 style={{ marginHorizontal: 0 }}
-                onPress={() => router.back()}
+                onPress={() => {
+                  setShowModal(true);
+                  setTexts({
+                    title: t('attributeView.unsavedChangesTitle'),
+                    subtitle: t('attributeView.unsavedChangesMessage'),
+                  });
+                }}
               />
               <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
             </View>
             <View>
               <Text style={styles.welcome}>
-                {t('penView.createPenTextTitle')}
+                {t('penView.editPenTextButton')}
               </Text>
             </View>
           </View>
@@ -361,6 +400,32 @@ const EditPen: React.FC = () => {
           </Pressable>
         </View>
       </View>
+      {/* START MODALS */}
+      <TwoButtonsModal
+        isVisible={showModal}
+        onDismiss={() => setShowModal(false)}
+        title={texts?.title as string}
+        subtitle={texts?.subtitle as string}
+        onPress={() => {
+          if (Platform.OS === 'ios') {
+            setShowModal(false);
+            setTimeout(() => {
+              router.back();
+            }, 480);
+          } else {
+            router.back();
+          }
+        }}
+        vertical={true}
+        textOkButton={t('attributeView.leaveButtonText')}
+        textCancelButton={t('attributeView.cancelButtonText')}
+      />
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
+      {/* END MODALS */}
     </View>
   );
 };

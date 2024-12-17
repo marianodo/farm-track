@@ -38,17 +38,34 @@ const usePenStore = create<PenState>((set) => ({
       set({ pensLoading: false });
     } catch (error: any) {
       set({ pensLoading: false });
-      console.error('Error creating pen:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting object');
+      }
     }
   },
   onDelete: async (id: number, fieldId: string) => {
+    set({ pensLoading: true });
     try {
       await axiosInstance.delete(`/pens/${id}`);
       usePenStore.getState().getAllPens(fieldId);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
     } catch (error: any) {
       set({ pensLoading: false });
-      console.error('Error deleting pen:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting object');
+      }
     }
   },
   onUpdate: async (id: number, pen: Partial<CreatePen>, fieldId: string) => {

@@ -60,6 +60,11 @@
     "welcome": "Bienvenido de nuevo",
     "fieldText": "Campos",
     "editButton": "Editar",
+    "editFieldSuccess": "Campo actualizado correctamente",
+    "editFieldError": "Hubo un error al actualizar el campo",
+    "fieldCreatedText": "Campo creado con éxito",
+    "fieldCreatedError": "Hubo un error al crear el campo",
+
     "deleteButton": "Eliminar",
     "deleteAlertText": "Cancelar",
     "deleteAlertTitle": "Desea eliminar el",
@@ -102,7 +107,9 @@
     "updateVariableTextButton": "Actualizar variable",
     "editAttributeTextTitle": "Editar variable",
     "formOkText": "Variable creada exitosamente.",
+    "attributeCreatedError": "Hubo un error al crear la variable.",
     "formUpdateOkText": "Variable actualizada exitosamente.",
+    "editAttributeError": "Hubo un error al actualizar la Variable.",
     "unsavedChangesTitle": "Cambios no guardados",
     "unsavedChangesMessage": "Si vuelves ahora, se perderan todos tus cambios. ¿Estás seguro de que deseas volver?",
     "formErrorText": "Error al enviar el formulario. Por favor complete todos los campos correctamente.",
@@ -142,6 +149,7 @@
     "createPenTextTitle": "Nuevo corral",
     "createPenTextDetail": "Detalles del corral",
     "dontPenMessage": "Aún no has creado ningún corral. Por favor, añade uno desde el botón '+' para comenzar.",
+    "dontObjectAndAttributeMessage": "Antes de crear un corral debes tener creado al menos un objeto y un atributo.",
     "title": "Crea y organiza corrales",
     "createPenTextButton": "Crear corral",
     "deleteAlertTitle": "¿Desea eliminar el corral",
@@ -149,15 +157,21 @@
     "deleteButtonAlertText": "Eliminar",
     "cancelButtonAlertText": "Cancelar",
     "penNamePlaceHolder": "Nombre del corral",
+    "formUpdateOkText": "Corral actualizado exitosamente.",
+    "formOkText": "Corral creado exitosamente.",
+    "penCreatedError": "Hubo un error al crear el Corral.",
+    "editPenError": "Hubo un error al actualizar el Corral.",
     "penObjectsPlaceHolder": "Objetos del corral",
     "penObjectSelectsPlaceHolder": "Objetos seleccionados",
     "updatePenTextButton": "Actualizar corral",
+    "editPenTextButton": "Editar pen",
     "updatePenOkText": "Corral actualizado exitosamente."
   },
   "reportsView": {
     "reportsText": "Reportes",
     "dontPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
     "dontReportMessage": "Aún no has creado ningún reporte. Por favor añade uno desde el botón '+' para comenzar.",
+    "dontReportAndPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
     "title": "Gestiona reportes",
     "deleteAlertTitle": "¿Desea eliminar el reporte",
     "deleteAlertSubTitle": "Si elimina este reporte, se borrarán todas las mediciones relacionadas. Esta acción no se puede deshacer.",
@@ -183,7 +197,8 @@
     "variablesSelectedText": "Variables seleccionadas",
     "subjectTextInfo": "El nombre del objeto es un dato opcional.",
     "continueButtonTEXT": "Continuar",
-    "dropDownDontInfo": "¡No hay información disponible!"
+    "dropDownDontInfo": "¡No hay información disponible!",
+    "exitReportText": "Exit Report"
   },
   "editTypeObject": {
     "title": "Editar objeto",
@@ -217,5 +232,9 @@
     "ConfirmNewPasswordPlaceHolder": "Confirmar contraseña",
     "ChangePasswordText": "Cambiar contraseña",
     "BackToStartText": "Volver al Inicio"
+  },
+  "modal": {
+    "successMessage": "Operación exitosa",
+    "errorMessage": "Ops.. se ha producido un error"
   }
 }

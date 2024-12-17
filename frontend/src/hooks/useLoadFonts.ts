@@ -6,6 +6,7 @@ export const useLoadFonts = () => {
   const [fontsLoaded, fontsError] = useFonts({
     'Pro-Regular': require('../../assets/fonts/Sf-Pro-Regular.otf'),
     'Pro-Bold': require('../../assets/fonts/Sf-Pro-Bold.otf'),
+    'Pro-Medium': require('../../assets/fonts/Sf-Pro-Medium.otf'),
   });
 
   useEffect(() => {

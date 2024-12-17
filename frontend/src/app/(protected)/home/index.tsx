@@ -14,19 +14,30 @@ import {
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
-import Loader from '@/components/Loader';
-import { useAuth } from '@/context/AuthContext';
 import useAuthStore from '@/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
-import React, { Fragment, useEffect } from 'react';
+import React, { Fragment, useEffect, useState } from 'react';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
+import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
+import MessageModal from '@/components/modal/MessageModal';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const [selectedFieldDelete, setSelectedFieldDelete] = useState<{
+    id: string;
+  } | null>(null);
+  const [texts, setTexts] = useState<{
+    title: string;
+    subtitle: string;
+  } | null>(null);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+  const [success, setSucces] = useState<boolean>(false);
   const { onLogout, userId, role, deleted, authLoading, userName } =
     useAuthStore((state) => ({
       role: state.role,
@@ -50,18 +61,27 @@ export default function HomeScreen() {
     onLogout!();
   };
 
-  const deleteButtonAlert = (id: string, name: string) =>
-    Alert.alert(
-      `¿${t('fieldView.deleteAlertTitle')} "${name}"?`,
-      `${t('fieldView.deleteAlertSubTitle')}`,
-      [
-        {
-          text: `${t('fieldView.deleteAlertText')}`,
-          style: 'cancel',
-        },
-        { text: 'OK', onPress: () => onDelete(id) },
-      ]
-    );
+  const deleteButtonAlert = async () => {
+    if (selectedFieldDelete && selectedFieldDelete.id) {
+      try {
+        await onDelete(selectedFieldDelete.id); // Espera a que onDelete sea exitoso
+        setShowModal(false); // Cierra el modal solo si no hubo errores
+        setSucces(true);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+      } catch (error) {
+        setShowModal(false);
+        setSucces(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        console.log('Error en deleteButtonAlert:', error);
+      }
+    }
+  };
 
   const renderRightActions = (progress: any, dragX: any, field: any) => (
     <View style={styles.rightActions}>
@@ -74,7 +94,14 @@ export default function HomeScreen() {
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(field.id, field.name)}
+        onPress={() => {
+          setSelectedFieldDelete({ id: field.id });
+          setTexts({
+            title: `¿${t('fieldView.deleteAlertTitle')} "${field.name}"?`,
+            subtitle: `${t('fieldView.deleteAlertSubTitle')}`,
+          });
+          setShowModal(true);
+        }}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -387,6 +414,20 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
+      <TwoButtonsModal
+        isVisible={showModal}
+        onDismiss={() => setShowModal(false)}
+        title={texts?.title as string}
+        subtitle={texts?.subtitle as string}
+        onPress={() => deleteButtonAlert()}
+        vertical={false}
+        textOkButton={t('fieldView.deleteButton')}
+      />
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 }
