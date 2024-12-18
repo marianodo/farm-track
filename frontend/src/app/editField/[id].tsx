@@ -33,6 +33,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { Field } from '@/store/fieldStore';
+import MessageModal from '@/components/modal/MessageModal';
 
 export default function EditField() {
   const router = useRouter();
@@ -51,7 +52,9 @@ export default function EditField() {
     }));
 
   const { t } = useTranslation();
-
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const mapRef = useRef(null);
 
   // Estado local para guardar los inputs
@@ -178,10 +181,29 @@ export default function EditField() {
   const handlePress = async () => {
     try {
       await onUpdate(id, fieldData as Partial<Field>);
-      alert('Field update successfully');
-      router.back();
+      setMessageModalText(t('fieldView.editFieldSuccess'));
+      setSuccess(true);
+      setShowMessageModal(true);
+      if (Platform.OS === 'ios') {
+        setTimeout(() => {
+          setShowMessageModal(false);
+          setTimeout(() => {
+            router.back();
+          }, 430); // Reduce el tiempo si es necesario
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          setShowMessageModal(false);
+          router.back();
+        }, 2000);
+      }
     } catch (error: any) {
-      alert(error.message);
+      setMessageModalText(t('fieldView.editFieldError'));
+      setSuccess(false);
+      setShowMessageModal(true);
+      setTimeout(() => {
+        setShowMessageModal(false);
+      }, 2000);
     }
   };
 
@@ -414,6 +436,11 @@ export default function EditField() {
           </View>
         </Fragment>
       )}
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 }

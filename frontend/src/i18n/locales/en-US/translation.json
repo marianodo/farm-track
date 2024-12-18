@@ -60,10 +60,14 @@
     "welcome": "Welcome back",
     "fieldText": "Fields",
     "editButton": "Edit",
+    "editFieldSuccess": "Field updated successfully.",
+    "editFieldError": "An a error has occurred while updated the field.",
+    "fieldCreatedText": "Field created successfully.",
+    "fieldCreatedError": "An a error has occurred while creating the field.",
     "deleteButton": "Delete",
     "deleteAlertText": "Cancel",
     "deleteAlertTitle": "You want to delete the",
-    "deleteAlertSubTitle": "If you delete this field, all related pens and reports will be deleted. This action cannot be undone",
+    "deleteAlertSubTitle": "If you delete this field, all related pens and reports will be deleted. This action cannot be undone.",
     "dontFieldMessage": "You haven't created any fields yet. Please add one from the '+' button to get started."
   },
   "detailField": {
@@ -102,7 +106,9 @@
     "editAttributeTextTitle": "Edit variable",
     "updateVariableTextButton": "Update variable",
     "formOkText": "Variable created successfully.",
+    "attributeCreatedError": "An a error has occurred while creating the variable.",
     "formUpdateOkText": "Variable updated successfully.",
+    "editAttributeError": "An a error has occurred while updated the Variable.",
     "unsavedChangesTitle": "Unsaved changes",
     "unsavedChangesMessage": "If you go back now, all your changes will be lost. Are you sure you want to come back?",
     "formErrorText": "Form submission failed. Please fill all field correctly.",
@@ -126,7 +132,7 @@
     },
     "NUMBER": "numerical",
     "CATEGORICAL": "categorical",
-    "cancelButtonText": "Stay and keep editing",
+    "cancelButtonText": "Stay and keep measuring",
     "leaveButtonText": "Go back and lose changes",
     "createButtonText": "Create",
     "updateButtonText": "Update",
@@ -135,13 +141,14 @@
     "modalEditTitle": "Edit attribute",
     "modalEditSubtitle": "Enter the new name of the attribute.",
     "modalSubtitle": "Enter the name of the attribute to create.",
-    "deleteAlertTitle": "Do you want to delete the variable"
+    "deleteAlertTitle": "¿Do you want to delete the variable"
   },
   "penView": {
     "penText": "Pens",
     "createPenTextTitle": "New pen",
     "createPenTextDetail": "Pen details",
     "dontPenMessage": "You haven't created any pens yet. Please add one from the '+' button to get started.",
+    "dontObjectAndAttributeMessage": "Before creating a corral, you must have created at least one object and one attribute.",
     "title": "Create and organize pens",
     "createPenTextButton": "Create pen",
     "deleteAlertTitle": "¿Do you want to delete the pen",
@@ -149,22 +156,28 @@
     "deleteButtonAlertText": "Delete",
     "cancelButtonAlertText": "Cancel",
     "penNamePlaceHolder": "Pen name",
+    "formUpdateOkText": "Pen updated successfully.",
+    "formOkText": "Pen created successfully.",
+    "penCreatedError": "An a error has occurred while creating the Pen.",
+    "editPenError": "An a error has occurred while updated the Pen.",
     "penObjectsPlaceHolder": "Pen objects",
     "penObjectSelectsPlaceHolder": "Selected objects",
     "updatePenTextButton": "Update pen",
+    "editPenTextButton": "Edit pen",
     "updatePenOkText": "Pen updated successfully."
   },
   "reportsView": {
     "reportsText": "Reports",
     "dontPenMessage": "Remember that to create the first report there must be at least one corral.",
     "dontReportMessage": "You haven't created any reports yet. Please add one from the '+' button to get started.",
+    "dontReportAndPenMessage": "Remember that to create the first report there must be at least one corral.",
     "title": "Manage reports",
     "deleteAlertTitle": "¿Do you want to delete the report",
     "deleteAlertSubTitle": "If you delete this report, all related data will be deleted. This action cannot be undone",
     "deleteButtonAlertText": "Delete",
     "cancelButtonAlertText": "Cancel",
     "newReportText": "New report",
-    "detailReportText": "Detalles del reporte",
+    "detailReportText": "Report Details",
     "reportFieldNamePlaceHolder": "Field name",
     "reportDatePlaceHolder": "Report date",
     "reportNamePlaceHolder": "Report name",
@@ -183,7 +196,8 @@
     "variablesSelectedText": "Selected variables",
     "subjectTextInfo": "The name of the object is optional data.",
     "continueButtonTEXT": "Continue",
-    "dropDownDontInfo": "¡don't information available!"
+    "dropDownDontInfo": "¡don't information available!",
+    "exitReportText": "Exit Report"
   },
   "editTypeObject": {
     "title": "Edit object",
@@ -217,5 +231,9 @@
     "ConfirmNewPasswordPlaceHolder": "Confirm password",
     "ChangePasswordText": "Change password",
     "BackToStartText": "Back to start"
+  },
+  "modal": {
+    "successMessage": "Successful Operation",
+    "errorMessage": "Ops.. an error occurred"
   }
 }

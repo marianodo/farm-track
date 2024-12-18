@@ -30,6 +30,7 @@ import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
+import MessageModal from '@/components/modal/MessageModal';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -73,6 +74,13 @@ const CreatePen: React.FC = () => {
     name: null,
     type_of_object_ids: null,
   });
+  // Start modal message
+
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+
+  // End modal message
   const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
@@ -144,19 +152,37 @@ const CreatePen: React.FC = () => {
     if (!validateForm()) {
       try {
         await createPen({ ...formData, fieldId: fieldId as string });
-        alert(t('attributeView.formOkText'));
         setFormData({
           name: null,
           type_of_object_ids: null,
         });
         setItemsValue(undefined);
-        router.back();
+        setMessageModalText(t('penView.formOkText'));
+        setSuccess(true);
+        setShowMessageModal(true);
+        if (Platform.OS === 'ios') {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            setTimeout(() => {
+              router.back();
+            }, 480);
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            router.back();
+          }, 2000);
+        }
       } catch (error) {
-        console.log(error);
-        alert(t('attributeView.formErrorText'));
+        setMessageModalText(t('penView.penCreatedError'));
+        setSuccess(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
       }
     } else {
-      alert(t('attributeView.formErrorText'));
+      alert(t('penView.penCreatedError'));
     }
   };
 
@@ -355,11 +381,16 @@ const CreatePen: React.FC = () => {
         <View style={styles.fixedButtonContainer}>
           <Pressable onPress={handleSubmit} style={styles.button}>
             <Text style={styles.buttonText}>
-              {t('detailField.createFieldText')}
+              {t('penView.createPenTextButton')}
             </Text>
           </Pressable>
         </View>
       </View>
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 };

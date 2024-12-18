@@ -63,7 +63,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error updating object');
+        throw new Error('Error deleting object');
       }
     }
   },

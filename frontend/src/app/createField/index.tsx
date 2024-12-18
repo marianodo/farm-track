@@ -29,6 +29,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
+import MessageModal from '@/components/modal/MessageModal';
 
 export default function CreateField() {
   const router = useRouter();
@@ -42,6 +43,9 @@ export default function CreateField() {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const [ubication, setUbication] = useState({
     origin: {
       latitude: -38.416097, // Coordenadas de Argentina
@@ -229,10 +233,29 @@ export default function CreateField() {
   const handlePress = async () => {
     try {
       await createField(formData);
-      alert('Field created successfully');
-      router.back();
+      setMessageModalText(t('fieldView.fieldCreatedText'));
+      setSuccess(true);
+      setShowMessageModal(true);
+      if (Platform.OS === 'ios') {
+        setTimeout(() => {
+          setShowMessageModal(false);
+          setTimeout(() => {
+            router.back();
+          }, 430);
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          setShowMessageModal(false);
+          router.back();
+        }, 2000);
+      }
     } catch (error: any) {
-      alert(error.message);
+      setMessageModalText(t('fieldView.fieldCreatedError'));
+      setSuccess(false);
+      setShowMessageModal(true);
+      setTimeout(() => {
+        setShowMessageModal(false);
+      }, 2000);
     }
   };
 
@@ -506,6 +529,11 @@ export default function CreateField() {
           </Pressable>
         </View>
       </View>
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 }

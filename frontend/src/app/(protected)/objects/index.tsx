@@ -43,6 +43,8 @@ import Animated, {
 import { useValidationRules } from '@/utils/validation/validationRules';
 import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
+import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
+import MessageModal from '@/components/modal/MessageModal';
 
 interface ListItemProps {
   item: any;
@@ -57,7 +59,16 @@ export default function ObjectScreen() {
     variables: state.variables,
     variableLoading: state.variableLoading,
   }));
-
+  const [selectedObjectDelete, setSelectedObjectDelete] = useState<{
+    id: string;
+  } | null>(null);
+  const [texts, setTexts] = useState<{
+    title: string;
+  } | null>(null);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSucces] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
@@ -224,19 +235,31 @@ export default function ObjectScreen() {
   const { fieldLoading, fieldsByUserId } = useFieldStore((state) => ({
     fieldLoading: state.fieldLoading,
     fieldsByUserId: state.fieldsByUserId,
-    onDelete: state.onDelete,
   }));
 
   const { t } = useTranslation();
 
-  const deleteButtonAlert = (id: string, name: string) =>
-    Alert.alert(`${t('objectView.deleteAlertTitle')} '${name}'?`, undefined, [
-      {
-        text: `${t('fieldView.deleteAlertText')}`,
-        style: 'cancel',
-      },
-      { text: 'OK', onPress: async () => await onDelete(id) },
-    ]);
+  const deleteButtonAlert = async () => {
+    if (selectedObjectDelete && selectedObjectDelete.id) {
+      try {
+        await onDelete(selectedObjectDelete.id); // Espera a que onDelete sea exitoso
+        setShowDeleteModal(false); // Cierra el modal solo si no hubo errores
+        setSucces(true);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+      } catch (error) {
+        setShowDeleteModal(false);
+        setSucces(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        console.log('Error en deleteButtonAlert:', error);
+      }
+    }
+  };
 
   const renderRightActions = (progress: any, dragX: any, object: any) => (
     <View style={styles.rightActions}>
@@ -255,7 +278,13 @@ export default function ObjectScreen() {
       </Pressable>
       <Pressable
         style={styles.deleteButton}
-        onPress={() => deleteButtonAlert(object.id, object.name)}
+        onPress={() => {
+          setSelectedObjectDelete({ id: object.id });
+          setTexts({
+            title: `${t('objectView.deleteAlertTitle')} "${object.name}"?`,
+          });
+          setShowDeleteModal(true);
+        }}
       >
         <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
         <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
@@ -625,6 +654,19 @@ export default function ObjectScreen() {
             />
           </View>
         )}
+        <TwoButtonsModal
+          isVisible={showDeleteModal}
+          onDismiss={() => setShowDeleteModal(false)}
+          title={texts?.title as string}
+          onPress={() => deleteButtonAlert()}
+          vertical={false}
+          textOkButton={t('fieldView.deleteButton')}
+        />
+        <MessageModal
+          isVisible={showMessageModal}
+          message={messageModalText}
+          success={success}
+        />
       </View>
       {/* Modal Edit */}
       <Modal

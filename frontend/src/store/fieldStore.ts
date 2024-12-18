@@ -74,6 +74,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
       }
     } catch (error) {
       console.log('error onDelete Field', error);
+      throw error;
     }
   },
   onUpdate: async (id: string, field: Partial<Field>) => {
@@ -81,6 +82,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
 
     try {
       set({ fieldLoading: true });
+      if (!field) throw new Error('No hay datos para actualizar');
       await axiosInstance.patch(`/fields/${id}`, field);
       const userId = useAuthStore.getState().userId;
       useFieldStore.getState().getFieldsByUser(userId);

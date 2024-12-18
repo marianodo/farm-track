@@ -53,13 +53,22 @@ const useVariableStore = create<VariableState>((set) => ({
     }
   },
   onDelete: async (id: number) => {
+    set({ variablesLoading: true });
     try {
       await axiosInstance.delete(`/variables/${id}`);
       useVariableStore.getState().getAllVariables();
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
     } catch (error: any) {
       set({ variablesLoading: false });
-      console.error('Error deleting variable:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting variable');
+      }
     }
   },
   onUpdate: async (id: number, variable: Partial<VariableWithIds>) => {

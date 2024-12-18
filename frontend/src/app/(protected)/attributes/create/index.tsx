@@ -21,6 +21,7 @@ import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
+import MessageModal from '@/components/modal/MessageModal';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -70,6 +71,14 @@ const CreateAttribute: React.FC = () => {
     type_of_object_ids: null,
   });
   const router = useRouter();
+
+  // Start modal message
+
+  const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(true);
+  const [messageModalText, setMessageModalText] = useState<string | null>(null);
+
+  // End modal message
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
@@ -293,7 +302,6 @@ const CreateAttribute: React.FC = () => {
     if (!validateForm()) {
       try {
         await createVariable(formData);
-        alert(t('attributeView.formOkText'));
         setFormData({
           name: null,
           type: null,
@@ -309,13 +317,32 @@ const CreateAttribute: React.FC = () => {
           type_of_object_ids: null,
         });
         setItemsValue(undefined);
-        router.back();
+        setMessageModalText(t('attributeView.formOkText'));
+        setSuccess(true);
+        setShowMessageModal(true);
+        if (Platform.OS === 'ios') {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            setTimeout(() => {
+              router.back();
+            }, 430);
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            setShowMessageModal(false);
+            router.back();
+          }, 2000);
+        }
       } catch (error) {
-        console.log(error);
-        alert(t('attributeView.formErrorText'));
+        setMessageModalText(t('attributeView.attributeCreatedError'));
+        setSuccess(false);
+        setShowMessageModal(true);
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
       }
     } else {
-      alert(t('attributeView.formErrorText'));
+      alert(t('attributeView.attributeCreatedError'));
     }
   };
 
@@ -898,6 +925,11 @@ const CreateAttribute: React.FC = () => {
           </Pressable>
         </View>
       </View>
+      <MessageModal
+        isVisible={showMessageModal}
+        message={messageModalText}
+        success={success}
+      />
     </View>
   );
 };

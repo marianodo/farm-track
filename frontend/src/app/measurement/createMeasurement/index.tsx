@@ -182,7 +182,7 @@ const CreateMeasurement: React.FC = () => {
           },
         },
         {
-          text: 'Salir del reporte',
+          text: t('measurementView.exitReportText'),
           onPress: () => {
             setModalVisible(null);
             // router.dismiss(3);
