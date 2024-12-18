@@ -13,12 +13,6 @@ DROP INDEX "TypeOfObject_name_key";
 -- DropIndex
 DROP INDEX "Variable_name_key";
 
--- AlterTable
-ALTER TABLE "TypeOfObject" ADD COLUMN     "userId" TEXT NOT NULL;
-
--- AlterTable
-ALTER TABLE "Variable" ADD COLUMN     "userId" TEXT NOT NULL;
-
 -- CreateIndex
 CREATE UNIQUE INDEX "TypeOfObject_name_userId_key" ON "TypeOfObject"("name", "userId");
 
