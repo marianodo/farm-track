@@ -61,7 +61,7 @@ model Field {
 
 model Variable {
   id                Int   @id @default(autoincrement())
-  name              String @unique
+  name              String 
   type              VariableType
   defaultValue      Json
   userId            String
