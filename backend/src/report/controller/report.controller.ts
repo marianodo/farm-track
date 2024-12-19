@@ -20,11 +20,14 @@ import { Report } from '@prisma/client';
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Post()
+  @Post('/byFieldId/:field_id')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createReportDto: CreateReportDto): Promise<Report> {
+  async create(
+    @Param('field_id') field_id: string,
+    @Body() createReportDto: CreateReportDto,
+  ): Promise<Report> {
     try {
-      return await this.reportService.create(createReportDto);
+      return await this.reportService.create(createReportDto, field_id);
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

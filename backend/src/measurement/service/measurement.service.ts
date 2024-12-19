@@ -1,5 +1,5 @@
 import { MeasurementRepository } from '../repository/measurement.repository';
-import { CreateMeasurementDto } from '../dto/create-measurement.dto';
+// import { CreateMeasurementDto } from '../dto/create-measurement.dto';
 import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
 import { Injectable } from '@nestjs/common';
 import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
@@ -23,10 +23,13 @@ export class MeasurementService {
 
   async bulkCreate(createBullkMeasurementDto: CreateBulkMeasurementDto) {
     try {
-      const subject = await this.subjectService.create({
-        name: createBullkMeasurementDto.name,
-        type_of_object_id: createBullkMeasurementDto.type_of_object_id,
-      });
+      const subject = await this.subjectService.create(
+        {
+          name: createBullkMeasurementDto.name,
+          type_of_object_id: createBullkMeasurementDto.type_of_object_id,
+        },
+        createBullkMeasurementDto.field_id,
+      );
       return await this.measurementRepository.bulkCreate({
         subject_id: subject.id,
         type_of_object_id: subject.type_of_object_id,

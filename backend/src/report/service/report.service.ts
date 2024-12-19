@@ -8,14 +8,16 @@ import { Report } from '@prisma/client';
 export class ReportService {
   constructor(private readonly reportRepository: ReportRepository) {}
 
-  async create(createReportDto: CreateReportDto): Promise<Report> {
+  async create(
+    createReportDto: CreateReportDto,
+    field_id: string,
+  ): Promise<Report> {
     try {
-      return await this.reportRepository.create(createReportDto);
+      return await this.reportRepository.create(createReportDto, field_id);
     } catch (error) {
       throw error;
     }
   }
-
   async findAll(field_id: string): Promise<Report[]> {
     try {
       return await this.reportRepository.findAll(field_id);

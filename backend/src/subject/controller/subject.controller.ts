@@ -17,11 +17,14 @@ import { SubjectService } from '../service/subject.service';
 export class SubjectController {
   constructor(private readonly subjectService: SubjectService) {}
 
-  @Post()
+  @Post('/byField/:field_id')
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() createSubjectDto: CreateSubjectDto) {
+  async create(
+    @Param('field_id') field_id: string,
+    @Body() createSubjectDto: CreateSubjectDto,
+  ) {
     try {
-      return await this.subjectService.create(createSubjectDto);
+      return await this.subjectService.create(createSubjectDto, field_id);
     } catch (error) {
       throw error;
     }

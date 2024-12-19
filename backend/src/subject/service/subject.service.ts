@@ -8,14 +8,16 @@ import { SubjectRepository } from '../repository/subject.repository';
 export class SubjectService {
   constructor(private readonly subjectRepository: SubjectRepository) {}
 
-  async create(createSubjectDto: CreateSubjectDto): Promise<Subject> {
+  async create(
+    createSubjectDto: CreateSubjectDto,
+    field_id: string,
+  ): Promise<Subject> {
     try {
-      return await this.subjectRepository.create(createSubjectDto);
+      return await this.subjectRepository.create(createSubjectDto, field_id);
     } catch (error) {
       throw error;
     }
   }
-
   async findAll(): Promise<Subject[]> {
     try {
       return await this.subjectRepository.findAll();
