@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,6 +5,143 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String         @id @default(uuid())
+  username           String
+  email              String         @unique
+  password           String
+  is_verified        Boolean        @default(false)
+  role               Role           @default(USER)
+  verification_token String?
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+  fields             Field[]
+  type_of_objects    TypeOfObject[]
+  variables          Variable[]
+
+  @@index([created_at, updated_at])
+}
+
+model Field {
+  id                String   @id @default(uuid())
+  name              String
+  description       String?
+  location          String?
+  latitude          Float?
+  longitude         Float?
+  production_type   String?
+  number_of_animals Int?
+  userId            String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pens              Pen[]
+  reports           Report[]
+
+  @@unique([name, userId])
+}
+
+model Variable {
+  id                           Int                       @id @default(autoincrement())
+  name                         String                    
+  type                         VariableType
+  defaultValue                 Json
+  userId                       String
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
+  type_of_objects              TypeOfObject_Variable[]
+  user                         User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
+}
+
+model TypeOfObject {
+  id                           Int                       @id @default(autoincrement())
+  name                         String                    
+  userId                       String
+  pens                         PenTypeOfObject[]
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
+  subjects                     Subject[]
+  user                         User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variables                    TypeOfObject_Variable[]
+
+  @@unique([name, userId])
+}
+
+model Pen {
+  id                           Int                       @id @default(autoincrement())
+  name                         String
+  fieldId                      String
+  field                        Field                     @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  type_of_objects              PenTypeOfObject[]
+  pen_variable_type_of_objects PenVariableTypeOfObject[]
+
+  @@unique([name, fieldId])
+}
+
+model Subject {
+  id                Int           @id @default(autoincrement())
+  name              String?
+  type_of_object_id Int
+  measurement       Measurement[]
+  type_of_object    TypeOfObject  @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade)
+}
+
+model Measurement {
+  id                             Int                     @id @default(autoincrement())
+  pen_variable_type_of_object_id Int
+  value                          String
+  report_id                      Int
+  subject_id                     Int
+  created_at                     DateTime                @default(now())
+  updated_at                     DateTime                @updatedAt
+  pen_variable_type_of_object    PenVariableTypeOfObject @relation(fields: [pen_variable_type_of_object_id], references: [id])
+  report                         Report                  @relation(fields: [report_id], references: [id], onDelete: Cascade)
+  subject                        Subject                 @relation(fields: [subject_id], references: [id], onDelete: Cascade)
+}
+
+model Report {
+  id           Int           @id @default(autoincrement())
+  name         String?
+  comment      String?
+  field_id     String
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  measurements Measurement[]
+  field        Field         @relation(fields: [field_id], references: [id], onDelete: Cascade)
+}
+
+model PenTypeOfObject {
+  penId          Int
+  typeOfObjectId Int
+  pen            Pen          @relation(fields: [penId], references: [id], onDelete: Cascade)
+  type_of_object TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade)
+
+  @@id([penId, typeOfObjectId])
+}
+
+model TypeOfObject_Variable {
+  type_of_object_id Int
+  variable_id       Int
+  type_of_object    TypeOfObject @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade)
+  variable          Variable     @relation(fields: [variable_id], references: [id], onDelete: Cascade)
+
+  @@id([type_of_object_id, variable_id])
+}
+
+model PenVariableTypeOfObject {
+  penId             Int
+  variableId        Int
+  typeOfObjectId    Int
+  custom_parameters Json
+  id                Int           @id @default(autoincrement())
+  measurements      Measurement[]
+  pen               Pen           @relation(fields: [penId], references: [id], onDelete: Cascade)
+  type_of_object    TypeOfObject  @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade)
+  variable          Variable      @relation(fields: [variableId], references: [id], onDelete: Cascade)
+
+  @@unique([penId, variableId, typeOfObjectId])
 }
 
 enum Role {
@@ -22,148 +153,3 @@ enum VariableType {
   NUMBER
   CATEGORICAL
 }
-
-model User {
-  id                 String   @id @default(uuid())
-  username           String
-  email              String   @unique
-  password           String
-  is_verified        Boolean  @default(false)
-  role               Role     @default(USER)
-  verification_token String?
-  fields             Field[]
-  variables          Variable[]
-  type_of_objects    TypeOfObject[]
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-
-  @@index([created_at, updated_at])
-}
-
-model Field {
-  id                String   @id @default(uuid())
-  name              String
-  description       String?
-  location          String?  
-  latitude          Float?
-  longitude         Float?
-  production_type   String?
-  number_of_animals Int?
-  userId            String
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  pens              Pen[]
-  reports           Report[]
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-
-  @@unique([name, userId])
-}
-
-model Variable {
-  id                Int   @id @default(autoincrement())
-  name              String @unique
-  type              VariableType
-  defaultValue      Json
-  userId            String
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_objects    TypeOfObject_Variable[]
-  pen_variable_type_of_objects PenVariableTypeOfObject[]
-}
-model TypeOfObject {
-  id                Int   @id @default(autoincrement())
-  name              String @unique
-  variables         TypeOfObject_Variable[]
-  pens              PenTypeOfObject[]
-  userId            String
-  user              User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  pen_variable_type_of_objects PenVariableTypeOfObject[]
-  subjects          Subject[]
-}
-model Pen {
-  id        Int    @id @default(autoincrement())
-  name      String
-  fieldId   String
-  field     Field  @relation(fields: [fieldId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_objects     PenTypeOfObject[]
-  pen_variable_type_of_objects PenVariableTypeOfObject[]
-
-  @@unique([name, fieldId])
-
-}
-
-model Subject {
-  id                Int          @id @default(autoincrement())
-  name              String?      
-  type_of_object_id Int
-  type_of_object      TypeOfObject @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  measurement       Measurement[]
-}
-
-model Measurement {
-  id             Int      @id @default(autoincrement())
-  pen_variable_type_of_object_id Int
-  pen_variable_type_of_object PenVariableTypeOfObject @relation(fields: [pen_variable_type_of_object_id], references: [id])
-  value          String   
-  report_id      Int
-  report         Report   @relation(fields: [report_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  subject_id     Int
-  subject        Subject  @relation(fields: [subject_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-}
-
-model Report {
-  id            Int          @id @default(autoincrement())
-  name          String?    
-  comment       String?      
-  field_id      String
-  field         Field @relation(fields: [field_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  measurements  Measurement[]
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
-}
-
-model PenTypeOfObject {
-  penId             Int
-  typeOfObjectId    Int
-  pen               Pen                @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_object      TypeOfObject       @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  @@id([penId, typeOfObjectId])
-}
-
-model TypeOfObject_Variable {
-  type_of_object TypeOfObject @relation(fields: [type_of_object_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_object_id Int
-  variable       Variable @relation(fields: [variable_id ], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  variable_id     Int
-
-  @@id([type_of_object_id, variable_id])
-}
-
-model PenVariableTypeOfObject {
-  id               Int      @id @default(autoincrement())
-  penId            Int
-  variableId       Int
-  typeOfObjectId   Int
-  custom_parameters Json
-  pen              Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  variable         Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  type_of_object   TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  measurements     Measurement[]
-
-  @@unique([penId, variableId, typeOfObjectId])
-}
-
-// model PenVariableTypeOfObject {
-//   penId             Int
-//   variableId        Int
-//   typeOfObjectId    Int
-//   custom_parameters Json
-//   pen               Pen          @relation(fields: [penId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   variable          Variable     @relation(fields: [variableId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   type_of_object    TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-//   measurements    Measurement[]
-
-//   @@id([penId, variableId, typeOfObjectId])
-// }
