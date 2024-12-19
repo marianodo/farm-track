@@ -115,8 +115,6 @@ model Report {
   updated_at   DateTime      @updatedAt
   measurements Measurement[]
   field        Field         @relation(fields: [field_id], references: [id], onDelete: Cascade)
-
-  @@unique([id, field_id])
 }
 
 model PenTypeOfObject {
