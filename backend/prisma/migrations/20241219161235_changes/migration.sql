@@ -21,12 +21,6 @@ ALTER TABLE "TypeOfObject" ADD COLUMN     "userId" TEXT NOT NULL;
 ALTER TABLE "Variable" ADD COLUMN     "userId" TEXT NOT NULL;
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Report_id_field_id_key" ON "Report"("id", "field_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "TypeOfObject_name_userId_key" ON "TypeOfObject"("name", "userId");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Variable_name_userId_key" ON "Variable"("name", "userId");
 
 -- AddForeignKey
