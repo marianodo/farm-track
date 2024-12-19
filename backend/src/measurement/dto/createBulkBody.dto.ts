@@ -21,6 +21,10 @@ export class CreateBulkMeasurementDto {
   @IsOptional()
   subject_id?: number;
 
+  @IsString()
+  @IsNotEmpty()
+  field_id?: string;
+
   @IsNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => MeasurementDTO)

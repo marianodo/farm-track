@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional } from 'class-validator';
 
 export class CreateReportDto {
   @IsString()
@@ -9,7 +9,7 @@ export class CreateReportDto {
   @IsOptional()
   comment?: string;
 
-  @IsString()
-  @IsNotEmpty()
-  field_id: string;
+  // @IsString()
+  // @IsNotEmpty()
+  // field_id: string;
 }
