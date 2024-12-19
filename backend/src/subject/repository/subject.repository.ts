@@ -12,23 +12,43 @@ import {
 @Injectable()
 export class SubjectRepository {
   constructor(private readonly db: PrismaService) {}
-
-  async create(createSubjectDto: CreateSubjectDto): Promise<Subject> {
+  async create(
+    createSubjectDto: CreateSubjectDto,
+    field_id: string,
+  ): Promise<Subject> {
     try {
-      const newSubject = await this.db.subject.create({
-        data: createSubjectDto,
+      return await this.db.$transaction(async (prisma) => {
+        //consultar ultimo reporte por id de campo
+        const lastSubject = await prisma.subject.findFirst({
+          where: { field_id: field_id },
+          orderBy: { correlative_id: 'desc' },
+        });
+
+        console.log('LAST SUBJECT', lastSubject);
+        // Calcular el siguiente ID
+        const nextId = lastSubject ? lastSubject.correlative_id + 1 : 1;
+        const newSubject = {
+          ...createSubjectDto,
+          correlative_id: nextId,
+          field_id: field_id,
+        };
+        return await this.db.subject.create({
+          data: newSubject,
+        });
       });
-      return newSubject;
     } catch (error) {
+      console.log('ERRORRRRR:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
+          // Código de error para violaciones de restricciones únicas
           throw new BadRequestException(
-            'A subject with this ID already exists.',
+            'A report with this ID already exists for the field.',
           );
         }
       }
+
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating the subject.',
+        'An unexpected error occurred while creating the report.',
       );
     }
   }
