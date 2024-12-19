@@ -18,9 +18,3 @@ CREATE UNIQUE INDEX "TypeOfObject_name_userId_key" ON "TypeOfObject"("name", "us
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Variable_name_userId_key" ON "Variable"("name", "userId");
-
--- AddForeignKey
-ALTER TABLE "Variable" ADD CONSTRAINT "Variable_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "TypeOfObject" ADD CONSTRAINT "TypeOfObject_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
