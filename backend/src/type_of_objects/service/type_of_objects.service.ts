@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import { TypeOfObjectsRepository } from '../repository/type_of_objects.repository';
+import { FieldConfig } from 'src/utils/field-config';
 
 @Injectable()
 export class TypeOfObjectsService {
@@ -13,6 +14,22 @@ export class TypeOfObjectsService {
       userId,
       createTypeOfObjectDto,
     );
+  }
+
+  async createTypesOfObjects(
+    fieldConfig: FieldConfig,
+    userId: string,
+    transaction: any,
+  ) {
+    try {
+      await this.typeOfObjectsRepository.createTypesOfObjects(
+        fieldConfig,
+        userId,
+        transaction,
+      );
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAll() {

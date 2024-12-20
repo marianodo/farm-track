@@ -7,7 +7,7 @@ import {
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Measurement, Prisma } from '@prisma/client';
 import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
-import { CreateMeasurementDto } from '../dto/create-measurement.dto';
+// import { CreateMeasurementDto } from '../dto/create-measurement.dto';
 import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
 import { UpdateBulkMeasurementDto } from '../dto/updateBulkBody.dto';
 

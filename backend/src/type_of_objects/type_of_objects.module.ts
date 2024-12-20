@@ -4,8 +4,10 @@ import { TypeOfObjectsController } from './controller/type_of_objects.controller
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TypeOfObjectsRepository } from './repository/type_of_objects.repository';
 import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
+import { VariableModule } from 'src/variable/variable.module';
 
 @Module({
+  imports: [VariableModule],
   controllers: [TypeOfObjectsController],
   providers: [
     TypeOfObjectsService,
@@ -13,5 +15,6 @@ import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-obje
     PenVariableTypeOfObjectRepository,
     PrismaService,
   ],
+  exports: [TypeOfObjectsService],
 })
 export class TypeOfObjectsModule {}

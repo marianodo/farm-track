@@ -10,7 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { FieldService } from '../service/field.service';
-import { CreateFieldDto } from '../dto/create-field.dto';
+// import { CreateFieldDto } from '../dto/create-field.dto';
 import { UpdateFieldDto } from '../dto/update-field.dto';
 
 @Controller('fields')
@@ -19,9 +19,10 @@ export class FieldController {
 
   @HttpCode(HttpStatus.CREATED)
   @Post()
-  async create(@Body() createFieldDto: CreateFieldDto) {
+  async create(@Body() body: any) {
+    const { autoConfig, ...createFieldDto } = body;
     try {
-      return await this.fieldService.create(createFieldDto);
+      return await this.fieldService.create(createFieldDto, autoConfig);
     } catch (error) {
       throw error;
     }

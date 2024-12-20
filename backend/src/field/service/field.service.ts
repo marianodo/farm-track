@@ -9,9 +9,12 @@ import { FieldWithoutMeta } from '../types/field.types';
 export class FieldService {
   constructor(private readonly fieldRepository: FieldRepository) {}
 
-  async create(createFieldDto: CreateFieldDto): Promise<Field> {
+  async create(
+    createFieldDto: CreateFieldDto,
+    autoConfig: boolean,
+  ): Promise<Field> {
     try {
-      return await this.fieldRepository.create(createFieldDto);
+      return await this.fieldRepository.create(createFieldDto, autoConfig);
     } catch (error) {
       throw error;
     }
