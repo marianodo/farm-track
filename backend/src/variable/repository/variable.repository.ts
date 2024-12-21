@@ -15,6 +15,57 @@ import prismaMiddleware from 'prisma/prisma.extensions';
 export class VariableRepository {
   constructor(private readonly db: PrismaService) {}
 
+  async createVariables(
+    variables: any,
+    typeOfObjectId: number,
+    userId: string,
+    transaction: Prisma.TransactionClient,
+  ) {
+    const existingVariables = await transaction.variable.findMany({
+      where: {
+        name: { in: variables.map((variable) => variable.name) },
+        userId,
+      },
+    });
+
+    const existingVariablesMap = existingVariables.reduce((map, variable) => {
+      map[variable.name] = variable.id;
+      return map;
+    }, {});
+
+    // Crear las variables
+    for (const variable of variables) {
+      if (!existingVariablesMap[variable.name]) {
+        const createdVariable = await transaction.variable.create({
+          data: {
+            name: variable.name,
+            type: variable.type,
+            defaultValue: variable.defaultValue,
+            user: { connect: { id: userId } },
+            type_of_objects: {
+              create: [{ type_of_object: { connect: { id: typeOfObjectId } } }],
+            },
+          },
+        });
+
+        const uniqueCombinations = await this.findUniqueCombinations([
+          typeOfObjectId,
+        ]);
+
+        for (const combination of uniqueCombinations) {
+          await transaction.penVariableTypeOfObject.create({
+            data: {
+              penId: combination.penId,
+              variableId: createdVariable.id,
+              typeOfObjectId: typeOfObjectId,
+              custom_parameters: createdVariable.defaultValue,
+            },
+          });
+        }
+      }
+    }
+  }
+
   async create(userId: string, createVariableDto: CreateVariableDto) {
     const { type_of_object_ids, ...variableData } = createVariableDto;
     try {

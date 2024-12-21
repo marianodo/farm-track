@@ -7,5 +7,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Module({
   controllers: [VariableController],
   providers: [VariableService, VariableRepository, PrismaService],
+  exports: [VariableService],
 })
 export class VariableModule {}

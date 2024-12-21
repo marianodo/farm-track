@@ -10,12 +10,15 @@ import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import prismaMiddleware from 'prisma/prisma.extensions';
 import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
+import { FieldConfig } from 'src/utils/field-config';
+import { VariableService } from 'src/variable/service/variable.service';
 
 @Injectable()
 export class TypeOfObjectsRepository {
   constructor(
     private readonly db: PrismaService,
     private readonly penVariableTypeOfObjectRepository: PenVariableTypeOfObjectRepository,
+    private readonly variableService: VariableService,
   ) {}
 
   async create(userId: string, createTypeOfObjectDto: CreateTypeOfObjectDto) {
@@ -60,6 +63,56 @@ export class TypeOfObjectsRepository {
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating the type_of_object.',
       );
+    }
+  }
+
+  async createTypesOfObjects(
+    fieldConfig: FieldConfig,
+    userId: string,
+    transaction: any,
+  ) {
+    try {
+      // Obtener los tipos de objetos existentes
+      const existingTypes = await transaction.typeOfObject.findMany({
+        where: {
+          name: { in: fieldConfig.typesOfObjects.map((type) => type.name) },
+          userId,
+        },
+      });
+
+      const existingTypesMap = existingTypes.reduce((map, type) => {
+        map[type.name] = type.id;
+        return map;
+      }, {});
+
+      // Crear tipos de objetos
+      for (const type of fieldConfig.typesOfObjects) {
+        let typeId = existingTypesMap[type.name];
+        if (!typeId) {
+          const createdType = await transaction.typeOfObject.create({
+            data: {
+              name: type.name,
+              user: { connect: { id: userId } },
+            },
+          });
+          typeId = createdType.id;
+        }
+
+        // Filtrar las variables que corresponden al tipo actual.
+        const variablesForType = fieldConfig.variables.filter(
+          (variable) => variable.associatedTypeOfObject === type.name,
+        );
+
+        // Se usa el servicio de variables.
+        await this.variableService.createVariables(
+          variablesForType,
+          typeId,
+          userId,
+          transaction,
+        );
+      }
+    } catch (error) {
+      throw error;
     }
   }
 

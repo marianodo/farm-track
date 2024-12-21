@@ -14,6 +14,19 @@ export class VariableService {
     }
   }
 
+  async createVariables(variablesForType, typeId, userId, transaction) {
+    try {
+      return await this.variableRepository.createVariables(
+        variablesForType,
+        typeId,
+        userId,
+        transaction,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findVariablesByTypeObjectId(id: number) {
     try {
       return await this.variableRepository.findVariablesByTypeObjectId(id);
