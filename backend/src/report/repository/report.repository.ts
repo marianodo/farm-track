@@ -13,20 +13,38 @@ import {
 export class ReportRepository {
   constructor(private readonly db: PrismaService) {}
 
-  async create(createReportDto: CreateReportDto): Promise<Report> {
+  async create(
+    createReportDto: CreateReportDto,
+    field_id: string,
+  ): Promise<Report> {
     try {
-      const newReport = await this.db.report.create({
-        data: createReportDto,
+      return await this.db.$transaction(async (prisma) => {
+        //consultar ultimo reporte por id de campo
+        const lastReport = await prisma.report.findFirst({
+          where: { field_id: field_id },
+          orderBy: { correlative_id: 'desc' },
+        });
+        // Calcular el siguiente ID
+        const nextId = lastReport ? lastReport.correlative_id + 1 : 1;
+        const newReport = {
+          ...createReportDto,
+          correlative_id: nextId,
+          field_id: field_id,
+        };
+        return await this.db.report.create({
+          data: newReport,
+        });
       });
-      return newReport;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
+          // Código de error para violaciones de restricciones únicas
           throw new BadRequestException(
-            'A report with this ID already exists.',
+            'A report with this ID already exists for the field.',
           );
         }
       }
+
       throw new InternalServerErrorException(
         'An unexpected error occurred while creating the report.',
       );
@@ -186,6 +204,7 @@ export class ReportRepository {
     try {
       await this.db.report.deleteMany();
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException(
         'An unexpected error occurred while deleting all reports.',
       );
