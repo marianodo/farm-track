@@ -46,7 +46,7 @@ model Field {
 
 model Variable {
   id                           Int                       @id @default(autoincrement())
-  name                         String                    @unique
+  name                         String                    
   type                         VariableType
   defaultValue                 Json
   userId                       String
@@ -59,7 +59,7 @@ model Variable {
 
 model TypeOfObject {
   id                           Int                       @id @default(autoincrement())
-  name                         String                    @unique
+  name                         String                    
   userId                       String
   pens                         PenTypeOfObject[]
   pen_variable_type_of_objects PenVariableTypeOfObject[]

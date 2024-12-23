@@ -98,7 +98,7 @@ export default function CreateField() {
     latitude: ubication.userLocation.latitude,
     longitude: ubication.userLocation.longitude,
     production_type: value,
-    number_of_animals: inputsData.number_of_animals.value,
+    number_of_animals: +inputsData.number_of_animals.value,
     userId: userId,
     // userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
   };

@@ -22,6 +22,7 @@ export class FieldRepository {
     createFieldDto: CreateFieldDto,
     autoConfig: boolean,
   ): Promise<Field> {
+    console.log('autoConfig: ' + autoConfig);
     if (autoConfig) {
       return this.createFieldWithAutoConfig(createFieldDto);
     }
@@ -37,6 +38,7 @@ export class FieldRepository {
       });
       return newField;
     } catch (error) {
+      console.log('ERROR: ' + error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new BadRequestException(

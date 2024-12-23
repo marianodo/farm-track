@@ -14,6 +14,7 @@ import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 const StackLayout = () => {
   const { fontsLoaded } = useLoadFonts();
   const colorScheme = useColorScheme();
@@ -31,6 +32,7 @@ const StackLayout = () => {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <PaperProvider>
           <SafeAreaView style={{ flex: 1 }}>
+            <StatusBar style={'light'} />
             <Stack
               screenOptions={{
                 // statusBarBackgroundColor:

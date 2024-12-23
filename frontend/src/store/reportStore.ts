@@ -16,7 +16,7 @@ interface ReportState {
   measurementVariablesData: MeasurementData[] | null;
   measurementEditData: MeasurementEditData[] | null;
   reportsLoading: boolean;
-  createReport: (report: Report) => Promise<void>;
+  createReport: (report: Report, field_id: string) => Promise<void>;
   onDelete: (id: number, fieldId: string) => Promise<void>;
   onUpdate: (report_id: number, measurementsUpdates: any) => Promise<void>;
   update: (
@@ -49,17 +49,31 @@ const useReportStore = create<ReportState>((set) => ({
   reportByIdNameAndComment: null,
   measurementVariablesData: null,
   measurementEditData: null,
-  createReport: async (report: CreateReport): Promise<void> => {
+  createReport: async (
+    report: CreateReport,
+    field_id: string
+  ): Promise<void> => {
     set({ reportsLoading: true });
     try {
-      const response = await axiosInstance.post('/reports', report);
+      const response = await axiosInstance.post(
+        `/reports/byFieldId/${field_id}`,
+        report
+      );
       const newReport = response.data;
-      useReportStore.getState().getAllReportsByField(report.field_id);
+      useReportStore.getState().getAllReportsByField(field_id);
       //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ reportsLoading: false, createReportId: newReport.id });
     } catch (error: any) {
       set({ reportsLoading: false });
-      console.error('Error creating report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error creating report');
+      }
     }
   },
   onDelete: async (id: number, fieldId: string) => {
@@ -69,7 +83,15 @@ const useReportStore = create<ReportState>((set) => ({
       useReportStore.getState().getAllReportsByField(fieldId);
     } catch (error: any) {
       set({ reportsLoading: false });
-      console.error('Error deleting report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting report');
+      }
     }
   },
 
@@ -81,7 +103,15 @@ const useReportStore = create<ReportState>((set) => ({
       useReportStore.getState().getReportById(report_id);
     } catch (error: any) {
       set({ reportsLoading: false });
-      console.error('Error deleting report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting measurement');
+      }
     }
   },
 
@@ -97,7 +127,15 @@ const useReportStore = create<ReportState>((set) => ({
     } catch (error: any) {
       console.log(error?.response.message);
       set({ reportsLoading: false });
-      console.error('Error updating report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error update measurement');
+      }
     }
   },
 
@@ -110,7 +148,15 @@ const useReportStore = create<ReportState>((set) => ({
     } catch (error: any) {
       console.log(error?.response.message);
       set({ reportsLoading: false });
-      console.error('Error updating report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error updating report');
+      }
     }
   },
   getAllReportsByField: async (field_id) => {
@@ -124,9 +170,17 @@ const useReportStore = create<ReportState>((set) => ({
         },
         reportsLoading: false,
       }));
-    } catch (error) {
+    } catch (error: any) {
       set({ reportsLoading: false });
-      console.error('Error fetching reports:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error fetch report');
+      }
     }
   },
   getReportById: async (id: number | null, onlyNameAndComment?: string) => {
@@ -150,7 +204,15 @@ const useReportStore = create<ReportState>((set) => ({
     } catch (error: any) {
       console.log(error?.response);
       set({ reportsLoading: false });
-      console.error('Error fetching report by ID:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error fetch report id');
+      }
     }
   },
   resetDetail: () => {
@@ -201,7 +263,15 @@ const useReportStore = create<ReportState>((set) => ({
       set({ reportsLoading: false });
     } catch (error: any) {
       set({ reportsLoading: false });
-      console.error('Error creating report:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error creating measurement with report id');
+      }
     }
   },
   getMeasurementEditData: async (report_id, subject_id) => {
@@ -214,7 +284,15 @@ const useReportStore = create<ReportState>((set) => ({
     } catch (error: any) {
       console.log(error?.response);
       set({ reportsLoading: false });
-      console.error('Error fetching report by ID:', error);
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error fetch measurement data');
+      }
     }
   },
   clearReports: () => {

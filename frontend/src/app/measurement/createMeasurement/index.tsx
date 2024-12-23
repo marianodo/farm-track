@@ -144,6 +144,7 @@ const CreateMeasurement: React.FC = () => {
     const newMeasurement = {
       name: formData.name,
       type_of_object_id: typeOfObjectId,
+      field_id: fieldId,
       measurements: Object.entries(values)
         .filter(([key, value]) => value !== null)
         .map(([key, value]) => ({
@@ -490,7 +491,7 @@ const CreateMeasurement: React.FC = () => {
             </Pressable>
             <View>
               <Text style={styles.welcome}>
-                {t('reportsView.newReportText')}
+                {t('measurementView.newMeasurementText')}
               </Text>
             </View>
           </View>

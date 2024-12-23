@@ -24,8 +24,6 @@ export class SubjectRepository {
           where: { field_id: field_id },
           orderBy: { correlative_id: 'desc' },
         });
-
-        console.log('LAST SUBJECT', lastSubject);
         // Calcular el siguiente ID
         const nextId = lastSubject ? lastSubject.correlative_id + 1 : 1;
         const newSubject = {
@@ -38,7 +36,7 @@ export class SubjectRepository {
         });
       });
     } catch (error) {
-      console.log('ERRORRRRR:', error);
+      console.log('ERROR:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           // Código de error para violaciones de restricciones únicas

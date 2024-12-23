@@ -202,7 +202,8 @@ const ReportDetail: React.FC<PenListProps> = ({
                 width: isExpanded ? '64%' : '90%',
               }}
             >
-              {item.type_of_object.name} - {item.name ? item.name : item.id}
+              {item.type_of_object.name} -{' '}
+              {item.name ? item.name : item.correlative_id}
             </Text>
             <View
               style={{

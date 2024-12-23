@@ -57,6 +57,8 @@ interface PenListProps {
   setSelectedPenDelete: any;
   setShowModal: any;
   setTexts: any;
+  typeOfObjects: any;
+  variables: any;
 }
 
 const PenList: React.FC<PenListProps> = ({
@@ -70,6 +72,8 @@ const PenList: React.FC<PenListProps> = ({
   styles,
   fieldId,
   setTexts,
+  typeOfObjects,
+  variables,
 }) => {
   const { pensLoading } = usePenStore((state) => ({
     pensLoading: state.pensLoading,
@@ -269,7 +273,49 @@ const PenList: React.FC<PenListProps> = ({
     );
   };
 
-  return !pens?.length ? (
+  return !typeOfObjects?.length || !variables?.length ? (
+    <View
+      style={{
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <View
+        style={{
+          width: '90%',
+          backgroundColor: '#f5ead2',
+          height: rMV(44),
+          borderRadius: rMS(6),
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: rMV(20),
+          display: 'flex',
+          flexDirection: 'row',
+          paddingRight: rMS(12),
+        }}
+      >
+        <IconButton
+          icon={'alert-circle-outline'}
+          iconColor="#d9a220"
+          size={rMS(20)}
+          style={{ margin: 0 }}
+        />
+        <Text
+          style={{
+            color: '#d9a220',
+            fontFamily: 'Pro-Regular',
+            fontSize: rMS(10),
+            flexShrink: 1,
+            flexWrap: 'wrap',
+            textAlign: 'center',
+          }}
+        >
+          {t('penView.dontObjectAndAttributeMessage')}
+        </Text>
+      </View>
+    </View>
+  ) : !pens?.length ? (
     <View
       style={{
         width: '100%',
@@ -321,7 +367,6 @@ const PenList: React.FC<PenListProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 1000,

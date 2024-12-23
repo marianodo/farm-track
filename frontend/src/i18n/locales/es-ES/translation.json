@@ -182,6 +182,7 @@
     "reportFieldNamePlaceHolder": "Nombre del campo",
     "reportDatePlaceHolder": "Fecha del reporte",
     "reportNamePlaceHolder": "Nombre del reporte",
+    "reportIdPlaceHolder": "ID del reporte",
     "reportObservationsPlaceHolder": "Observaciones",
     "reportListNameText": "Reporte",
     "createReportInfoText": "El nombre y las observaciones del reporte son opcionales.",

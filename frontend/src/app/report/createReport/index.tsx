@@ -54,7 +54,6 @@ type DefaultParameters = {
 type FormData = {
   name: string | null;
   comment: string | null;
-  field_id: string;
 };
 
 type FormDataError = {
@@ -94,7 +93,6 @@ const CreateReport: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: null,
     comment: null,
-    field_id: fieldId as string,
   });
 
   const validateForm = () => {
@@ -117,10 +115,9 @@ const CreateReport: React.FC = () => {
     // }
     setFormData({ ...formData, [field]: inputValue });
   };
-
   const handleSubmit = async () => {
     try {
-      await createReport(formData);
+      await createReport(formData, fieldId);
       router.push({
         pathname: `/measurement`,
         params: {

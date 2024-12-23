@@ -226,7 +226,7 @@ const CreatePen: React.FC = () => {
       editNewsMeasurements();
       setModalVisible('success');
     } catch (error) {
-      console.log('ERROR2:', error);
+      console.log('ERROR:', error);
     }
   };
 

@@ -231,7 +231,13 @@ export default function PenScreen() {
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(typeOfObjects) &&
+      {!(
+        pens &&
+        pens[`${fieldId}`] &&
+        !pens[`${fieldId}`].length &&
+        penOrReportSelect !== 'pens'
+      ) && // Esta es la condición independiente
+        Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
         Array.isArray(variables) &&
         variables.length > 0 &&
@@ -407,7 +413,8 @@ export default function PenScreen() {
             setExpandedItems={setPenExpandedItems}
             rMS={rMS}
             setTexts={setTexts}
-            fieldId={fieldId as string}
+            typeOfObjects={typeOfObjects}
+            variables={variables}
             styles={styles}
             setSelectedPenDelete={setSelectedPenDelete}
             setShowModal={setShowModal}
@@ -415,6 +422,7 @@ export default function PenScreen() {
         ) : (
           <ReportList
             reports={reportsByFielId && reportsByFielId[`${fieldId}`]}
+            pens={pens && pens[`${fieldId}`]}
             expandedItems={reportExpandedItems}
             toggleExpand={toggleExpand}
             setExpandedItems={setReportExpandedItems}
