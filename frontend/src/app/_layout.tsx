@@ -32,7 +32,7 @@ const StackLayout = () => {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <PaperProvider>
           <SafeAreaView style={{ flex: 1 }}>
-            <StatusBar style={'light'} />
+            {/* <StatusBar style={'light'} /> */}
             <Stack
               screenOptions={{
                 // statusBarBackgroundColor:

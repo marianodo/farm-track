@@ -30,6 +30,9 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
 import MessageModal from '@/components/modal/MessageModal';
+import OneButtonModal from '@/components/modal/OneButtonModal';
+import useVariableStore from '@/store/variableStore';
+import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 
 export default function CreateField() {
   const router = useRouter();
@@ -43,8 +46,12 @@ export default function CreateField() {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(true);
+  const [oneButtonOnPress, setOneButtonOnPress] = useState<() => void>(
+    () => () => {}
+  );
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const [ubication, setUbication] = useState({
     origin: {
@@ -100,6 +107,7 @@ export default function CreateField() {
     production_type: value,
     number_of_animals: +inputsData.number_of_animals.value,
     userId: userId,
+    autoConfig: true,
     // userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
   };
   const [open, setOpen] = useState(false);
@@ -116,6 +124,13 @@ export default function CreateField() {
   ]);
 
   const [lang, setLang] = useState<any>('');
+  const { getAllVariables } = useVariableStore((state: any) => ({
+    getAllVariables: state.getAllVariables,
+  }));
+
+  const { getAllTypeOfObjects } = useTypeOfObjectStore((state: any) => ({
+    getAllTypeOfObjects: state.getAllTypeOfObjects,
+  }));
 
   const onDragEndChange = async (coordinate) => {
     try {
@@ -230,29 +245,67 @@ export default function CreateField() {
     }));
   };
 
+  const validateFormData = (
+    data: Partial<Omit<FiledWithUserId, 'id'>>
+  ): boolean => {
+    const requiredProperties = ['name', 'description', 'production_type'];
+
+    return requiredProperties.every((prop) => {
+      const value = data[prop as keyof typeof data];
+
+      if (typeof value === 'string') {
+        return value.trim().length > 0;
+      }
+      if (typeof value === 'number') {
+        return value !== 0;
+      }
+      return !!value;
+    });
+  };
+
   const handlePress = async () => {
     try {
-      await createField(formData);
-      setMessageModalText(t('fieldView.fieldCreatedText'));
-      setSuccess(true);
-      setShowMessageModal(true);
-      if (Platform.OS === 'ios') {
+      if (!validateFormData(formData)) {
+        setMessageModalText('Por favor completa todos los campos requeridos.');
+        setSuccess(false);
+        setShowMessageModal(true);
         setTimeout(() => {
           setShowMessageModal(false);
-          setTimeout(() => {
-            router.back();
-          }, 430);
         }, 2000);
-      } else {
-        setTimeout(() => {
-          setShowMessageModal(false);
-          router.back();
-        }, 2000);
+        return;
       }
+      await createField(formData);
+      setShowModal(true);
+      const handleOneButtonPress = () => {
+        setShowModal(false);
+        setMessageModalText(t('fieldView.fieldCreatedText'));
+        setSuccess(true);
+        setShowMessageModal(true);
+        if (Platform.OS === 'ios') {
+          setTimeout(() => {
+            getAllVariables();
+            getAllTypeOfObjects();
+            setShowMessageModal(false);
+            setTimeout(() => {
+              router.back();
+            }, 430);
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            getAllVariables();
+            getAllTypeOfObjects();
+            setShowMessageModal(false);
+            router.back();
+          }, 2000);
+        }
+      };
+
+      setOneButtonOnPress(() => handleOneButtonPress);
     } catch (error: any) {
       setMessageModalText(t('fieldView.fieldCreatedError'));
       setSuccess(false);
       setShowMessageModal(true);
+
       setTimeout(() => {
         setShowMessageModal(false);
       }, 2000);
@@ -533,6 +586,16 @@ export default function CreateField() {
         isVisible={showMessageModal}
         message={messageModalText}
         success={success}
+      />
+      <OneButtonModal
+        isVisible={showModal}
+        onDismiss={() => setShowModal(false)}
+        title={`${t('fieldView.fieldAutoConfigTitle')}`}
+        subtitle={`${t('fieldView.fieldAutoConfigSubTitle')}: ${
+          formData.production_type
+        }`}
+        onPress={oneButtonOnPress}
+        vertical={false}
       />
     </View>
   );

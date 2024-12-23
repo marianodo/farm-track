@@ -37,7 +37,7 @@ export interface FieldConfig {
 }
 
 export const fieldConfigurations: Record<string, FieldConfig> = {
-  bovina_de_leche: {
+  bovine_of_milk: {
     typesOfObjects: [{ name: 'Animal' }, { name: 'Instalacion' }],
     variables: [
       {
