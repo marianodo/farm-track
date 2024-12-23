@@ -61,7 +61,8 @@ type FormDataError = {
 };
 
 const CreateReport: React.FC = () => {
-  const { fieldId, fieldName, reportId } = useLocalSearchParams();
+  const { fieldId, fieldName, reportId, correlative_id } =
+    useLocalSearchParams();
   const [editData, setEditData] = useState(false);
   const { validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
@@ -262,7 +263,7 @@ const CreateReport: React.FC = () => {
           >
             <Text style={styles.welcome}>Editar reporte</Text>
             <Text style={[styles.welcome, { marginLeft: 0, marginRight: 20 }]}>
-              ID: {reportId}
+              ID: {correlative_id}
             </Text>
           </View>
         </View>
@@ -369,7 +370,9 @@ const CreateReport: React.FC = () => {
             <TextInput
               mode="outlined"
               placeholderTextColor="#486732"
-              placeholder={`ID del reporte: ${reportId}`}
+              placeholder={`${t(
+                'reportsView.reportIdPlaceHolder'
+              )}: ${correlative_id}`}
               editable={false}
               activeOutlineColor="transparent"
               outlineColor="#F1F1F1"

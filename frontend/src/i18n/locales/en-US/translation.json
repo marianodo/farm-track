@@ -181,6 +181,7 @@
     "reportFieldNamePlaceHolder": "Field name",
     "reportDatePlaceHolder": "Report date",
     "reportNamePlaceHolder": "Report name",
+    "reportIdPlaceHolder": "Report ID",
     "reportObservationsPlaceHolder": "Observations",
     "reportListNameText": "Report",
     "createReportInfoText": "The name and observations of the report are optional.",

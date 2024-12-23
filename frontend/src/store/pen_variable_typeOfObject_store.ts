@@ -168,7 +168,6 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
       }
     },
     resetDetail: () => {
-      console.log('reset');
       set({
         penVariableTypeOfObjectByTypeId: null,
         penVariableTypeOfObjectByTypeIdAndPen: null,

@@ -68,6 +68,7 @@ interface PenListProps {
   setSelectedReportDelete: any;
   lng: string | null;
   fieldName: string | null;
+  pens: any;
 }
 
 const ReportList: React.FC<PenListProps> = ({
@@ -82,6 +83,7 @@ const ReportList: React.FC<PenListProps> = ({
   styles,
   lng,
   fieldName,
+  pens,
 }) => {
   const { reportsLoading } = useReportStore((state) => ({
     reportsLoading: state.reportsLoading,
@@ -110,6 +112,7 @@ const ReportList: React.FC<PenListProps> = ({
               params: {
                 fieldName: fieldName,
                 reportId: +pen.id,
+                correlative_id: +pen.correlative_id,
                 reportName: reportName,
                 penName: pen.name,
                 type_of_objects: JSON.stringify(pen.type_of_objects),
@@ -193,14 +196,13 @@ const ReportList: React.FC<PenListProps> = ({
             const reportName = (item?.name as string)
               ? item.name.charAt(0).toUpperCase() +
                 item.name.slice(1).toLowerCase()
-              : `Reporte: ${new Date(item.created_at).toLocaleDateString(
-                  `${lng ?? 'es'}`,
-                  {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  }
-                )}`;
+              : `${t('reportsView.reportListNameText')}: ${new Date(
+                  item.created_at
+                ).toLocaleDateString(`${lng ?? 'es'}`, {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}`;
             router.push({
               pathname: `/report/[reportId]`,
               params: {
@@ -235,7 +237,7 @@ const ReportList: React.FC<PenListProps> = ({
                     year: 'numeric',
                   })}`
                 : `${t('reportsView.reportListNameText')} ${
-                    item.id
+                    item.correlative_id
                   } - ${new Date(item.created_at).toLocaleDateString(
                     `${lng ?? 'es'}`,
                     {
@@ -252,7 +254,49 @@ const ReportList: React.FC<PenListProps> = ({
     );
   };
 
-  return !reports?.length ? (
+  return !pens?.length ? (
+    <View
+      style={{
+        width: '100%',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <View
+        style={{
+          width: '90%',
+          backgroundColor: '#f5ead2',
+          height: rMV(44),
+          borderRadius: rMS(6),
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: rMV(20),
+          display: 'flex',
+          flexDirection: 'row',
+          paddingRight: rMS(12),
+        }}
+      >
+        <IconButton
+          icon={'alert-circle-outline'}
+          iconColor="#d9a220"
+          size={rMS(20)}
+          style={{ margin: 0 }}
+        />
+        <Text
+          style={{
+            color: '#d9a220',
+            fontFamily: 'Pro-Regular',
+            fontSize: rMS(10),
+            flexShrink: 1,
+            flexWrap: 'wrap',
+            textAlign: 'center',
+          }}
+        >
+          {t('reportsView.dontPenMessage')}
+        </Text>
+      </View>
+    </View>
+  ) : !reports?.length ? (
     <View
       style={{
         width: '100%',
@@ -290,7 +334,7 @@ const ReportList: React.FC<PenListProps> = ({
             textAlign: 'center',
           }}
         >
-          {t('penView.dontPenMessage')}
+          {t('reportsView.dontReportMessage')}
         </Text>
       </View>
     </View>
@@ -304,7 +348,6 @@ const ReportList: React.FC<PenListProps> = ({
             left: 0,
             right: 0,
             bottom: 0,
-            // backgroundColor: 'rgba(0, 0, 0, 0.5)',
             justifyContent: 'center',
             alignItems: 'center',
             zIndex: 1000,
