@@ -6,16 +6,11 @@ import {
   StyleSheet,
   Platform,
 } from 'react-native';
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Button, Divider } from 'react-native-paper';
 import { rMS } from '@/styles/responsive';
 import { useTranslation } from 'react-i18next';
-
-type Props = PropsWithChildren<{
-  isVisible: boolean;
-  onClose: () => void;
-}>;
 
 type ButtonConfig = {
   text: string;
