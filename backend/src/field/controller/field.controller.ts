@@ -20,7 +20,7 @@ export class FieldController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   async create(@Body() body: any) {
-    const { autoConfig, ...createFieldDto } = body;
+    const { autoConfig = false, ...createFieldDto } = body;
     try {
       return await this.fieldService.create(createFieldDto, autoConfig);
     } catch (error) {

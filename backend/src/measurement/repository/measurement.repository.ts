@@ -173,7 +173,6 @@ export class MeasurementRepository {
     updateBulkMeasurementDto: UpdateBulkMeasurementDto,
   ): Promise<Measurement[]> {
     const { measurements } = updateBulkMeasurementDto;
-    console.log('MEASUREMENTS:', measurements);
     try {
       // Iniciar una transacción para actualizar múltiples mediciones ya que si una falla, ninguna se va a actualizar.
       // UpdateMany no permite actualizar datos dinamicos en varios registros, solo si el dato es el mismo para todos los registros.

@@ -93,6 +93,7 @@ export class ReportRepository {
                   select: {
                     id: true,
                     name: true,
+                    correlative_id: true,
                     type_of_object: {
                       select: {
                         id: true,
@@ -151,6 +152,7 @@ export class ReportRepository {
             acc[penId].subjects[subjectId] = {
               id: measurement.subject.id,
               name: measurement.subject.name,
+              correlative_id: measurement.subject.correlative_id,
               type_of_object: {
                 id: measurement.subject.type_of_object.id,
                 name: measurement.subject.type_of_object.name,

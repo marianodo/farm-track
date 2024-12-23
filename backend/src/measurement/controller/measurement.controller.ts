@@ -61,7 +61,6 @@ export class MeasurementController {
   @Patch('/bulkUpdate')
   @HttpCode(HttpStatus.OK)
   async bulkUpdate(@Body() updateBulkMeasurementDto: UpdateBulkMeasurementDto) {
-    console.log('MOSTRAR DATA:', updateBulkMeasurementDto);
     try {
       const { name, subject_id } = updateBulkMeasurementDto;
       if (name) {
