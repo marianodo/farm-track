@@ -1,12 +1,6 @@
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
-const prismaMiddleware = new PrismaClient({
-  transactionOptions: {
-    isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-    maxWait: 5000, // default: 2000
-    timeout: 10000, // default: 5000
-  },
-});
+const prismaMiddleware = new PrismaClient();
 
 prismaMiddleware.$use(async (params, next) => {
   if (params.model === 'TypeOfObject' && params.action === 'delete') {
