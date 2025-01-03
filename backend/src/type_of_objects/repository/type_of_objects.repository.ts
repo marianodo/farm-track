@@ -72,7 +72,7 @@ export class TypeOfObjectsRepository {
     transaction: any,
   ) {
     try {
-      // obtener los tipos de objetos existentes
+      // Obtener los tipos de objetos existentes
       const existingTypes = await transaction.typeOfObject.findMany({
         where: {
           name: { in: fieldConfig.typesOfObjects.map((type) => type.name) },
@@ -85,37 +85,32 @@ export class TypeOfObjectsRepository {
         return map;
       }, {});
 
-      // crear tipos de objetos en paralelo
-      const typeCreationPromises = fieldConfig.typesOfObjects.map(
-        async (type) => {
-          let typeId = existingTypesMap[type.name];
-          if (!typeId) {
-            const createdType = await transaction.typeOfObject.create({
-              data: {
-                name: type.name,
-                user: { connect: { id: userId } },
-              },
-            });
-            typeId = createdType.id;
-          }
+      // Crear tipos de objetos
+      for (const type of fieldConfig.typesOfObjects) {
+        let typeId = existingTypesMap[type.name];
+        if (!typeId) {
+          const createdType = await transaction.typeOfObject.create({
+            data: {
+              name: type.name,
+              user: { connect: { id: userId } },
+            },
+          });
+          typeId = createdType.id;
+        }
 
-          // filtrar las variables que corresponden al tipe actual y crear en paralelo
-          const variablesForType = fieldConfig.variables.filter(
-            (variable) => variable.associatedTypeOfObject === type.name,
-          );
+        // Filtrar las variables que corresponden al tipo actual.
+        const variablesForType = fieldConfig.variables.filter(
+          (variable) => variable.associatedTypeOfObject === type.name,
+        );
 
-          if (variablesForType.length > 0) {
-            return this.variableService.createVariables(
-              variablesForType,
-              typeId,
-              userId,
-              transaction,
-            );
-          }
-        },
-      );
-
-      await Promise.all(typeCreationPromises);
+        // Se usa el servicio de variables.
+        await this.variableService.createVariables(
+          variablesForType,
+          typeId,
+          userId,
+          transaction,
+        );
+      }
     } catch (error) {
       throw error;
     }

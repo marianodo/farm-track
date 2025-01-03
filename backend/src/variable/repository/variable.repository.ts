@@ -19,71 +19,50 @@ export class VariableRepository {
     variables: any,
     typeOfObjectId: number,
     userId: string,
-    transaction: Prisma.TransactionClient,
+    transaction: any,
   ) {
-    try {
-      //traer varable
-      const existingVariables = await transaction.variable.findMany({
-        where: {
-          name: { in: variables.map((variable) => variable.name) },
-          userId,
-        },
-      });
+    const existingVariables = await transaction.variable.findMany({
+      where: {
+        name: { in: variables.map((variable) => variable.name) },
+        userId,
+      },
+    });
 
-      const existingVariablesMap = existingVariables.reduce((map, variable) => {
-        map[variable.name] = variable.id;
-        return map;
-      }, {});
+    const existingVariablesMap = existingVariables.reduce((map, variable) => {
+      map[variable.name] = variable.id;
+      return map;
+    }, {});
 
-      // crear variable en paralelo
-      const variableCreationPromises = variables.map(async (variable) => {
-        if (!existingVariablesMap[variable.name]) {
-          try {
-            // crear la variable si no existe
-            const createdVariable = await transaction.variable.create({
-              data: {
-                name: variable.name,
-                type: variable.type,
-                defaultValue: variable.defaultValue,
-                user: { connect: { id: userId } },
-                type_of_objects: {
-                  create: [
-                    { type_of_object: { connect: { id: typeOfObjectId } } },
-                  ],
-                },
-              },
-            });
+    // Crear las variables
+    for (const variable of variables) {
+      if (!existingVariablesMap[variable.name]) {
+        const createdVariable = await transaction.variable.create({
+          data: {
+            name: variable.name,
+            type: variable.type,
+            defaultValue: variable.defaultValue,
+            user: { connect: { id: userId } },
+            type_of_objects: {
+              create: [{ type_of_object: { connect: { id: typeOfObjectId } } }],
+            },
+          },
+        });
 
-            // Crear las combinaciones únicas
-            const uniqueCombinations = await this.findUniqueCombinations([
-              typeOfObjectId,
-            ]);
-            const combinationPromises = uniqueCombinations.map((combination) =>
-              transaction.penVariableTypeOfObject.create({
-                data: {
-                  penId: combination.penId,
-                  variableId: createdVariable.id,
-                  typeOfObjectId,
-                  custom_parameters: createdVariable.defaultValue,
-                },
-              }),
-            );
+        const uniqueCombinations = await this.findUniqueCombinations([
+          typeOfObjectId,
+        ]);
 
-            await Promise.all(combinationPromises);
-          } catch (variableError) {
-            console.error(
-              `Error creating variable ${variable.name}:`,
-              variableError,
-            );
-            throw new Error(`Failed to create variable ${variable.name}.`);
-          }
+        for (const combination of uniqueCombinations) {
+          await transaction.penVariableTypeOfObject.create({
+            data: {
+              penId: combination.penId,
+              variableId: createdVariable.id,
+              typeOfObjectId: typeOfObjectId,
+              custom_parameters: createdVariable.defaultValue,
+            },
+          });
         }
-      });
-
-      await Promise.all(variableCreationPromises);
-    } catch (error) {
-      console.error('Error in createVariables transaction:', error);
-      throw new Error('An unexpected error occurred while creating variables.');
+      }
     }
   }
 
