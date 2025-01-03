@@ -24,6 +24,7 @@ export class FieldController {
     try {
       return await this.fieldService.create(createFieldDto, autoConfig);
     } catch (error) {
+      console.log('ERROR CONTROLLER: ' + error);
       throw error;
     }
   }

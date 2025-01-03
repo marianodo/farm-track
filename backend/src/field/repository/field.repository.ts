@@ -83,6 +83,7 @@ export class FieldRepository {
         return newField;
       });
     } catch (error) {
+      console.log('ERROR:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new BadRequestException(
