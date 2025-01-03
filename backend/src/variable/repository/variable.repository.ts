@@ -21,66 +21,48 @@ export class VariableRepository {
     userId: string,
     transaction: any,
   ) {
-    try {
-      const existingVariables = await transaction.variable.findMany({
-        where: {
-          name: { in: variables.map((variable) => variable.name) },
-          userId,
-        },
-      });
+    const existingVariables = await transaction.variable.findMany({
+      where: {
+        name: { in: variables.map((variable) => variable.name) },
+        userId,
+      },
+    });
 
-      const existingVariablesMap = existingVariables.reduce((map, variable) => {
-        map[variable.name] = variable.id;
-        return map;
-      }, {});
+    const existingVariablesMap = existingVariables.reduce((map, variable) => {
+      map[variable.name] = variable.id;
+      return map;
+    }, {});
 
-      // Filtrar las variables que no existen para crearlas
-      const variablesToCreate = variables.filter(
-        (variable) => !existingVariablesMap[variable.name],
-      );
-      let createdVariables = [];
-      // Crear todas las variables en un solo batch (createMany)
-      if (variablesToCreate.length > 0) {
-        createdVariables = await transaction.variable.createMany({
-          data: variablesToCreate.map((variable) => ({
+    // Crear las variables
+    for (const variable of variables) {
+      if (!existingVariablesMap[variable.name]) {
+        const createdVariable = await transaction.variable.create({
+          data: {
             name: variable.name,
             type: variable.type,
             defaultValue: variable.defaultValue,
             user: { connect: { id: userId } },
-          })),
-        });
-
-        // Crear las relaciones de tipo de objeto en batch
-        const variableIds = createdVariables.map((variable) => variable.id);
-        await transaction.typeOfObject.updateMany({
-          where: { id: typeOfObjectId },
-          data: {
-            variables: {
-              connect: variableIds.map((id) => ({ id })),
+            type_of_objects: {
+              create: [{ type_of_object: { connect: { id: typeOfObjectId } } }],
             },
           },
         });
-      }
 
-      // Ahora procesar las combinaciones únicas para las variables
-      const uniqueCombinations = await this.findUniqueCombinations([
-        typeOfObjectId,
-      ]);
+        const uniqueCombinations = await this.findUniqueCombinations([
+          typeOfObjectId,
+        ]);
 
-      for (const combination of uniqueCombinations) {
-        // Crear las relaciones con las variables
-        await transaction.penVariableTypeOfObject.createMany({
-          data: createdVariables.map((variable) => ({
-            penId: combination.penId,
-            variableId: variable.id,
-            typeOfObjectId: typeOfObjectId,
-            custom_parameters: variable.defaultValue,
-          })),
-        });
+        for (const combination of uniqueCombinations) {
+          await transaction.penVariableTypeOfObject.create({
+            data: {
+              penId: combination.penId,
+              variableId: createdVariable.id,
+              typeOfObjectId: typeOfObjectId,
+              custom_parameters: createdVariable.defaultValue,
+            },
+          });
+        }
       }
-    } catch (error) {
-      console.error('Error creating variables:', error);
-      throw error;
     }
   }
 
