@@ -61,11 +61,13 @@ export class FieldRepository {
   async createFieldWithAutoConfig(createFieldDto: CreateFieldDto) {
     const { production_type, userId } = createFieldDto;
     const fieldType = fieldConfigurations[production_type.toLowerCase()];
+
     if (!fieldType) {
       throw new BadRequestException(
         `No configuration found for field type: ${production_type}`,
       );
     }
+
     try {
       return this.db.$transaction(async (transaction) => {
         // Crear el campo
@@ -73,16 +75,19 @@ export class FieldRepository {
           data: createFieldDto,
         });
 
-        // Delegar la creación de tipos de objetos y variables
-        await this.typeOfObjectService.createTypesOfObjects(
-          fieldType,
-          userId,
-          transaction,
-        );
+        const typeOfObjectsPromise =
+          this.typeOfObjectService.createTypesOfObjects(
+            fieldType,
+            userId,
+            transaction,
+          );
+
+        await Promise.all([typeOfObjectsPromise]);
 
         return newField;
       });
     } catch (error) {
+      // Manejo de errores por tipo de código de error de Prisma
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
           throw new BadRequestException(
