@@ -11,9 +11,32 @@ import { PenVariableTypeOfObjectModule } from './pen_variable_type-of-object/pen
 import { MeasurementModule } from './measurement/measurement.module';
 import { SubjectModule } from './subject/subject.module';
 import { ReportModule } from './report/report.module';
+import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
+import { ClsModule } from 'nestjs-cls';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { ClsPluginTransactional } from '@nestjs-cls/transactional';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    ClsModule.forRoot({
+      plugins: [
+        new ClsPluginTransactional({
+          imports: [
+            // module in which the PrismaClient is provided
+            PrismaModule,
+          ],
+          adapter: new TransactionalAdapterPrisma({
+            // the injection token of the PrismaClient
+            prismaInjectionToken: PrismaService,
+          }),
+        }),
+      ],
+      global: true,
+      middleware: { mount: true },
+    }),
     MailerModule,
     UserModule,
     AuthModule,
@@ -25,6 +48,7 @@ import { ReportModule } from './report/report.module';
     ReportModule,
     MeasurementModule,
     SubjectModule,
+    DatabaseModule,
   ],
   controllers: [],
   providers: [PrismaService],

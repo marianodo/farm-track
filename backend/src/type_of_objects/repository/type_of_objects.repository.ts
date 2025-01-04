@@ -73,7 +73,7 @@ export class TypeOfObjectsRepository {
   ) {
     try {
       // Obtener los tipos de objetos existentes
-      const existingTypes = await transaction.typeOfObject.findMany({
+      const existingTypes = await transaction.tx.typeOfObject.findMany({
         where: {
           name: { in: fieldConfig.typesOfObjects.map((type) => type.name) },
           userId,
@@ -89,7 +89,7 @@ export class TypeOfObjectsRepository {
       for (const type of fieldConfig.typesOfObjects) {
         let typeId = existingTypesMap[type.name];
         if (!typeId) {
-          const createdType = await transaction.typeOfObject.create({
+          const createdType = await transaction.tx.typeOfObject.create({
             data: {
               name: type.name,
               user: { connect: { id: userId } },

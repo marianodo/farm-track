@@ -10,12 +10,15 @@ import {
 import { FieldWithoutMeta } from '../types/field.types';
 import { fieldConfigurations } from 'src/utils/field-config';
 import { TypeOfObjectsService } from 'src/type_of_objects/service/type_of_objects.service';
+import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
+import { TransactionHost } from '@nestjs-cls/transactional';
 
 @Injectable()
 export class FieldRepository {
   constructor(
     private readonly db: PrismaService,
     private readonly typeOfObjectService: TypeOfObjectsService,
+    private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
   async create(
@@ -67,21 +70,19 @@ export class FieldRepository {
       );
     }
     try {
-      return await this.db.$transaction(async (transaction) => {
-        // Crear el campo
-        const newField = await transaction.field.create({
-          data: createFieldDto,
-        });
-
-        // Delegar la creación de tipos de objetos y variables
-        await this.typeOfObjectService.createTypesOfObjects(
-          fieldType,
-          userId,
-          transaction,
-        );
-
-        return newField;
+      // Crear el campo
+      const newField = await this.txHost.tx.field.create({
+        data: createFieldDto,
       });
+
+      // Delegar la creación de tipos de objetos y variables
+      await this.typeOfObjectService.createTypesOfObjects(
+        fieldType,
+        userId,
+        this.txHost,
+      );
+
+      return newField;
     } catch (error) {
       console.log('ERROR:', error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
