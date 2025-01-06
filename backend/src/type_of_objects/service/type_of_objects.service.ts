@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import { TypeOfObjectsRepository } from '../repository/type_of_objects.repository';
-import { FieldConfig } from 'src/utils/field-config';
+import { FieldConfig } from 'src/utils/field-data-config';
 
 @Injectable()
 export class TypeOfObjectsService {

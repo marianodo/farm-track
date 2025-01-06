@@ -8,10 +8,11 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { FieldWithoutMeta } from '../types/field.types';
-import { fieldConfigurations } from 'src/utils/field-config';
+import { fieldConfigurations } from 'src/utils/field-data-config';
 import { TypeOfObjectsService } from 'src/type_of_objects/service/type_of_objects.service';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
-import { TransactionHost } from '@nestjs-cls/transactional';
+import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
+import { autoConfigField } from 'src/utils/autoConfigField';
 
 @Injectable()
 export class FieldRepository {
@@ -21,13 +22,19 @@ export class FieldRepository {
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
+  @Transactional<TransactionalAdapterPrisma>({
+    isolationLevel: 'Serializable',
+    maxWait: 5000,
+    timeout: 10000,
+  })
   async create(
     createFieldDto: CreateFieldDto,
     autoConfig: boolean,
   ): Promise<Field> {
     console.log('autoConfig: ' + autoConfig);
     if (autoConfig) {
-      return this.createFieldWithAutoConfig(createFieldDto);
+      return autoConfigField(createFieldDto, this.txHost);
+      // return this.createFieldWithAutoConfig(createFieldDto);
     }
     return this.createFieldWithoutAutoConfig(createFieldDto);
   }
@@ -61,48 +68,48 @@ export class FieldRepository {
     }
   }
 
-  async createFieldWithAutoConfig(createFieldDto: CreateFieldDto) {
-    const { production_type, userId } = createFieldDto;
-    const fieldType = fieldConfigurations[production_type.toLowerCase()];
-    if (!fieldType) {
-      throw new BadRequestException(
-        `No configuration found for field type: ${production_type}`,
-      );
-    }
-    try {
-      // Crear el campo
-      const newField = await this.txHost.tx.field.create({
-        data: createFieldDto,
-      });
+  // async createFieldWithAutoConfig(createFieldDto: CreateFieldDto) {
+  //   const { production_type, userId } = createFieldDto;
+  //   const fieldType = fieldConfigurations[production_type.toLowerCase()];
+  //   if (!fieldType) {
+  //     throw new BadRequestException(
+  //       `No configuration found for field type: ${production_type}`,
+  //     );
+  //   }
+  //   try {
+  //     // Crear el campo
+  //     const newField = await this.txHost.tx.field.create({
+  //       data: createFieldDto,
+  //     });
 
-      // Delegar la creación de tipos de objetos y variables
-      await this.typeOfObjectService.createTypesOfObjects(
-        fieldType,
-        userId,
-        this.txHost,
-      );
+  //     // Delegar la creación de tipos de objetos y variables
+  //     await this.typeOfObjectService.createTypesOfObjects(
+  //       fieldType,
+  //       userId,
+  //       this.txHost,
+  //     );
 
-      return newField;
-    } catch (error) {
-      console.log('ERROR:', error);
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new BadRequestException(
-            'A field name with this userId already exists.',
-          );
-        }
-        if (error.code === 'P2025') {
-          throw new BadRequestException('User not found.');
-        }
-        if (error.code === 'P2003') {
-          throw new BadRequestException('User Id not found.');
-        }
-      }
-      throw new InternalServerErrorException(
-        'An unexpected error occurred while creating the field.',
-      );
-    }
-  }
+  //     return newField;
+  //   } catch (error) {
+  //   console.log('ERROR:', error);
+  //   if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  //     if (error.code === 'P2002') {
+  //       throw new BadRequestException(
+  //         'A field name with this userId already exists.',
+  //       );
+  //     }
+  //     if (error.code === 'P2025') {
+  //       throw new BadRequestException('User not found.');
+  //     }
+  //     if (error.code === 'P2003') {
+  //       throw new BadRequestException('User Id not found.');
+  //     }
+  //   }
+  //   throw new InternalServerErrorException(
+  //     'An unexpected error occurred while creating the field.',
+  //   );
+  // }
+  // }
 
   // async create(createFieldDto: CreateFieldDto): Promise<Field> {
   //   const { name, userId, autoConfig } = createFieldDto;

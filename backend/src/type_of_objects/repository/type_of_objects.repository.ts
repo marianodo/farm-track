@@ -10,7 +10,7 @@ import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import prismaMiddleware from 'prisma/prisma.extensions';
 import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
-import { FieldConfig } from 'src/utils/field-config';
+import { FieldConfig } from 'src/utils/field-data-config';
 import { VariableService } from 'src/variable/service/variable.service';
 
 @Injectable()
