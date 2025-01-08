@@ -22,6 +22,7 @@ interface AuthState {
   onLogout: () => void;
   deleted: (id: string) => void;
   register: (username: string, password: string, email: string) => void;
+  deletedUserData: (username: string) => void;
 }
 
 const useAuthStore = create<AuthState>((set: any) => ({
@@ -112,6 +113,29 @@ const useAuthStore = create<AuthState>((set: any) => ({
         return alert(`Login error: ${error.response.data.message}`);
       }
       // alert('Error al registrar el usuario');
+    }
+  },
+
+  deletedUserData: async (userId: string) => {
+    set({ authLoading: true });
+    try {
+      await axiosInstance.delete(
+        `${process.env.EXPO_PUBLIC_API_URL}/database/userData/${userId}`
+      );
+      set({
+        authLoading: false,
+      });
+    } catch (error: any) {
+      set({ authLoading: false });
+      if (
+        error.response &&
+        error.response.data &&
+        error.response.data.message
+      ) {
+        throw new Error(error.response.data.message);
+      } else {
+        throw new Error('Error deleting object');
+      }
     }
   },
 
