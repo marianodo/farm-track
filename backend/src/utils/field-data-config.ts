@@ -134,7 +134,7 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
       },
       {
         name: 'Laying',
-        type: 'NUMBER',
+        type: 'CATEGORICAL',
         defaultValue: {
           value: ['YES', 'NO'],
         },
