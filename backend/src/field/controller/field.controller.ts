@@ -20,10 +20,11 @@ export class FieldController {
   @HttpCode(HttpStatus.CREATED)
   @Post()
   async create(@Body() body: any) {
-    const { autoConfig = false, ...createFieldDto } = body;
+    const { ...createFieldDto } = body;
     try {
-      return await this.fieldService.create(createFieldDto, autoConfig);
+      return await this.fieldService.create(createFieldDto);
     } catch (error) {
+      console.log('ERROR CONTROLLER: ' + error);
       throw error;
     }
   }

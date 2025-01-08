@@ -10,7 +10,7 @@ import { CreateTypeOfObjectDto } from '../dto/create-type_of_object.dto';
 import { UpdateTypeOfObjectDto } from '../dto/update-type_of_object.dto';
 import prismaMiddleware from 'prisma/prisma.extensions';
 import { PenVariableTypeOfObjectRepository } from 'src/pen_variable_type-of-object/repository/pen_variable_type-of-object.repository';
-import { FieldConfig } from 'src/utils/field-config';
+import { FieldConfig } from 'src/utils/field-data-config';
 import { VariableService } from 'src/variable/service/variable.service';
 
 @Injectable()
@@ -73,7 +73,7 @@ export class TypeOfObjectsRepository {
   ) {
     try {
       // Obtener los tipos de objetos existentes
-      const existingTypes = await transaction.typeOfObject.findMany({
+      const existingTypes = await transaction.tx.typeOfObject.findMany({
         where: {
           name: { in: fieldConfig.typesOfObjects.map((type) => type.name) },
           userId,
@@ -89,7 +89,7 @@ export class TypeOfObjectsRepository {
       for (const type of fieldConfig.typesOfObjects) {
         let typeId = existingTypesMap[type.name];
         if (!typeId) {
-          const createdType = await transaction.typeOfObject.create({
+          const createdType = await transaction.tx.typeOfObject.create({
             data: {
               name: type.name,
               user: { connect: { id: userId } },

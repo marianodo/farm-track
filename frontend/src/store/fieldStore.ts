@@ -20,6 +20,7 @@ interface FieldWithMetadata extends Field {
 
 export interface FiledWithUserId extends Field {
   userId: string | null;
+  autoConfig?: boolean;
 }
 
 interface FieldState {

@@ -27,6 +27,7 @@
     "expo-dev-client": "~5.0.1",
     "expo-font": "~13.0.1",
     "expo-google-places-autocomplete": "^1.2.0",
+    "expo-image": "^2.0.3",
     "expo-linking": "~7.0.2",
     "expo-localization": "~16.0.0",
     "expo-location": "~18.0.1",

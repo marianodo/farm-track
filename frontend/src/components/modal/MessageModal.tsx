@@ -1,4 +1,4 @@
-import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { Modal, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 // import React from 'react';
 import { IconButton } from 'react-native-paper';
 import { rMS } from '@/styles/responsive';
@@ -8,20 +8,29 @@ type SuccessModalProps = {
   isVisible: boolean;
   message?: string | null;
   success?: boolean;
+  onClose?: any;
+  icon?: any;
 };
 
 export default function MessageModal({
   isVisible,
   message,
   success = true,
+  icon,
+  onClose,
 }: SuccessModalProps) {
   const { t } = useTranslation();
   return (
-    <Modal animationType="fade" transparent={true} visible={isVisible}>
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={isVisible}
+      onDismiss={onClose == undefined ? undefined : () => onClose}
+    >
       <View style={styles.overlay} />
       <View style={styles.modalContent}>
         <View style={styles.header}>
-          {success ? (
+          {success && !icon ? (
             <>
               <Text style={styles.title}>
                 {message && message.trim().length
@@ -34,7 +43,7 @@ export default function MessageModal({
                 size={rMS(82)}
               />
             </>
-          ) : (
+          ) : !success && !icon ? (
             <>
               <Text style={styles.title}>
                 {message && message.trim().length
@@ -46,6 +55,18 @@ export default function MessageModal({
                 iconColor="#B82E2E"
                 size={rMS(82)}
               />
+            </>
+          ) : (
+            <>
+              <Text style={[styles.title, { textAlign: 'center' }]}>
+                {message && message.trim().length ? message : ''}
+              </Text>
+              {icon}
+              {/* <IconButton
+                icon="alert-decagram-outline"
+                iconColor="#B82E2E"
+                size={rMS(82)}
+              /> */}
             </>
           )}
         </View>

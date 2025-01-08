@@ -11,10 +11,10 @@ export class FieldService {
 
   async create(
     createFieldDto: CreateFieldDto,
-    autoConfig: boolean,
+    // autoConfig: boolean,
   ): Promise<Field> {
     try {
-      return await this.fieldRepository.create(createFieldDto, autoConfig);
+      return await this.fieldRepository.create(createFieldDto);
     } catch (error) {
       throw error;
     }

@@ -19,9 +19,9 @@ export class VariableRepository {
     variables: any,
     typeOfObjectId: number,
     userId: string,
-    transaction: Prisma.TransactionClient,
+    transaction: any,
   ) {
-    const existingVariables = await transaction.variable.findMany({
+    const existingVariables = await transaction.tx.variable.findMany({
       where: {
         name: { in: variables.map((variable) => variable.name) },
         userId,
@@ -36,7 +36,7 @@ export class VariableRepository {
     // Crear las variables
     for (const variable of variables) {
       if (!existingVariablesMap[variable.name]) {
-        const createdVariable = await transaction.variable.create({
+        const createdVariable = await transaction.tx.variable.create({
           data: {
             name: variable.name,
             type: variable.type,
@@ -53,7 +53,7 @@ export class VariableRepository {
         ]);
 
         for (const combination of uniqueCombinations) {
-          await transaction.penVariableTypeOfObject.create({
+          await transaction.tx.penVariableTypeOfObject.create({
             data: {
               penId: combination.penId,
               variableId: createdVariable.id,

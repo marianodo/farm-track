@@ -64,7 +64,9 @@
     "editFieldError": "Hubo un error al actualizar el campo",
     "fieldCreatedText": "Campo creado con éxito",
     "fieldCreatedError": "Hubo un error al crear el campo",
-
+    "fieldAutoConfigTitle": "Confiuración automatica",
+    "fieldAutoConfigSubTitle": "Se configuraron los objetos y variables para el tipo de campo",
+    "fieldLoadingAutoConfigTitle": "Configurando automáticamente los tipos de objetos y variables necesarios. ¡Un momento!",
     "deleteButton": "Eliminar",
     "deleteAlertText": "Cancelar",
     "deleteAlertTitle": "Desea eliminar el",
