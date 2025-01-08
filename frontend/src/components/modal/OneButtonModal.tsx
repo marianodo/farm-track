@@ -57,21 +57,29 @@ export default function OneButtonModal({
             justifyContent: 'space-evenly',
           }}
         >
-          <View
-            style={{
-              width: '50%',
-              height: '100%',
-              justifyContent: 'center',
-            }}
+          <Pressable
+            style={({ pressed }) => [
+              {
+                width: '100%',
+                height: '100%',
+                justifyContent: 'center',
+                // backgroundColor: 'pink',
+              },
+              pressed ? { backgroundColor: 'rgba(67, 109, 34, 0.2)' } : null,
+            ]}
+            // style={{
+            //   width: '100%',
+            //   height: '100%',
+            //   justifyContent: 'center',
+            //   // backgroundColor: 'pink',
+            // }}
+            onPress={onPress}
+            // rippleColor="#436d22"
           >
-            <Button
-              onPress={onPress}
-              rippleColor="#436d22"
-              style={styles.button}
-            >
+            <View style={styles.button}>
               <Text style={styles.buttonText}>{textOkButton}</Text>
-            </Button>
-          </View>
+            </View>
+          </Pressable>
         </View>
       </View>
     </Modal>

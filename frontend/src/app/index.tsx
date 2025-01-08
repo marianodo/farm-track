@@ -169,9 +169,9 @@ const Page = () => {
     }
   }, [language, formModified]);
 
-  if (authLoading) {
-    return <Loader />;
-  }
+  // if (authLoading) {
+  //   return <Loader visible={authLoading} />;
+  // }
 
   return (
     <KeyboardAwareScrollView
@@ -355,6 +355,7 @@ const Page = () => {
           </View>
         </View>
       </View>
+      <Loader visible={authLoading} />
     </KeyboardAwareScrollView>
   );
 };

@@ -8,8 +8,6 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { FieldWithoutMeta } from '../types/field.types';
-import { fieldConfigurations } from 'src/utils/field-data-config';
-import { TypeOfObjectsService } from 'src/type_of_objects/service/type_of_objects.service';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
 import { Transactional, TransactionHost } from '@nestjs-cls/transactional';
 import { autoConfigField } from 'src/utils/autoConfigField';
@@ -18,7 +16,6 @@ import { autoConfigField } from 'src/utils/autoConfigField';
 export class FieldRepository {
   constructor(
     private readonly db: PrismaService,
-    private readonly typeOfObjectService: TypeOfObjectsService,
     private readonly txHost: TransactionHost<TransactionalAdapterPrisma>,
   ) {}
 
@@ -29,12 +26,10 @@ export class FieldRepository {
   })
   async create(
     createFieldDto: CreateFieldDto,
-    autoConfig: boolean,
+    // autoConfig: boolean,
   ): Promise<Field> {
-    console.log('autoConfig: ' + autoConfig);
-    if (autoConfig) {
+    if (createFieldDto.production_type === 'bovine_of_milk') {
       return autoConfigField(createFieldDto, this.txHost);
-      // return this.createFieldWithAutoConfig(createFieldDto);
     }
     return this.createFieldWithoutAutoConfig(createFieldDto);
   }
@@ -67,174 +62,6 @@ export class FieldRepository {
       );
     }
   }
-
-  // async createFieldWithAutoConfig(createFieldDto: CreateFieldDto) {
-  //   const { production_type, userId } = createFieldDto;
-  //   const fieldType = fieldConfigurations[production_type.toLowerCase()];
-  //   if (!fieldType) {
-  //     throw new BadRequestException(
-  //       `No configuration found for field type: ${production_type}`,
-  //     );
-  //   }
-  //   try {
-  //     // Crear el campo
-  //     const newField = await this.txHost.tx.field.create({
-  //       data: createFieldDto,
-  //     });
-
-  //     // Delegar la creación de tipos de objetos y variables
-  //     await this.typeOfObjectService.createTypesOfObjects(
-  //       fieldType,
-  //       userId,
-  //       this.txHost,
-  //     );
-
-  //     return newField;
-  //   } catch (error) {
-  //   console.log('ERROR:', error);
-  //   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-  //     if (error.code === 'P2002') {
-  //       throw new BadRequestException(
-  //         'A field name with this userId already exists.',
-  //       );
-  //     }
-  //     if (error.code === 'P2025') {
-  //       throw new BadRequestException('User not found.');
-  //     }
-  //     if (error.code === 'P2003') {
-  //       throw new BadRequestException('User Id not found.');
-  //     }
-  //   }
-  //   throw new InternalServerErrorException(
-  //     'An unexpected error occurred while creating the field.',
-  //   );
-  // }
-  // }
-
-  // async create(createFieldDto: CreateFieldDto): Promise<Field> {
-  //   const { name, userId, autoConfig } = createFieldDto;
-  //   if (autoConfig) {
-  //     const config = fieldConfigurations[name.toLowerCase()];
-  //     if (!config) {
-  //       throw new BadRequestException(
-  //         `No configuration found for field type: ${name}`,
-  //       );
-  //     }
-  //     try {
-  //       // 1. Crear el campo
-  //       const newField = await this.db.field.create({
-  //         data: createFieldDto,
-  //       });
-
-  //       // 2. Crear los tipos de objetos
-  //       const createdTypesOfObjects = {};
-  //       for (const type of config.typesOfObjects) {
-  //         const createdType = await this.db.typeOfObject.create({
-  //           data: {
-  //             name: type.name,
-  //             user: { connect: { id: userId } },
-  //           },
-  //         });
-  //         createdTypesOfObjects[type.name] = createdType.id; // Mapear nombre a ID
-  //       }
-
-  //       // 3. Crear las variables
-  //       for (const variable of config.variables) {
-  //         const associatedTypeOfObjectId =
-  //           createdTypesOfObjects[variable.associatedTypeOfObject];
-  //         if (!associatedTypeOfObjectId) {
-  //           throw new InternalServerErrorException(
-  //             `Associated type of object ${variable.associatedTypeOfObject} not found.`,
-  //           );
-  //         }
-
-  //         const createdVariable = await this.db.variable.create({
-  //           data: {
-  //             name: variable.name,
-  //             type: variable.type,
-  //             defaultValue: variable.defaultValue,
-  //             user: { connect: { id: userId } },
-  //             type_of_objects: {
-  //               create: [
-  //                 {
-  //                   type_of_object: {
-  //                     connect: { id: associatedTypeOfObjectId },
-  //                   },
-  //                 },
-  //               ],
-  //             },
-  //           },
-  //         });
-
-  //         // Crear combinaciones únicas de PenVariableTypeOfObject
-  //         const uniqueCombinations = await this.findUniqueCombinations([
-  //           associatedTypeOfObjectId,
-  //         ]);
-
-  //         for (const combination of uniqueCombinations) {
-  //           await this.db.penVariableTypeOfObject.create({
-  //             data: {
-  //               penId: combination.penId,
-  //               variableId: createdVariable.id,
-  //               typeOfObjectId: associatedTypeOfObjectId,
-  //               custom_parameters: createdVariable.defaultValue,
-  //             },
-  //           });
-  //         }
-  //       }
-
-  //       return newField;
-  //     } catch (error) {
-  //       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-  //         // Manejar error de unicidad (código P2002)
-  //         if (error.code === 'P2002') {
-  //           throw new BadRequestException(
-  //             'A field name with this userId already exists.',
-  //           );
-  //         }
-
-  //         // Error de referencia de la relacion o registro no encontrado
-  //         if (error.code === 'P2025') {
-  //           throw new BadRequestException('User not found.');
-  //         }
-  //         if (error.code === 'P2003') {
-  //           throw new BadRequestException('User Id not found.');
-  //         }
-  //       }
-  //       // Cualquier otro error no manejado
-  //       throw new InternalServerErrorException(
-  //         'An unexpected error occurred while creating the field.',
-  //       );
-  //     }
-  //   }
-  //   try {
-  //     const newField = await this.db.field.create({
-  //       data: createFieldDto,
-  //     });
-  //     return newField;
-  //   } catch (error) {
-  //     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-  //       // Manejar error de unicidad (código P2002)
-  //       if (error.code === 'P2002') {
-  //         throw new BadRequestException(
-  //           'A field name with this userId already exists.',
-  //         );
-  //       }
-
-  //       // Error de referencia de la relacion o registro no encontrado
-  //       if (error.code === 'P2025') {
-  //         throw new BadRequestException('User not found.');
-  //       }
-  //       if (error.code === 'P2003') {
-  //         throw new BadRequestException('User Id not found.');
-  //       }
-  //     }
-  //     // Cualquier otro error no manejado
-  //     throw new InternalServerErrorException(
-  //       'An unexpected error occurred while creating the field.',
-  //     );
-  //   }
-  // }
 
   async findAll(): Promise<Field[]> {
     try {

@@ -66,6 +66,7 @@
     "fieldCreatedError": "An a error has occurred while creating the field.",
     "fieldAutoConfigTitle": "Automatic configuration",
     "fieldAutoConfigSubTitle": "Have been configured objects and variables for field type",
+    "fieldLoadingAutoConfigTitle": "Automatically configuring the necessary object and variable types. ¡One moment!",
     "deleteButton": "Delete",
     "deleteAlertText": "Cancel",
     "deleteAlertTitle": "You want to delete the",
