@@ -1,4 +1,6 @@
 {
+  "deleteAllDataTitle": "¿Are you sure you want to delete all data?",
+  "deleteAllDataSubTitle": "This action is irreversible and will permanently delete all associated information.",
   "language": "Language",
   "formErrors": {
     "required": {

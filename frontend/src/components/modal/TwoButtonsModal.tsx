@@ -26,8 +26,9 @@ type ModalComponentProps = {
   subtitle?: string;
   textOkButton?: string;
   textCancelButton?: string | null;
-  onPress: () => void;
+  onPress: any;
   vertical?: boolean;
+  icon?: any;
 };
 
 export default function TwoButtonsModal({
@@ -39,6 +40,7 @@ export default function TwoButtonsModal({
   textCancelButton,
   subtitle,
   vertical = false,
+  icon,
 }: ModalComponentProps) {
   const { t } = useTranslation();
   return (
@@ -49,12 +51,13 @@ export default function TwoButtonsModal({
           <Text style={styles.title}>{title}</Text>
           {subtitle !== '' && <Text style={styles.subtitle}>{subtitle}</Text>}
         </View>
+        {icon && icon}
         {vertical ? (
           <>
             <Divider style={styles.divider} />
             <View style={styles.modalButtons}>
               <Button
-                onPress={onPress}
+                onPress={onPress !== null ? () => onPress : undefined}
                 style={styles.button}
                 rippleColor="#436d22"
               >

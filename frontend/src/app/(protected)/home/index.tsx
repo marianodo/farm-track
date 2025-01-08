@@ -1,8 +1,8 @@
-import { IconButton, Text } from 'react-native-paper';
+import { Divider, IconButton, Menu, Text } from 'react-native-paper';
 import {
   Alert,
   FlatList,
-  Image,
+  // Image,
   ImageBackground,
   Platform,
   Pressable,
@@ -24,9 +24,19 @@ import React, { Fragment, useEffect, useState } from 'react';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
+import { Image } from 'expo-image';
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  const [visible, setVisible] = useState(false);
+
+  // Función para mostrar el menú
+  const openMenu = () => setVisible(true);
+
+  // Función para ocultar el menú
+  const closeMenu = () => setVisible(false);
+
   const [selectedFieldDelete, setSelectedFieldDelete] = useState<{
     id: string;
   } | null>(null);
@@ -35,16 +45,17 @@ export default function HomeScreen() {
     subtitle: string;
   } | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const [success, setSucces] = useState<boolean>(false);
-  const { onLogout, userId, role, deleted, authLoading, userName } =
+  const { onLogout, userId, role, deletedUserData, authLoading, userName } =
     useAuthStore((state) => ({
       role: state.role,
       userId: state.userId,
       userName: state.username,
       onLogout: state.onLogout,
-      deleted: state.deleted,
+      deletedUserData: state.deletedUserData,
       authLoading: state.authLoading,
     }));
 
@@ -194,13 +205,56 @@ export default function HomeScreen() {
               onPress={() => onLogoutPressed()}
               style={{ marginLeft: rMS(-10) }}
             />
-            <IconButton
+            {/* <IconButton
               icon="dots-vertical"
               iconColor="#fff"
               size={rMV(24)}
               onPress={() => console.log('Pressed')}
               style={{ marginRight: rMS(-12) }}
-            />
+            /> */}
+            <Menu
+              visible={visible}
+              style={{
+                marginTop: rMS(38),
+                marginLeft: rMS(-6),
+              }}
+              onDismiss={closeMenu}
+              anchor={
+                <IconButton
+                  icon="dots-vertical"
+                  iconColor="#fff"
+                  size={rMV(24)}
+                  onPress={openMenu}
+                  style={{ marginRight: rMS(-12) }}
+                />
+              }
+            >
+              <Menu.Item
+                onPress={() => setShowDeleteModal(true)}
+                title="Option 1"
+                contentStyle={{
+                  alignItems: 'center', // Centrar horizontalmente
+                  justifyContent: 'center', // Centrar verticalmente
+                }}
+              />
+              <Menu.Item
+                onPress={() => console.log('Option 2 pressed')}
+                title="Option 2"
+                contentStyle={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+              <Divider style={{ backgroundColor: '#487632', height: 1 }} />
+              <Menu.Item
+                onPress={() => console.log('Logout pressed')}
+                title="Logout"
+                contentStyle={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              />
+            </Menu>
           </View>
           {/* nombre y bienvenido */}
           <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
@@ -249,7 +303,7 @@ export default function HomeScreen() {
         >
           {t('fieldView.fieldText')}
         </Text>
-        {fieldLoading ? (
+        {fieldLoading || authLoading ? (
           <ActivityIndicator
             style={{
               marginTop: '60%',
@@ -370,7 +424,7 @@ export default function HomeScreen() {
                             height: rMS(16),
                             alignSelf: 'center',
                           }}
-                          resizeMode="contain"
+                          contentFit="contain"
                         />
                         <Text
                           style={{ width: rS(158) }}
@@ -397,7 +451,7 @@ export default function HomeScreen() {
                           height: rMS(44),
                           alignSelf: 'center',
                         }}
-                        resizeMode="contain"
+                        contentFit="contain"
                       />
                       <View>
                         <Text style={styles.fieldText}>
@@ -427,6 +481,50 @@ export default function HomeScreen() {
         isVisible={showMessageModal}
         message={messageModalText}
         success={success}
+      />
+      <TwoButtonsModal
+        isVisible={showDeleteModal}
+        onDismiss={() => setShowDeleteModal(false)}
+        title={t('deleteAllDataTitle')}
+        subtitle={t('deleteAllDataSubTitle')}
+        onPress={
+          userId
+            ? async () => {
+                try {
+                  await deletedUserData(userId);
+                  await getFieldsByUser(userId);
+                  await getAllTypeOfObjects();
+                  setShowDeleteModal(false);
+                  closeMenu();
+                  setSucces(true);
+                  setShowMessageModal(true);
+                  setTimeout(() => setShowMessageModal(false), 2000);
+                } catch (error) {
+                  closeMenu();
+                  setShowDeleteModal(false);
+                  setSucces(false);
+                  setShowMessageModal(true);
+                  setTimeout(() => setShowMessageModal(false), 2000);
+                }
+              }
+            : undefined
+        }
+        vertical={false}
+        icon={
+          <IconButton
+            icon="alert-outline"
+            iconColor="red"
+            size={rMS(82)}
+            style={{
+              width: rMS(82),
+              height: rMS(82),
+              marginTop: rMS(-8),
+              marginBottom: rMS(12),
+              alignSelf: 'center',
+            }}
+          />
+        }
+        textOkButton={t('fieldView.deleteButton')}
       />
     </View>
   );

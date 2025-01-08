@@ -20,54 +20,34 @@ export default function MessageModal({
   onClose,
 }: SuccessModalProps) {
   const { t } = useTranslation();
+  // console.log('ESTE ES EL ONCLOSE', onClose);
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={isVisible}
-      onDismiss={onClose == undefined ? undefined : () => onClose}
+      onRequestClose={() => {
+        onClose ? onClose() : undefined;
+      }}
     >
       <View style={styles.overlay} />
       <View style={styles.modalContent}>
         <View style={styles.header}>
-          {success && !icon ? (
-            <>
-              <Text style={styles.title}>
-                {message && message.trim().length
-                  ? message
-                  : t('modal.successMessage')}
-              </Text>
-              <IconButton
-                icon="check-circle-outline"
-                iconColor="#486732"
-                size={rMS(82)}
-              />
-            </>
-          ) : !success && !icon ? (
-            <>
-              <Text style={styles.title}>
-                {message && message.trim().length
-                  ? message
-                  : t('modal.errorMessage')}
-              </Text>
-              <IconButton
-                icon="alert-decagram-outline"
-                iconColor="#B82E2E"
-                size={rMS(82)}
-              />
-            </>
+          <Text style={styles.title}>
+            {message && message.trim().length
+              ? message
+              : success
+              ? t('modal.successMessage')
+              : t('modal.errorMessage')}
+          </Text>
+          {icon ? (
+            icon
           ) : (
-            <>
-              <Text style={[styles.title, { textAlign: 'center' }]}>
-                {message && message.trim().length ? message : ''}
-              </Text>
-              {icon}
-              {/* <IconButton
-                icon="alert-decagram-outline"
-                iconColor="#B82E2E"
-                size={rMS(82)}
-              /> */}
-            </>
+            <IconButton
+              icon={success ? 'check-circle-outline' : 'alert-decagram-outline'}
+              iconColor={success ? '#486732' : '#B82E2E'}
+              size={rMS(82)}
+            />
           )}
         </View>
       </View>
