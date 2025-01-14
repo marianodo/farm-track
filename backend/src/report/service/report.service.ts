@@ -3,17 +3,19 @@ import { ReportRepository } from '../repository/report.repository';
 import { CreateReportDto } from '../dto/create-report.dto';
 import { UpdateReportDto } from '../dto/update-report.dto';
 import { Report } from '@prisma/client';
+import { CreateProductivityDto } from 'src/productivity/dto/productivity-create-dto';
 
 @Injectable()
 export class ReportService {
   constructor(private readonly reportRepository: ReportRepository) {}
 
   async create(
-    createReportDto: CreateReportDto,
+    report: CreateReportDto,
     field_id: string,
+    productivity: Omit<CreateProductivityDto, 'reportId'>,
   ): Promise<Report> {
     try {
-      return await this.reportRepository.create(createReportDto, field_id);
+      return await this.reportRepository.create(report, field_id, productivity);
     } catch (error) {
       throw error;
     }
@@ -34,9 +36,13 @@ export class ReportService {
     }
   }
 
-  async update(id: number, updateReportDto: UpdateReportDto): Promise<Report> {
+  async update(
+    id: number,
+    report: UpdateReportDto,
+    productivity: CreateProductivityDto,
+  ): Promise<Report> {
     try {
-      return await this.reportRepository.update(id, updateReportDto);
+      return await this.reportRepository.update(id, report, productivity);
     } catch (error) {
       throw error;
     }

@@ -30,6 +30,9 @@ import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
 import useReportStore from '@/store/reportStore';
+import useFieldStore from '@/store/fieldStore';
+import { productivityNameType } from '@/utils/constants/productivity';
+import useAuthStore from '@/store/authStore';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -54,6 +57,15 @@ type DefaultParameters = {
 type FormData = {
   name: string | null;
   comment: string | null;
+};
+
+type ProductivityData = {
+  total_cows: number | null;
+  milking_cows: number | null;
+  average_production: number | null;
+  somatic_cells: number | null;
+  percentage_of_fat: number | null;
+  percentage_of_protein: number | null;
 };
 
 type FormDataError = {
@@ -96,6 +108,10 @@ const CreateReport: React.FC = () => {
     resetReportByIdNameAndComment: state.resetReportByIdNameAndComment,
   }));
 
+  const { userId } = useAuthStore((state) => ({
+    userId: state.userId,
+  }));
+
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
@@ -111,6 +127,22 @@ const CreateReport: React.FC = () => {
     comment: null,
   });
 
+  const [productivityData, setProductivityData] = useState<ProductivityData>({
+    total_cows: null,
+    milking_cows: null,
+    average_production: null,
+    somatic_cells: null,
+    percentage_of_fat: null,
+    percentage_of_protein: null,
+  });
+
+  const productivityInfo = productivityNameType.map((item) => ({
+    ...item,
+    label: t(`reportsView.productivityDataLabel.${item.name}`),
+  }));
+
+  const { fieldProductionType } = useFieldStore();
+
   const validateForm = () => {
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
@@ -118,6 +150,17 @@ const CreateReport: React.FC = () => {
 
     setError(newError);
     return newError.name;
+  };
+
+  const productivityInputChange = (
+    name: string,
+    value: number | null | string
+  ) => {
+    setEditData(true);
+    setProductivityData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
   const onChange = (field: keyof FormData, inputValue: any) => {
@@ -134,9 +177,19 @@ const CreateReport: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    const hasProductivityData = Object.values(productivityData).some(
+      (value) => value !== null
+    );
+
+    const data = {
+      report: formData,
+      ...(hasProductivityData && {
+        productivity: { ...productivityData, userId: userId },
+      }),
+    };
     try {
       if (editData) {
-        update(reportId, formData, fieldId);
+        update(reportId, data, fieldId);
       }
       router.push({
         pathname: `/measurement`,
@@ -191,6 +244,19 @@ const CreateReport: React.FC = () => {
     setFormData({
       name: reportByIdNameAndComment?.name,
       comment: reportByIdNameAndComment?.comment,
+    });
+    setProductivityData({
+      total_cows: reportByIdNameAndComment?.productivity?.total_cows || null,
+      milking_cows:
+        reportByIdNameAndComment?.productivity?.milking_cows || null,
+      average_production:
+        reportByIdNameAndComment?.productivity?.average_production || null,
+      somatic_cells:
+        reportByIdNameAndComment?.productivity?.somatic_cells || null,
+      percentage_of_fat:
+        reportByIdNameAndComment?.productivity?.percentage_of_fat || null,
+      percentage_of_protein:
+        reportByIdNameAndComment?.productivity?.percentage_of_protein || null,
     });
   }, [reportByIdNameAndComment]);
 
@@ -408,6 +474,81 @@ const CreateReport: React.FC = () => {
               style={styles.input}
             />
             {error?.name && <Text style={styles.errorText}>{error?.name}</Text>}
+            {fieldProductionType === 'bovine_of_milk' && (
+              <View
+                style={{
+                  padding: 10,
+                  marginTop: 10,
+                  width: '100%',
+                  backgroundColor: '#F1F1F1',
+                  borderRadius: 8,
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                  justifyContent: 'space-between',
+                }}
+              >
+                {productivityInfo.map((input, index) => (
+                  <View
+                    key={index}
+                    style={{
+                      width: '48%',
+                      marginBottom: 10,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontFamily: 'Pro-Regular',
+                        color: '#292929',
+                        marginLeft: 5,
+                        textTransform: 'capitalize',
+                        marginBottom: 8,
+                      }}
+                    >
+                      {input.label}
+                    </Text>
+                    <TextInput
+                      mode="outlined"
+                      style={{
+                        width: '100%',
+                        height: 50,
+                        borderWidth: 1,
+                        fontSize: 16,
+                        fontFamily: 'Pro-Regular',
+                        color: '#292929',
+                        borderColor: '#ccc',
+                        borderRadius: 8,
+                        paddingHorizontal: 4,
+                      }}
+                      keyboardType={
+                        input.type === 'integer' ? 'number-pad' : 'decimal-pad'
+                      }
+                      placeholder={input.label}
+                      placeholderTextColor="#486732"
+                      value={
+                        productivityData[
+                          input.name as keyof ProductivityData
+                        ]?.toString() || ''
+                      }
+                      activeOutlineColor="#486732"
+                      outlineColor="#486732"
+                      cursorColor="#486732"
+                      onChangeText={(value) => {
+                        const sanitizedValue = value.replace(',', '.');
+                        if (/^[0-9]*\.?[0-9]*$/.test(sanitizedValue)) {
+                          productivityInputChange(
+                            input.name,
+                            input.type === 'integer'
+                              ? parseInt(sanitizedValue) || null
+                              : sanitizedValue || null
+                          );
+                        }
+                      }}
+                    />
+                  </View>
+                ))}
+              </View>
+            )}
           </View>
         </KeyboardAwareScrollView>
         <View style={styles.fixedButtonContainer}>

@@ -27,6 +27,7 @@ interface FieldState {
   fields: FieldWithMetadata[] | null;
   fieldsByUserId: Field[] | null;
   fieldDetail: Field | null;
+  fieldProductionType: string | null;
   fieldLoading: boolean;
   createField: (field: Omit<FiledWithUserId, 'id'>) => void;
   onDelete: (id: string) => void;
@@ -36,11 +37,13 @@ interface FieldState {
   getFieldById: (id: string) => void;
   resetDetail: () => void;
   clearFields: () => void;
+  setFieldProductionType: (type: string) => void;
 }
 
 const useFieldStore = create<FieldState>((set: any) => ({
   fields: null,
   fieldsByUserId: null,
+  fieldProductionType: null,
   fieldDetail: null,
   fieldLoading: false,
   createField: async (field: Omit<Field, 'id'>): Promise<void> => {
@@ -136,6 +139,9 @@ const useFieldStore = create<FieldState>((set: any) => ({
       set({ fieldLoading: false });
       console.log('error getFieldById:', error);
     }
+  },
+  setFieldProductionType: (type: string) => {
+    set({ fieldProductionType: type });
   },
   resetDetail: () => {
     set({

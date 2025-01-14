@@ -191,7 +191,16 @@
     "reportListNameText": "Report",
     "createReportInfoText": "The name and observations of the report are optional.",
     "createReportTextButton": "Create report",
-    "reportErrorCreateText": "Error creating the report."
+    "reportErrorCreateText": "Error creating the report.",
+    "productivityDataLabel": {
+      "total_cows": "Total cows",
+      "milking_cows": "Milking cows",
+      "average_production": "Average production",
+      "somatic_cells": "Somatic cells",
+      "percentage_of_fat": "% of fat",
+      "percentage_of_protein": "% of protein"
+    },
+    "dontMeasurementOnReport": "To see report details you must first create a measurement."
   },
   "measurementView": {
     "newMeasurementText": "New measurement",

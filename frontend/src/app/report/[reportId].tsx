@@ -127,6 +127,7 @@ export default function PenScreen() {
     resetDetail: state.resetDetail,
   }));
   const { t } = useTranslation();
+
   const [penOrReportSelect, setPenOrReportSelect] = useState<string | null>(
     (reportById && reportById[0]?.name) ?? null
   );
@@ -155,14 +156,17 @@ export default function PenScreen() {
   }, [reportsLoading]);
 
   useEffect(() => {
+    console.log(reportById && reportById[0]);
     if (reportById && reportById.length > 0) {
       setPenOrReportSelect(reportById[0].name);
     }
   }, [reportById]);
 
-  const selectedReport = reportById?.find(
-    (report) => report.name === penOrReportSelect
-  );
+  const selectedReport =
+    Array.isArray(reportById) &&
+    reportById?.find((report) => report.name === penOrReportSelect);
+
+  console.log('seleceted', selectedReport);
 
   return (
     <View style={styles.titleContainer}>
@@ -244,43 +248,47 @@ export default function PenScreen() {
                   display: 'flex',
                   flexDirection: 'row',
                   justifyContent: 'flex-start',
-                  gap: 30, // Ajusta según tu función rMS
+                  gap: 30,
                 }}
               >
-                {reportById?.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => {
-                      setPenOrReportSelect(item.name);
-                      setPenExpandedItems([]);
-                    }}
-                  >
-                    <Text
-                      style={{
-                        textAlign: 'center',
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        fontFamily: 'Pro-Regular',
-                        color:
-                          penOrReportSelect === item.name ? '#486732' : '#000',
+                {Array.isArray(reportById) &&
+                  reportById?.map((item) => (
+                    <Pressable
+                      key={item.id}
+                      onPress={() => {
+                        setPenOrReportSelect(item.name);
+                        setPenExpandedItems([]);
                       }}
                     >
-                      {item.name}
-                    </Text>
-                    {penOrReportSelect === item.name && (
-                      <Divider
+                      <Text
                         style={{
-                          backgroundColor: '#486732',
-                          height: 2.4, // Ajusta según tu función rMS
+                          textAlign: 'center',
+                          fontSize: 18,
+                          fontWeight: 'bold',
+                          fontFamily: 'Pro-Regular',
+                          color:
+                            penOrReportSelect === item.name
+                              ? '#486732'
+                              : '#000',
                         }}
-                      />
-                    )}
-                  </Pressable>
-                ))}
+                      >
+                        {item.name}
+                      </Text>
+                      {penOrReportSelect === item.name && (
+                        <Divider
+                          style={{
+                            backgroundColor: '#486732',
+                            height: 2.4, // Ajusta según tu función rMS
+                          }}
+                        />
+                      )}
+                    </Pressable>
+                  ))}
               </View>
             </View>
           </ScrollView>
         </View>
+
         {reportsLoading || localLoading ? (
           <ActivityIndicator
             style={{

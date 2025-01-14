@@ -191,7 +191,16 @@
     "reportListNameText": "Reporte",
     "createReportInfoText": "El nombre y las observaciones del reporte son opcionales.",
     "createReportTextButton": "Crear reporte",
-    "reportErrorCreateText": "Error al crear el reporte."
+    "reportErrorCreateText": "Error al crear el reporte.",
+    "productivityDataLabel": {
+      "total_cows": "Total de vacas",
+      "milking_cows": "Vacas en ordeña",
+      "average_production": "Producción promedio",
+      "somatic_cells": "Células somáticas",
+      "percentage_of_fat": "% de grasa",
+      "percentage_of_protein": "% de proteína"
+    },
+    "dontMeasurementOnReport": "Para ver detalles del reporte primero debes crear una medicion."
   },
   "measurementView": {
     "newMeasurementText": "Nueva medición",

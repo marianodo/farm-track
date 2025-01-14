@@ -10,11 +10,18 @@ import {
   HttpException,
   HttpCode,
   Query,
+  // UseGuards,
 } from '@nestjs/common';
 import { ReportService } from '../service/report.service';
 import { CreateReportDto } from '../dto/create-report.dto';
-import { UpdateReportDto } from '../dto/update-report.dto';
 import { Report } from '@prisma/client';
+import { CreateProductivityDto } from 'src/productivity/dto/productivity-create-dto';
+// import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+
+type CombinedDto = {
+  report: CreateReportDto;
+  productivity?: Omit<CreateProductivityDto, 'reportId'>;
+};
 
 @Controller('reports')
 export class ReportController {
@@ -24,12 +31,26 @@ export class ReportController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Param('field_id') field_id: string,
-    @Body() createReportDto: CreateReportDto,
+    @Body() combinedDto: CombinedDto,
   ): Promise<Report> {
     try {
-      return await this.reportService.create(createReportDto, field_id);
+      console.log('productivity ', combinedDto.productivity);
+      if (combinedDto.productivity) {
+        if (!combinedDto.productivity.userId) {
+          throw new HttpException(
+            'The userId is required to create the productivity.',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+
+      return await this.reportService.create(
+        combinedDto.report,
+        field_id,
+        combinedDto.productivity,
+      );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw error;
     }
   }
 
@@ -62,10 +83,14 @@ export class ReportController {
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') id: string,
-    @Body() updateReportDto: UpdateReportDto,
+    @Body() combinedDto: CombinedDto,
   ): Promise<Report> {
     try {
-      return await this.reportService.update(+id, updateReportDto);
+      return await this.reportService.update(
+        +id,
+        combinedDto.report,
+        combinedDto.productivity,
+      );
     } catch (error) {
       throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
     }

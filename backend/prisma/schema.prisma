@@ -20,6 +20,7 @@ model User {
   fields             Field[]
   type_of_objects    TypeOfObject[]
   variables          Variable[]
+  productivity       Productivity[]
 
   @@index([created_at, updated_at])
 }
@@ -115,6 +116,7 @@ model Report {
   correlative_id Int
   measurements   Measurement[]
   field          Field         @relation(fields: [field_id], references: [id], onDelete: Cascade)
+  productivity   Productivity?
 }
 
 model PenTypeOfObject {
@@ -124,6 +126,20 @@ model PenTypeOfObject {
   type_of_object TypeOfObject @relation(fields: [typeOfObjectId], references: [id], onDelete: Cascade)
 
   @@id([penId, typeOfObjectId])
+}
+
+model Productivity {
+  id                Int              @id @default(autoincrement())
+  total_cows        Int?
+  milking_cows      Int?
+  average_production Decimal?
+  somatic_cells     Int?
+  percentage_of_fat Decimal?
+  percentage_of_protein Decimal?
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reportId          Int       @unique
+  report            Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
 }
 
 model TypeOfObject_Variable {
