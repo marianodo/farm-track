@@ -17,11 +17,13 @@ import { AuthService } from '../service/auth.service';
 import { LoginAuthDto } from '../dto/login-auth.dto';
 import { RefreshJwtAuthGuard } from '../guard/refresh-jwt-auth.guard';
 import { RegisterAuthDto } from '../dto/register-auth.dto';
+import { Public } from '../decorator/public.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @HttpCode(HttpStatus.CREATED) // Establece el código de estado HTTP 201 (Created) si la solicitud es exitosa
   async registerUser(@Body() registerAuthDto: RegisterAuthDto) {
@@ -34,17 +36,20 @@ export class AuthController {
     }
   }
 
+  @Public()
   @Post('login')
   loginUser(@Body() loginAuthDto: LoginAuthDto) {
     return this.authService.loginUser(loginAuthDto);
   }
 
   @UseGuards(RefreshJwtAuthGuard)
+  @Public()
   @Post('refreshToken')
   refreshToken(@Request() req: any) {
     return this.authService.refreshToken(req.user);
   }
 
+  @Public()
   @Get('verify')
   //De momento es un get, pero habria que cambiarlo en el futuro por un patch.
   @HttpCode(HttpStatus.OK) // Establece el codigo de estado HTTP 200 (Ok) si la solicitud es exitosa

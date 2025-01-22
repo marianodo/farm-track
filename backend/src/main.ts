@@ -2,9 +2,10 @@ import * as morgan from 'morgan';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { config as dotenvConfig } from 'dotenv';
+import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
 dotenvConfig();
 
 console.log(typeof process.env.TOKEN_EXPIRES);
@@ -17,6 +18,7 @@ async function bootstrap() {
   });
   app.use(morgan('dev'));
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({

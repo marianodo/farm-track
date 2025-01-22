@@ -2,6 +2,10 @@
   "deleteAllDataTitle": "¿Are you sure you want to delete all data?",
   "deleteAllDataSubTitle": "This action is irreversible and will permanently delete all associated information.",
   "language": "Language",
+  "menuInitial": {
+    "deleteData": "Delete data",
+    "logout": "Logout"
+  },
   "formErrors": {
     "required": {
       "null": "This field is required and cannot contain only spaces.",

@@ -57,7 +57,7 @@ export default function TwoButtonsModal({
             <Divider style={styles.divider} />
             <View style={styles.modalButtons}>
               <Button
-                onPress={onPress !== null ? () => onPress : undefined}
+                onPress={onPress !== null ? () => onPress() : undefined}
                 style={styles.button}
                 rippleColor="#436d22"
               >
