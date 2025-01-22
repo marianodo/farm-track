@@ -328,7 +328,7 @@ const ReportDetail: React.FC<PenListProps> = ({
       <View
         style={{
           width: '90%',
-          backgroundColor: '#ebf2ed',
+          backgroundColor: '#f5ead2',
           height: rMV(44),
           borderRadius: rMS(6),
           alignItems: 'center',
@@ -341,13 +341,13 @@ const ReportDetail: React.FC<PenListProps> = ({
       >
         <IconButton
           icon={'alert-circle-outline'}
-          iconColor="#487632"
+          iconColor="#d9a220"
           size={rMS(20)}
           style={{ margin: 0 }}
         />
         <Text
           style={{
-            color: '#487632',
+            color: '#d9a220',
             fontFamily: 'Pro-Regular',
             fontSize: rMS(10),
             flexShrink: 1,
@@ -355,7 +355,7 @@ const ReportDetail: React.FC<PenListProps> = ({
             textAlign: 'center',
           }}
         >
-          {t('penView.dontPenMessage')}
+          {t('reportsView.dontMeasurementOnReport')}
         </Text>
       </View>
     </View>

@@ -25,6 +25,7 @@ import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
 import { Image } from 'expo-image';
+import useVariableStore from '@/store/variableStore';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -59,13 +60,19 @@ export default function HomeScreen() {
       authLoading: state.authLoading,
     }));
 
-  const { fieldLoading, fieldsByUserId, getFieldsByUser, onDelete } =
-    useFieldStore((state) => ({
-      fieldLoading: state.fieldLoading,
-      fieldsByUserId: state.fieldsByUserId,
-      getFieldsByUser: state.getFieldsByUser,
-      onDelete: state.onDelete,
-    }));
+  const {
+    fieldLoading,
+    fieldsByUserId,
+    getFieldsByUser,
+    onDelete,
+    setFieldProductionType,
+  } = useFieldStore((state) => ({
+    fieldLoading: state.fieldLoading,
+    fieldsByUserId: state.fieldsByUserId,
+    getFieldsByUser: state.getFieldsByUser,
+    onDelete: state.onDelete,
+    setFieldProductionType: state.setFieldProductionType,
+  }));
 
   const { t } = useTranslation();
   const onLogoutPressed = () => {
@@ -127,9 +134,14 @@ export default function HomeScreen() {
     })
   );
 
+  const { getAllVariables } = useVariableStore((state: any) => ({
+    getAllVariables: state.getAllVariables,
+  }));
+
   useEffect(() => {
     if (fieldsByUserId === null) {
       getFieldsByUser(userId);
+      getAllVariables();
     }
   }, [fieldsByUserId, getFieldsByUser]);
 
@@ -376,7 +388,8 @@ export default function HomeScreen() {
                     key={index}
                     style={styles.fieldContainer}
                     activeOpacity={0.7}
-                    onPress={() =>
+                    onPress={() => {
+                      setFieldProductionType(field?.production_type!);
                       router.push({
                         pathname: `/pen/[fieldId]`,
                         params: {
@@ -385,8 +398,8 @@ export default function HomeScreen() {
                           withFields: 'false',
                           withObjects: 'true',
                         },
-                      })
-                    }
+                      });
+                    }}
                   >
                     <View
                       style={{

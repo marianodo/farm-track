@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './styles';
+const { height } = Dimensions.get('window');
 import {
   Platform,
   Pressable,
@@ -30,6 +31,9 @@ import useVariableStore from '@/store/variableStore';
 import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
 import useReportStore from '@/store/reportStore';
+import useFieldStore from '@/store/fieldStore';
+import useAuthStore from '@/store/authStore';
+import { productivityNameType } from '@/utils/constants/productivity';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -60,6 +64,15 @@ type FormDataError = {
   name: string | null;
 };
 
+type ProductivityData = {
+  total_cows: number | null;
+  milking_cows: number | null;
+  average_production: number | null;
+  somatic_cells: number | null;
+  percentage_of_fat: number | null;
+  percentage_of_protein: number | null;
+};
+
 const CreateReport: React.FC = () => {
   const { fieldId, fieldName } = useLocalSearchParams();
   const { validateNameInput } = useValidationRules();
@@ -71,6 +84,7 @@ const CreateReport: React.FC = () => {
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
+
   const { resetCreateReportId, createReport, reportsLoading, createReportId } =
     useReportStore((state: any) => ({
       reportsLoading: state.reportsLoading,
@@ -80,12 +94,20 @@ const CreateReport: React.FC = () => {
       createReportId: state.createReportId,
     }));
 
+  const { fieldProductionType } = useFieldStore();
+
+  console.log('Field productionType', fieldProductionType);
+
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
   }));
 
   const { t } = useTranslation();
+  const productivityInfo = productivityNameType.map((item) => ({
+    ...item,
+    label: t(`reportsView.productivityDataLabel.${item.name}`),
+  }));
   const [open, setOpen] = useState(false);
   const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
   const [items, setItems] = useState<Item[]>([]);
@@ -95,6 +117,28 @@ const CreateReport: React.FC = () => {
     comment: null,
   });
 
+  const [productivityData, setProductivityData] = useState<ProductivityData>({
+    total_cows: null,
+    milking_cows: null,
+    average_production: null,
+    somatic_cells: null,
+    percentage_of_fat: null,
+    percentage_of_protein: null,
+  });
+
+  const { userId } = useAuthStore((state) => ({
+    userId: state.userId,
+  }));
+
+  // Función para manejar el cambio en los inputs
+  const handleInputChange = (name: string, value: number | null | string) => {
+    console.log('asdasd', value);
+    setProductivityData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
   const validateForm = () => {
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
@@ -103,6 +147,7 @@ const CreateReport: React.FC = () => {
     setError(newError);
     return newError.name;
   };
+  console.log('asdasd', productivityData);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     // const updatedFormData = { ...formData, [field]: inputValue };
@@ -116,8 +161,19 @@ const CreateReport: React.FC = () => {
     setFormData({ ...formData, [field]: inputValue });
   };
   const handleSubmit = async () => {
+    const hasProductivityData = Object.values(productivityData).some(
+      (value) => value !== null
+    );
+
+    const data = {
+      report: formData,
+      ...(hasProductivityData && {
+        productivity: { ...productivityData, userId: userId },
+      }),
+    };
+
     try {
-      await createReport(formData, fieldId);
+      await createReport(data, fieldId);
       router.push({
         pathname: `/measurement`,
         params: {
@@ -130,6 +186,22 @@ const CreateReport: React.FC = () => {
       alert(t('attributeView.formErrorText'));
     }
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      return () => {
+        setFormData({ name: null, comment: null });
+        setProductivityData({
+          total_cows: null,
+          milking_cows: null,
+          average_production: null,
+          somatic_cells: null,
+          percentage_of_fat: null,
+          percentage_of_protein: null,
+        });
+      };
+    }, [])
+  );
 
   useFocusEffect(
     React.useCallback(() => {
@@ -326,6 +398,7 @@ const CreateReport: React.FC = () => {
                 mode="outlined"
                 placeholderTextColor="#292929"
                 placeholder={t('reportsView.reportNamePlaceHolder')}
+                value={formData.name || ''}
                 onChangeText={(value) => onChange('name', value)}
                 autoCapitalize="sentences"
                 activeOutlineColor="transparent"
@@ -342,6 +415,7 @@ const CreateReport: React.FC = () => {
                 mode="outlined"
                 placeholderTextColor="#292929"
                 placeholder={t('reportsView.reportObservationsPlaceHolder')}
+                value={formData.comment || ''}
                 onChangeText={(value) => onChange('comment', value)}
                 autoCapitalize="sentences"
                 activeOutlineColor="transparent"
@@ -352,6 +426,83 @@ const CreateReport: React.FC = () => {
               />
               {error?.name && (
                 <Text style={styles.errorText}>{error?.name}</Text>
+              )}
+              {fieldProductionType === 'bovine_of_milk' && (
+                <View
+                  style={{
+                    padding: 10,
+                    marginTop: 10,
+                    width: '100%',
+                    backgroundColor: '#F1F1F1',
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  {productivityInfo.map((input, index) => (
+                    <View
+                      key={index}
+                      style={{
+                        width: '48%',
+                        marginBottom: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontFamily: 'Pro-Regular',
+                          color: '#292929',
+                          marginLeft: 5,
+                          textTransform: 'capitalize',
+                          marginBottom: 8,
+                        }}
+                      >
+                        {input.label}
+                      </Text>
+                      <TextInput
+                        mode="outlined"
+                        style={{
+                          width: '100%',
+                          height: 50,
+                          borderWidth: 1,
+                          fontSize: 16,
+                          fontFamily: 'Pro-Regular',
+                          color: '#292929',
+                          borderColor: '#ccc',
+                          borderRadius: 8,
+                          paddingHorizontal: 4,
+                        }}
+                        keyboardType={
+                          input.type === 'integer'
+                            ? 'number-pad'
+                            : 'decimal-pad'
+                        }
+                        placeholder={input.label}
+                        placeholderTextColor="#486732"
+                        value={
+                          productivityData[
+                            input.name as keyof ProductivityData
+                          ]?.toString() || ''
+                        }
+                        activeOutlineColor="#486732"
+                        outlineColor="#486732"
+                        cursorColor="#486732"
+                        onChangeText={(value) => {
+                          const sanitizedValue = value.replace(',', '.');
+                          if (/^[0-9]*\.?[0-9]*$/.test(sanitizedValue)) {
+                            handleInputChange(
+                              input.name,
+                              input.type === 'integer'
+                                ? parseInt(sanitizedValue) || null
+                                : sanitizedValue || null
+                            );
+                          }
+                        }}
+                      />
+                    </View>
+                  ))}
+                </View>
               )}
             </View>
           </KeyboardAwareScrollView>

@@ -11,7 +11,7 @@ import {
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
   reportById: ReportWithMeasurements2[] | null | [];
-  reportByIdNameAndComment: { name: string; comment: string } | null;
+  reportByIdNameAndComment: any;
   createReportId: number | null;
   measurementVariablesData: MeasurementData[] | null;
   measurementEditData: MeasurementEditData[] | null;
@@ -185,16 +185,17 @@ const useReportStore = create<ReportState>((set) => ({
   },
   getReportById: async (id: number | null, onlyNameAndComment?: string) => {
     set({ reportsLoading: true });
-    console.log(
-      onlyNameAndComment,
-      useReportStore.getState().reportByIdNameAndComment
-    );
+    // console.log(
+    //   onlyNameAndComment,
+    //   useReportStore.getState().reportByIdNameAndComment
+    // );
 
     try {
       if (onlyNameAndComment) {
         const response = await axiosInstance.get(
           `/reports/${id}?onlyNameAndComment=${onlyNameAndComment}`
         );
+
         set({ reportByIdNameAndComment: response.data, reportsLoading: false });
         return;
       } else {
