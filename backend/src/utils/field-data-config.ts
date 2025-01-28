@@ -305,7 +305,7 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         defaultValue: {
           value: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
         },
-        associatedTypeOfObject: 'Animal',
+        associatedTypeOfObject: 'Installation',
       },
     ],
   },
