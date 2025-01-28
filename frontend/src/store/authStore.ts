@@ -23,6 +23,8 @@ interface AuthState {
   deleted: (id: string) => void;
   register: (username: string, password: string, email: string) => void;
   deletedUserData: (username: string) => void;
+  initializedToken: () => void;
+  verifiedToken: boolean;
 }
 
 const useAuthStore = create<AuthState>((set: any) => ({
@@ -33,6 +35,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
   token: null,
   role: null,
   authLoading: false,
+  verifiedToken: false,
 
   onLogin: async (email: string, password: string) => {
     set({ authLoading: true });
@@ -45,24 +48,26 @@ const useAuthStore = create<AuthState>((set: any) => ({
         }
       );
       const { accessToken, refreshToken } = response.data;
-      const decodedToken: any = jwtDecode(accessToken);
-      await AsyncStorage.setItem('accessToken', accessToken);
-      await AsyncStorage.setItem('user', JSON.stringify(decodedToken));
-      const userString = await AsyncStorage.getItem('user');
-      const user = userString ? JSON.parse(userString) : null;
-      await SecureStore.setItemAsync('refreshToken', refreshToken);
-
-      set({
-        authenticated: user.isVerified,
-        userId: user.userId,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        token: await AsyncStorage.getItem('accessToken'),
-        authLoading: false,
-      });
+      if (accessToken && refreshToken) {
+        const decodedToken = jwtDecode(accessToken);
+        await AsyncStorage.setItem('accessToken', accessToken);
+        await AsyncStorage.setItem('user', JSON.stringify(decodedToken));
+        const userString = await AsyncStorage.getItem('user');
+        const user = userString ? JSON.parse(userString) : null;
+        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        set({
+          verifiedToken: true,
+          authenticated: true,
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+          token: accessToken,
+          authLoading: false,
+        });
+      }
     } catch (error: any) {
-      set({ authLoading: false });
+      set({ authLoading: false, verifiedToken: false, authenticated: true });
       if (error.response) {
         return alert(`Login error: ${error.response.data.message}`);
       }
@@ -84,6 +89,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
         email: null,
         token: null,
         role: null,
+        verifiedToken: false,
       });
     } catch (error) {
       set({ authLoading: false });
@@ -113,6 +119,42 @@ const useAuthStore = create<AuthState>((set: any) => ({
         return alert(`Login error: ${error.response.data.message}`);
       }
       // alert('Error al registrar el usuario');
+    }
+  },
+
+  initializedToken: async () => {
+    set({ authLoading: true });
+    try {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      if (accessToken) {
+        const decodedToken: any = jwtDecode(accessToken);
+        await AsyncStorage.setItem('user', JSON.stringify(decodedToken));
+        const userString = await AsyncStorage.getItem('user');
+        const user = userString ? JSON.parse(userString) : null;
+        set({
+          token: accessToken,
+          authenticated: true,
+          authLoading: false,
+          userId: user.userId,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        });
+      } else {
+        set({
+          token: null,
+          authenticated: false,
+          authLoading: false,
+          userId: null,
+          username: null,
+          email: null,
+          role: null,
+          verifiedToken: false,
+        });
+      }
+    } catch (error) {
+      set({ token: null, authenticated: false, authLoading: false });
+      console.log(error);
     }
   },
 
@@ -202,6 +244,7 @@ axiosInstance.interceptors.response.use(
         await SecureStore.setItemAsync('refreshToken', newRefreshToken);
         useAuthStore.setState({
           token: accessToken,
+          authenticated: true,
         });
         axiosInstance.defaults.headers.common[
           'Authorization'
@@ -213,6 +256,7 @@ axiosInstance.interceptors.response.use(
         await SecureStore.deleteItemAsync('refreshToken');
         useAuthStore.setState({
           token: null,
+          authenticated: false,
         });
         return Promise.reject(refreshError);
       }

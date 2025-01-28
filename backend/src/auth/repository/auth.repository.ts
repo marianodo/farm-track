@@ -127,9 +127,13 @@ export class AuthRepository {
         role: findUser.role,
       };
       const token = await this.jwtService.signAsync(payload);
+      const refreshToken = await this.jwtService.signAsync(payload, {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
+      });
 
       const data = {
         accessToken: token,
+        refreshToken,
       };
       return data;
     } catch (error) {
