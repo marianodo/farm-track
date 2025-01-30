@@ -38,7 +38,7 @@ export interface FieldConfig {
 
 export const fieldConfigurations: Record<string, FieldConfig> = {
   bovine_of_milk: {
-    typesOfObjects: [{ name: 'Animal' }, { name: 'Instalacion' }],
+    typesOfObjects: [{ name: 'Animal' }, { name: 'Installation' }],
     variables: [
       {
         name: 'Body condition',
@@ -62,7 +62,7 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
             min: 1,
             max: 5,
             optimal_min: 1,
-            optimal_max: 2,
+            optimal_max: 1,
             granularity: 1,
           },
         },
@@ -116,9 +116,9 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         defaultValue: {
           value: {
             min: 0,
-            max: 4.5,
+            max: 7,
             optimal_min: 0,
-            optimal_max: 2,
+            optimal_max: 1,
             granularity: 0.5,
           },
         },
@@ -147,12 +147,12 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
           value: {
             min: 1,
             max: 5,
-            optimal_min: 1,
-            optimal_max: 1,
+            optimal_min: 2,
+            optimal_max: 3,
             granularity: 1,
           },
         },
-        associatedTypeOfObject: 'Instalacion',
+        associatedTypeOfObject: 'Installation',
       },
       {
         name: 'Water trough score',
@@ -166,7 +166,7 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
             granularity: 1,
           },
         },
-        associatedTypeOfObject: 'Instalacion',
+        associatedTypeOfObject: 'Installation',
       },
       {
         name: 'Bedding score',
@@ -180,7 +180,7 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
             granularity: 1,
           },
         },
-        associatedTypeOfObject: 'Instalacion',
+        associatedTypeOfObject: 'Installation',
       },
       {
         name: 'Pen hygiene score',
@@ -194,31 +194,119 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
             granularity: 1,
           },
         },
-        associatedTypeOfObject: 'Instalacion',
+        associatedTypeOfObject: 'Installation',
       },
     ],
   },
-  //   'bovina de carne': {
-  //     typesOfObjects: [{ name: 'Animal' }, { name: 'Corral' }],
-  //     variables: [
-  //       {
-  //         name: 'Ganancia diaria de peso',
-  //         type: 'NUMBER',
-  //         defaultValue: { value: 0 },
-  //         associatedTypeOfObject: 'Animal',
-  //       },
-  //       {
-  //         name: 'Condición corporal',
-  //         type: 'NUMBER',
-  //         defaultValue: { value: 0 },
-  //         associatedTypeOfObject: 'Animal',
-  //       },
-  //       {
-  //         name: 'Capacidad del corral',
-  //         type: 'NUMBER',
-  //         defaultValue: { value: 0 },
-  //         associatedTypeOfObject: 'Corral',
-  //       },
-  //     ],
-  //   },
+  bovine_of_meat: {
+    typesOfObjects: [{ name: 'Animal' }, { name: 'Installation' }],
+    variables: [
+      {
+        name: 'Body condition',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 9,
+            optimal_min: 6,
+            optimal_max: 7,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Locomotion score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Fecal score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 2,
+            optimal_max: 3,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Panting score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 0,
+            max: 7,
+            optimal_min: 0,
+            optimal_max: 1,
+            granularity: 0.5,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Feed bunk score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 0,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 2,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Water trough score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Pen hygiene score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 3,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Mud score',
+        type: 'CATEGORICAL',
+        defaultValue: {
+          value: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+    ],
+  },
 };

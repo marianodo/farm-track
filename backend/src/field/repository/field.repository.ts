@@ -28,7 +28,10 @@ export class FieldRepository {
     createFieldDto: CreateFieldDto,
     // autoConfig: boolean,
   ): Promise<Field> {
-    if (createFieldDto.production_type === 'bovine_of_milk') {
+    if (
+      createFieldDto.production_type === 'bovine_of_milk' ||
+      createFieldDto.production_type === 'bovine_of_meat'
+    ) {
       return autoConfigField(createFieldDto, this.txHost);
     }
     return this.createFieldWithoutAutoConfig(createFieldDto);
