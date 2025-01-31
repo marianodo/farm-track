@@ -14,6 +14,7 @@ export default function stackLayout() {
         name="pen/createPen/index"
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="report/index" options={{ headerShown: false }} />
       <Stack.Screen
         name="report/createReport/index"
         options={{ headerShown: false }}

@@ -44,6 +44,7 @@ import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
 import MessageModal from '@/components/modal/MessageModal';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
+import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
 
 interface ListItemProps {
   item: any;
@@ -435,7 +436,7 @@ export default function AttributeScreen() {
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(typeOfObjects) &&
+      {/* {Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
         (Platform.OS === 'ios' ? (
           <SafeAreaView style={styles.floatingButton}>
@@ -454,7 +455,7 @@ export default function AttributeScreen() {
             onPress={() => router.push('/attributes/create')}
             size={rS(24)}
           />
-        ))}
+        ))} */}
       {/* header */}
       <ImageBackground
         source={require('../../../../../assets/images/objects-bg-image.png')}
@@ -494,18 +495,20 @@ export default function AttributeScreen() {
             />
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
+          <View style={{ display: 'flex', gap: 2, marginBottom: rMS(50) }}>
             <Text
               style={{
                 color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: rMS(13.6),
-                fontWeight: 'regular',
+                fontFamily: 'Pro-Regular-Bold',
+                fontSize: 20,
+                fontWeight: 'bold',
               }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              {t('fieldView.greeting')} {userName}
+              {t('fieldView.welcome')} {capitalizeWords(userName!)}
             </Text>
-            <Text
+            {/* <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
@@ -514,7 +517,7 @@ export default function AttributeScreen() {
               }}
             >
               {t('attributeView.title')}
-            </Text>
+            </Text> */}
           </View>
         </View>
       </ImageBackground>
@@ -524,7 +527,7 @@ export default function AttributeScreen() {
           backgroundColor: 'white',
           width: '100%',
           height: '100%',
-          top: rMS(-50),
+          top: rMS(-80),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
         }}
@@ -636,6 +639,10 @@ export default function AttributeScreen() {
           /* contenido scroll */
           <View style={styles.spacer}>
             <FlatList
+              ListFooterComponentStyle={{
+                marginBottom: Platform.OS === 'android' ? rMS(28) : rMS(20),
+              }}
+              ListFooterComponent={<View></View>}
               style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
               data={variables}
               keyExtractor={(item, index) => `${item.name}${index}`}
@@ -654,7 +661,22 @@ export default function AttributeScreen() {
             />
           </View>
         )}
+        {Array.isArray(typeOfObjects) && typeOfObjects.length > 0 && (
+          <View
+            style={[styles.fixedButtonContainer, { backgroundColor: 'white' }]}
+          >
+            <Pressable
+              onPress={() => router.push('/attributes/create')}
+              style={styles.button}
+            >
+              <Text style={styles.buttonText2}>
+                {t('attributeView.createVariableTextButton')}
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </View>
+
       <TwoButtonsModal
         isVisible={showDeleteModal}
         onDismiss={() => setShowDeleteModal(false)}
@@ -774,5 +796,23 @@ const styles = StyleSheet.create({
     color: '#486732',
     fontWeight: '600',
     fontSize: rMS(17),
+  },
+  buttonText2: {
+    fontFamily: 'Pro-Regular',
+    color: 'white',
+    fontWeight: '600',
+    fontSize: rMS(17),
+  },
+  fixedButtonContainer: {
+    paddingHorizontal: 20,
+    marginTop: rMV(-14),
+  },
+  button: {
+    width: '100%',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#486732',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

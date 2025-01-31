@@ -469,7 +469,9 @@ const CreatePen: React.FC = () => {
             <Text style={styles.greeting}>{t('detailField.goBackText')}</Text>
           </View>
           <View>
-            <Text style={styles.welcome}>Editar medición</Text>
+            <Text style={styles.welcome}>
+              {t('measurementView.editMeasurementText')}
+            </Text>
           </View>
         </View>
 
@@ -494,7 +496,7 @@ const CreatePen: React.FC = () => {
             fontFamily: 'Pro-Regular',
           }}
         >
-          Medición de objetos
+          {t('measurementView.measurementObjectText')}
         </Text>
 
         {/* contenido scroll  */}
@@ -522,7 +524,7 @@ const CreatePen: React.FC = () => {
             <TextInput
               mode="outlined"
               placeholderTextColor="#292929"
-              placeholder="Nombre del objeto"
+              placeholder={t('measurementView.objectTextIdentification')}
               value={formData.name as string}
               onChangeText={(value) => onChange('name', value)}
               autoCapitalize="sentences"
@@ -695,7 +697,7 @@ const CreatePen: React.FC = () => {
                             }
                           </Text>
                         )}
-                      <View
+                      {/* <View
                         style={{
                           display: 'flex',
                           justifyContent: 'flex-start',
@@ -711,7 +713,7 @@ const CreatePen: React.FC = () => {
                               .value.granularity
                           }
                         </Text>
-                      </View>
+                      </View> */}
                     </View>
                   ) : (
                     <View
@@ -872,7 +874,9 @@ const CreatePen: React.FC = () => {
             disabled={Object.keys(errors).length > 0}
             onPress={handleSubmit}
           >
-            <Text style={styles.buttonText}>Terminar edición</Text>
+            <Text style={styles.buttonText}>
+              {t('measurementView.endMeasurementText')}
+            </Text>
           </Pressable>
         </View>
         <UnsavedModalComponent

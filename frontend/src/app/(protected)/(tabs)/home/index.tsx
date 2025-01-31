@@ -1,4 +1,12 @@
-import { Divider, IconButton, Menu, Text } from 'react-native-paper';
+import {
+  Button,
+  Dialog,
+  Divider,
+  IconButton,
+  Menu,
+  Portal,
+  Text,
+} from 'react-native-paper';
 import {
   Alert,
   FlatList,
@@ -17,7 +25,7 @@ import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import useAuthStore from '@/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Swipeable } from 'react-native-gesture-handler';
+import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
 import React, { Fragment, useEffect, useState } from 'react';
@@ -26,12 +34,19 @@ import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
 import { Image } from 'expo-image';
 import useVariableStore from '@/store/variableStore';
+import CreateButtonAbsolute from '@/components/createButton/CreateButtonAbsolute';
+import CreateButton from '@/components/createButton/CreateButton';
+import CreateButtonTextAbsolute from '@/components/createButton/CreateButtonTextAbsolute';
+import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
 
 export default function HomeScreen() {
   const router = useRouter();
 
   const [visible, setVisible] = useState(false);
-
+  const [fieldInfo, setFiledInfo] = useState<null | {
+    fieldId: string;
+    fieldName: string;
+  }>(null);
   // Función para mostrar el menú
   const openMenu = () => setVisible(true);
 
@@ -185,9 +200,123 @@ export default function HomeScreen() {
     }, [])
   );
 
+  const [visiblee, setVisiblee] = React.useState(false);
+  const [textColor, setTextColor] = useState('#000'); // Color por defecto
+  const showDialog = () => setVisiblee(true);
+
+  const hideDialog = () => setVisiblee(false);
+
   return (
     <View style={styles.titleContainer}>
-      {Platform.OS === 'ios' ? (
+      <Portal>
+        <Dialog
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            backgroundColor: '#fff',
+          }}
+          visible={visiblee}
+          onDismiss={hideDialog}
+        >
+          <Dialog.Title style={{ textAlign: 'center' }}>
+            {t('fieldView.toGoText')}
+          </Dialog.Title>
+          {/* <Dialog.Content>
+            <Button textColor="black" onPress={hideDialog}>
+              This is simple dialog
+            </Button>
+          </Dialog.Content> */}
+          <Dialog.Actions
+            style={{
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'flex-start',
+            }}
+          >
+            <Button
+              style={{
+                // backgroundColor: '#007bff',
+                height: rMS(40),
+                padding: 0,
+                marginLeft: -8,
+                borderRadius: 10,
+                marginBottom: 10,
+              }}
+              onPress={() => {
+                hideDialog();
+                router.push({
+                  pathname: `/pen/[fieldId]`,
+                  params: {
+                    fieldId: fieldInfo?.fieldId!,
+                    fieldName: fieldInfo?.fieldName!,
+                    withFields: 'false',
+                    withObjects: 'true',
+                  },
+                });
+              }}
+              rippleColor="rgba(72, 118, 50, 0.5)"
+            >
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <IconButton
+                  icon={'arrow-right'}
+                  size={16}
+                  style={{ marginLeft: -10, padding: 0 }}
+                />
+                <Text style={{ fontSize: rMS(16) }}>
+                  {t('fieldView.penText')}
+                </Text>
+              </View>
+            </Button>
+            <Button
+              style={{
+                // backgroundColor: '#007bff',
+                height: rMS(40),
+                padding: 0,
+                marginLeft: -8,
+                borderRadius: 10,
+                marginBottom: 10,
+              }}
+              onPress={() => {
+                hideDialog();
+                router.push({
+                  pathname: `/report`,
+                  params: {
+                    fieldId: fieldInfo?.fieldId!,
+                    fieldName: fieldInfo?.fieldName!,
+                    withFields: 'false',
+                    withObjects: 'true',
+                  },
+                });
+              }}
+              rippleColor="rgba(72, 118, 50, 0.5)"
+            >
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                <IconButton
+                  icon={'arrow-right'}
+                  size={16}
+                  style={{ marginLeft: -10, padding: 0 }}
+                />
+                <Text style={{ fontSize: rMS(16) }}>
+                  {t('fieldView.evaluationText')}
+                </Text>
+              </View>
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+      {/* {Platform.OS === 'ios' ? (
         <SafeAreaView style={styles.floatingButton}>
           <IconButton
             icon="plus"
@@ -204,7 +333,20 @@ export default function HomeScreen() {
           onPress={() => router.push('/createField')}
           size={rS(24)}
         />
-      )}
+      )} */}
+      {/* {Platform.OS === 'ios' ? (
+        <SafeAreaView style={styles.button}>
+          <CreateButtonTextAbsolute
+            t={t}
+            onPress={() => router.push('/createField')}
+          />
+        </SafeAreaView>
+      ) : (
+        <CreateButtonTextAbsolute
+          t={t}
+          onPress={() => router.push('/createField')}
+        />
+      )} */}
       {/* header */}
       <ImageBackground
         source={require('../../../../../assets/images/tabs/tabs-header.png')}
@@ -292,8 +434,15 @@ export default function HomeScreen() {
             </Menu>
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
-            <Text
+          <View
+            style={{
+              display: 'flex',
+              gap: 2,
+              marginBottom: rMS(50),
+              maxWidth: rMS(320),
+            }}
+          >
+            {/* <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
@@ -302,16 +451,18 @@ export default function HomeScreen() {
               }}
             >
               {t('fieldView.greeting')} {userName}
-            </Text>
+            </Text> */}
             <Text
               style={{
                 color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: 22,
+                fontFamily: 'Pro-Regular-Bold',
+                fontSize: 20,
                 fontWeight: 'bold',
               }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              {t('fieldView.welcome')}
+              {t('fieldView.welcome')} {capitalizeWords(userName!)}
             </Text>
           </View>
         </View>
@@ -322,7 +473,7 @@ export default function HomeScreen() {
           backgroundColor: 'white',
           width: '100%',
           height: '100%',
-          top: rMS(-50),
+          top: rMS(-80),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
         }}
@@ -392,7 +543,13 @@ export default function HomeScreen() {
           /* contenido scroll */
           <View style={styles.spacer}>
             <FlatList
-              style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+              style={{
+                paddingHorizontal: rMS(20),
+                paddingTop: rMS(10),
+                marginBottom: rMS(10),
+
+                // paddingBottom: 150,
+              }}
               data={fieldsByUserId}
               keyExtractor={(item, index) => index.toString()}
               renderItem={({ item: field, index }) => (
@@ -413,15 +570,20 @@ export default function HomeScreen() {
                     activeOpacity={0.7}
                     onPress={() => {
                       setFieldProductionType(field?.production_type!);
-                      router.push({
-                        pathname: `/pen/[fieldId]`,
-                        params: {
-                          fieldId: field.id,
-                          fieldName: field.name,
-                          withFields: 'false',
-                          withObjects: 'true',
-                        },
+                      setFiledInfo({
+                        fieldId: field.id,
+                        fieldName: field.name,
                       });
+                      showDialog();
+                      // router.push({
+                      //   pathname: `/pen/[fieldId]`,
+                      //   params: {
+                      //     fieldId: field.id,
+                      //     fieldName: field.name,
+                      //     withFields: 'false',
+                      //     withObjects: 'true',
+                      //   },
+                      // });
                     }}
                   >
                     <View
@@ -501,6 +663,10 @@ export default function HomeScreen() {
                 </Swipeable>
               )}
             />
+            <CreateButton
+              t={t}
+              onPress={() => router.push('/(protected)/(stack)/createField')}
+            />
           </View>
         )}
       </View>
@@ -574,14 +740,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   spacer: {
-    height: '72%',
+    height: '78%',
+    marginBottom: 20,
   },
   fieldContainer: {
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     height: rMS(98),
-    marginBottom: 10,
+    marginBottom: 20,
     paddingVertical: 10,
     paddingHorizontal: 10,
     backgroundColor: '#f0f0f0',
@@ -597,7 +764,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     fontWeight: 'bold',
     zIndex: 99999,
-    bottom: 20,
+    bottom: 22,
     right: 15,
     width: rMS(56),
     height: rMS(56),
@@ -660,5 +827,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontFamily: 'Pro-Regular',
     fontSize: 11.2,
+  },
+  button: {
+    position: 'absolute',
+    fontWeight: 'bold',
+    zIndex: 99999,
+    bottom: 20,
+    right: 20,
+    minWidth: rMS(98),
+    height: rMS(36),
+    backgroundColor: '#486732',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+    borderRadius: 8,
   },
 });

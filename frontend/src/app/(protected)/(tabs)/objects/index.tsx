@@ -45,6 +45,7 @@ import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
+import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
 
 interface ListItemProps {
   item: any;
@@ -433,7 +434,7 @@ export default function ObjectScreen() {
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(fieldsByUserId) &&
+      {/* {Array.isArray(fieldsByUserId) &&
         fieldsByUserId.length > 0 &&
         !isModalVisible &&
         !isModalEditVisible &&
@@ -454,7 +455,7 @@ export default function ObjectScreen() {
             onPress={() => setIsModalVisible(true)}
             size={rS(24)}
           />
-        ))}
+        ))} */}
       {/* header */}
       <ImageBackground
         source={require('../../../../../assets/images/objects-bg-image.png')}
@@ -494,18 +495,20 @@ export default function ObjectScreen() {
             />
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
+          <View style={{ display: 'flex', gap: 2, marginBottom: rMS(50) }}>
             <Text
               style={{
                 color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: rMS(13.6),
-                fontWeight: 'regular',
+                fontFamily: 'Pro-Regular-Bold',
+                fontSize: 20,
+                fontWeight: 'bold',
               }}
+              numberOfLines={1}
+              ellipsizeMode="tail"
             >
-              {t('fieldView.greeting')} {userName}
+              {t('fieldView.welcome')} {capitalizeWords(userName!)}
             </Text>
-            <Text
+            {/* <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
@@ -514,7 +517,7 @@ export default function ObjectScreen() {
               }}
             >
               {t('objectView.title')}
-            </Text>
+            </Text> */}
           </View>
         </View>
       </ImageBackground>
@@ -524,7 +527,7 @@ export default function ObjectScreen() {
           backgroundColor: 'white',
           width: '100%',
           height: '100%',
-          top: rMS(-50),
+          top: rMS(-80),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
         }}
@@ -636,6 +639,10 @@ export default function ObjectScreen() {
           /* contenido scroll */
           <View style={styles.spacer}>
             <FlatList
+              ListFooterComponentStyle={{
+                marginBottom: Platform.OS === 'android' ? rMS(28) : rMS(20),
+              }}
+              ListFooterComponent={<View></View>}
               style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
               data={typeOfObjects}
               keyExtractor={(item, index) => `${item.name}${index}`}
@@ -654,6 +661,26 @@ export default function ObjectScreen() {
             />
           </View>
         )}
+        {Array.isArray(fieldsByUserId) &&
+          fieldsByUserId.length > 0 &&
+          !isModalVisible &&
+          !isModalEditVisible && (
+            <View
+              style={[
+                styles.fixedButtonContainer,
+                { backgroundColor: 'white' },
+              ]}
+            >
+              <Pressable
+                onPress={() => setIsModalVisible(true)}
+                style={styles.button}
+              >
+                <Text style={styles.buttonText2}>
+                  {t('reportsView.createReportTextButton')}
+                </Text>
+              </Pressable>
+            </View>
+          )}
         <TwoButtonsModal
           isVisible={showDeleteModal}
           onDismiss={() => setShowDeleteModal(false)}
@@ -966,6 +993,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.5,
   },
+  fixedButtonContainer: {
+    paddingHorizontal: 20,
+    marginTop: rMV(-14),
+  },
+  button: {
+    width: '100%',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#486732',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   floatingButtonText: {
     color: '#fff',
     fontSize: 30,
@@ -1048,7 +1087,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Pro-Regular',
-    color: '#486732',
+    color: '#487632',
+    fontWeight: '600',
+    fontSize: rMS(17),
+  },
+  buttonText2: {
+    fontFamily: 'Pro-Regular',
+    color: 'white',
     fontWeight: '600',
     fontSize: rMS(17),
   },
