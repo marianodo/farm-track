@@ -5,7 +5,7 @@ import { rMS, rMV } from '@/styles/responsive';
 import { Colors } from '@/constants/Colors';
 import { Image } from 'react-native';
 import React from 'react';
-import { Stack, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from 'react-i18next';
 import useAuthStore from '@/store/authStore';
@@ -96,8 +96,9 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="attributes"
+          name="attributes/index"
           options={{
+            headerShown: false,
             title: t('tabs.attributes'),
             tabBarIcon: ({ focused }) => (
               <Image

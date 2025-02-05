@@ -2,7 +2,15 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import React from 'react';
 import { rMS } from '@/styles/responsive';
 
-const CreateButton = ({ t, onPress }: { t: any; onPress: any }) => {
+const CreateButton = ({
+  t,
+  onPress,
+  text,
+}: {
+  t?: any;
+  onPress: any;
+  text?: string;
+}) => {
   return (
     //    {/* Botón fijo */}
     <View style={styles.fixedButtonContainer}>
@@ -15,7 +23,7 @@ const CreateButton = ({ t, onPress }: { t: any; onPress: any }) => {
         // style={styles.button}
       >
         <Text style={styles.buttonText}>
-          {t('detailField.createFieldText')}
+          {text ?? t('detailField.createFieldText')}
         </Text>
       </Pressable>
     </View>
@@ -26,8 +34,9 @@ export default CreateButton;
 
 const styles = StyleSheet.create({
   fixedButtonContainer: {
+    width: '100%',
     paddingHorizontal: 20,
-    paddingBottom: 20, // Añadir espacio debajo del botón
+    paddingBottom: 10, // Añadir espacio debajo del botón
   },
   button: {
     width: '100%',

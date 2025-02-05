@@ -46,6 +46,7 @@ import useVariableStore from '@/store/variableStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
 import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
+import CreateButton from '@/components/createButton/CreateButton';
 
 interface ListItemProps {
   item: any;
@@ -466,9 +467,8 @@ export default function ObjectScreen() {
         <View
           style={{
             paddingHorizontal: rMS(14),
-            display: 'flex',
             justifyContent: 'space-between',
-            height: '70%',
+            height: '46%',
           }}
         >
           {/* profile y 3 puntitos */}
@@ -495,20 +495,14 @@ export default function ObjectScreen() {
             />
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, marginBottom: rMS(50) }}>
-            <Text
-              style={{
-                color: '#fff',
-                fontFamily: 'Pro-Regular-Bold',
-                fontSize: 20,
-                fontWeight: 'bold',
-              }}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {t('fieldView.welcome')} {capitalizeWords(userName!)}
-            </Text>
-            {/* <Text
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}
+          >
+            {t('fieldView.welcome')} {capitalizeWords(userName!)}
+          </Text>
+          {/* <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
@@ -518,18 +512,16 @@ export default function ObjectScreen() {
             >
               {t('objectView.title')}
             </Text> */}
-          </View>
         </View>
       </ImageBackground>
       {/* contenedor contenido campo */}
       <View
         style={{
+          flex: 1,
           backgroundColor: 'white',
-          width: '100%',
-          height: '100%',
-          top: rMS(-80),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
+          marginTop: rMS(-80),
         }}
       >
         <Text
@@ -545,18 +537,16 @@ export default function ObjectScreen() {
         </Text>
         {typeOfObjectsLoading ? (
           <ActivityIndicator
-            style={{
-              marginTop: '60%',
-            }}
+            style={{ flex: 1 }}
             animating={true}
             color="#486732"
           />
         ) : !fieldsByUserId?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -596,9 +586,9 @@ export default function ObjectScreen() {
         ) : !typeOfObjects?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -637,48 +627,42 @@ export default function ObjectScreen() {
           </View>
         ) : (
           /* contenido scroll */
-          <View style={styles.spacer}>
-            <FlatList
-              ListFooterComponentStyle={{
-                marginBottom: Platform.OS === 'android' ? rMS(28) : rMS(20),
-              }}
-              ListFooterComponent={<View></View>}
-              style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-              data={typeOfObjects}
-              keyExtractor={(item, index) => `${item.name}${index}`}
-              renderItem={({ item, index }) => {
-                const isExpanded = expandedItems.includes(index);
-                return (
-                  <ListItem
-                    item={item}
-                    index={index}
-                    isExpanded={isExpanded}
-                    toggleExpand={toggleExpand}
-                    setExpandedItems={setExpandedItems}
-                  />
-                );
-              }}
-            />
-          </View>
+          <FlatList
+            style={{
+              paddingHorizontal: rMS(20),
+              paddingTop: rMS(10),
+              marginBottom: rMS(10),
+            }}
+            data={typeOfObjects}
+            keyExtractor={(item, index) => `${item.name}${index}`}
+            renderItem={({ item, index }) => {
+              const isExpanded = expandedItems.includes(index);
+              return (
+                <ListItem
+                  item={item}
+                  index={index}
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                  setExpandedItems={setExpandedItems}
+                />
+              );
+            }}
+          />
         )}
         {Array.isArray(fieldsByUserId) &&
           fieldsByUserId.length > 0 &&
           !isModalVisible &&
           !isModalEditVisible && (
             <View
-              style={[
-                styles.fixedButtonContainer,
-                { backgroundColor: 'white' },
-              ]}
+              style={{
+                alignItems: 'center',
+                backgroundColor: 'white',
+              }}
             >
-              <Pressable
+              <CreateButton
+                text={t('reportsView.createReportTextButton')}
                 onPress={() => setIsModalVisible(true)}
-                style={styles.button}
-              >
-                <Text style={styles.buttonText2}>
-                  {t('reportsView.createReportTextButton')}
-                </Text>
-              </Pressable>
+              />
             </View>
           )}
         <TwoButtonsModal
@@ -959,7 +943,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     height: '100%',
-    alignItems: 'center',
+    // alignItems: 'center',
   },
   spacer: {
     height: '72%',
