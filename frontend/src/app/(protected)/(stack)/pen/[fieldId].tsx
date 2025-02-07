@@ -388,7 +388,12 @@ export default function PenScreen() {
             style={[styles.fixedButtonContainer, { backgroundColor: 'white' }]}
           >
             <Pressable
-              onPress={() => router.push('/(protected)/(stack)/pen/createPen')}
+              onPress={() =>
+                router.push({
+                  pathname: '/(protected)/(stack)/pen/createPen',
+                  params: { fieldId: fieldId, fieldName: fieldName },
+                })
+              }
               style={styles.button}
             >
               <Text style={styles.buttonText}>

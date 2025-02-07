@@ -151,6 +151,8 @@ const CreatePen: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm()) {
       try {
+        console.log('DATA A ENVIAR', formData);
+        console.log('DATA A ENVIAR', fieldId);
         await createPen({ ...formData, fieldId: fieldId as string });
         setFormData({
           name: null,
