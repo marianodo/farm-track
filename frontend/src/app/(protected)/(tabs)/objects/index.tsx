@@ -45,6 +45,8 @@ import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
+import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
+import CreateButton from '@/components/createButton/CreateButton';
 
 interface ListItemProps {
   item: any;
@@ -433,7 +435,7 @@ export default function ObjectScreen() {
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(fieldsByUserId) &&
+      {/* {Array.isArray(fieldsByUserId) &&
         fieldsByUserId.length > 0 &&
         !isModalVisible &&
         !isModalEditVisible &&
@@ -454,7 +456,7 @@ export default function ObjectScreen() {
             onPress={() => setIsModalVisible(true)}
             size={rS(24)}
           />
-        ))}
+        ))} */}
       {/* header */}
       <ImageBackground
         source={require('../../../../../assets/images/objects-bg-image.png')}
@@ -465,9 +467,8 @@ export default function ObjectScreen() {
         <View
           style={{
             paddingHorizontal: rMS(14),
-            display: 'flex',
             justifyContent: 'space-between',
-            height: '70%',
+            height: '46%',
           }}
         >
           {/* profile y 3 puntitos */}
@@ -494,18 +495,14 @@ export default function ObjectScreen() {
             />
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
-            <Text
-              style={{
-                color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: rMS(13.6),
-                fontWeight: 'regular',
-              }}
-            >
-              {t('fieldView.greeting')} {userName}
-            </Text>
-            <Text
+          <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ color: '#fff', fontSize: 20, fontWeight: 'bold' }}
+          >
+            {t('fieldView.welcome')} {capitalizeWords(userName!)}
+          </Text>
+          {/* <Text
               style={{
                 color: '#fff',
                 fontFamily: 'Pro-Regular',
@@ -514,19 +511,17 @@ export default function ObjectScreen() {
               }}
             >
               {t('objectView.title')}
-            </Text>
-          </View>
+            </Text> */}
         </View>
       </ImageBackground>
       {/* contenedor contenido campo */}
       <View
         style={{
+          flex: 1,
           backgroundColor: 'white',
-          width: '100%',
-          height: '100%',
-          top: rMS(-50),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
+          marginTop: rMS(-80),
         }}
       >
         <Text
@@ -542,18 +537,16 @@ export default function ObjectScreen() {
         </Text>
         {typeOfObjectsLoading ? (
           <ActivityIndicator
-            style={{
-              marginTop: '60%',
-            }}
+            style={{ flex: 1 }}
             animating={true}
             color="#486732"
           />
         ) : !fieldsByUserId?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -593,9 +586,9 @@ export default function ObjectScreen() {
         ) : !typeOfObjects?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -634,26 +627,44 @@ export default function ObjectScreen() {
           </View>
         ) : (
           /* contenido scroll */
-          <View style={styles.spacer}>
-            <FlatList
-              style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-              data={typeOfObjects}
-              keyExtractor={(item, index) => `${item.name}${index}`}
-              renderItem={({ item, index }) => {
-                const isExpanded = expandedItems.includes(index);
-                return (
-                  <ListItem
-                    item={item}
-                    index={index}
-                    isExpanded={isExpanded}
-                    toggleExpand={toggleExpand}
-                    setExpandedItems={setExpandedItems}
-                  />
-                );
-              }}
-            />
-          </View>
+          <FlatList
+            style={{
+              paddingHorizontal: rMS(20),
+              paddingTop: rMS(10),
+              marginBottom: rMS(10),
+            }}
+            data={typeOfObjects}
+            keyExtractor={(item, index) => `${item.name}${index}`}
+            renderItem={({ item, index }) => {
+              const isExpanded = expandedItems.includes(index);
+              return (
+                <ListItem
+                  item={item}
+                  index={index}
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                  setExpandedItems={setExpandedItems}
+                />
+              );
+            }}
+          />
         )}
+        {Array.isArray(fieldsByUserId) &&
+          fieldsByUserId.length > 0 &&
+          !isModalVisible &&
+          !isModalEditVisible && (
+            <View
+              style={{
+                alignItems: 'center',
+                backgroundColor: 'white',
+              }}
+            >
+              <CreateButton
+                text={t('reportsView.createReportTextButton')}
+                onPress={() => setIsModalVisible(true)}
+              />
+            </View>
+          )}
         <TwoButtonsModal
           isVisible={showDeleteModal}
           onDismiss={() => setShowDeleteModal(false)}
@@ -932,7 +943,7 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     height: '100%',
-    alignItems: 'center',
+    // alignItems: 'center',
   },
   spacer: {
     height: '72%',
@@ -965,6 +976,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3.5,
+  },
+  fixedButtonContainer: {
+    paddingHorizontal: 20,
+    marginTop: rMV(-14),
+  },
+  button: {
+    width: '100%',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#486732',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   floatingButtonText: {
     color: '#fff',
@@ -1048,7 +1071,13 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: 'Pro-Regular',
-    color: '#486732',
+    color: '#487632',
+    fontWeight: '600',
+    fontSize: rMS(17),
+  },
+  buttonText2: {
+    fontFamily: 'Pro-Regular',
+    color: 'white',
     fontWeight: '600',
     fontSize: rMS(17),
   },

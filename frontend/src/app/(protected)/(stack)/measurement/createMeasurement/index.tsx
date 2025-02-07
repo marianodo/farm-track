@@ -176,7 +176,7 @@ const CreateMeasurement: React.FC = () => {
           onPress: () => setModalVisible(null),
         },
         {
-          text: t('attributeView.leaveButtonText'),
+          text: t('measurementView.leaveButtonText'),
           onPress: () => {
             setModalVisible(null);
             router.back();
@@ -187,7 +187,7 @@ const CreateMeasurement: React.FC = () => {
           onPress: () => {
             setModalVisible(null);
             router.dismissTo({
-              pathname: '/pen/[fieldId]',
+              pathname: '/report',
               params: {
                 fieldId: fieldId as string,
                 fieldName: fieldName,
@@ -504,7 +504,7 @@ const CreateMeasurement: React.FC = () => {
               fontFamily: 'Pro-Regular',
             }}
           >
-            Medición de objetos
+            {t('measurementView.measurementObjectText')}
           </Text>
           <View
             style={{
@@ -543,7 +543,7 @@ const CreateMeasurement: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                El nombre del objeto es un dato opcional.
+                {t('measurementView.subjectTextInfo')}
               </Text>
             </View>
           </View>
@@ -572,7 +572,7 @@ const CreateMeasurement: React.FC = () => {
               <TextInput
                 mode="outlined"
                 placeholderTextColor="#292929"
-                placeholder="Nombre del objeto"
+                placeholder={t('measurementView.objectTextIdentification')}
                 value={formData.name as string}
                 onChangeText={(value) => onChange('name', value)}
                 autoCapitalize="sentences"
@@ -719,7 +719,7 @@ const CreateMeasurement: React.FC = () => {
                               {errors[e.variable.name]}
                             </Text>
                           )}
-                        <View
+                        {/* <View
                           style={{
                             display: 'flex',
                             justifyContent: 'flex-start',
@@ -732,7 +732,7 @@ const CreateMeasurement: React.FC = () => {
                             Granularidad:{' '}
                             {e.custom_parameters.value.granularity}
                           </Text>
-                        </View>
+                        </View> */}
                       </View>
                     ) : (
                       <View
@@ -887,7 +887,9 @@ const CreateMeasurement: React.FC = () => {
                 },
               ]}
             >
-              <Text style={styles.buttonText}>Guardar medición</Text>
+              <Text style={styles.buttonText}>
+                {t('measurementView.saveText')}
+              </Text>
             </Pressable>
           </View>
 

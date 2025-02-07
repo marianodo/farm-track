@@ -44,6 +44,8 @@ import { FormErrors, validateInput } from '@/utils/validation/validationUtils';
 import useVariableStore from '@/store/variableStore';
 import MessageModal from '@/components/modal/MessageModal';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
+import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
+import CreateButton from '@/components/createButton/CreateButton';
 
 interface ListItemProps {
   item: any;
@@ -435,7 +437,7 @@ export default function AttributeScreen() {
 
   return (
     <View style={styles.titleContainer}>
-      {Array.isArray(typeOfObjects) &&
+      {/* {Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
         (Platform.OS === 'ios' ? (
           <SafeAreaView style={styles.floatingButton}>
@@ -454,7 +456,7 @@ export default function AttributeScreen() {
             onPress={() => router.push('/attributes/create')}
             size={rS(24)}
           />
-        ))}
+        ))} */}
       {/* header */}
       <ImageBackground
         source={require('../../../../../assets/images/objects-bg-image.png')}
@@ -465,9 +467,8 @@ export default function AttributeScreen() {
         <View
           style={{
             paddingHorizontal: rMS(14),
-            display: 'flex',
             justifyContent: 'space-between',
-            height: '70%',
+            height: '46%',
           }}
         >
           {/* profile y 3 puntitos */}
@@ -494,39 +495,29 @@ export default function AttributeScreen() {
             />
           </View>
           {/* nombre y bienvenido */}
-          <View style={{ display: 'flex', gap: 2, paddingBottom: rMS(10) }}>
-            <Text
-              style={{
-                color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: rMS(13.6),
-                fontWeight: 'regular',
-              }}
-            >
-              {t('fieldView.greeting')} {userName}
-            </Text>
-            <Text
-              style={{
-                color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: 22,
-                fontWeight: 'bold',
-              }}
-            >
-              {t('attributeView.title')}
-            </Text>
-          </View>
+
+          <Text
+            style={{
+              color: '#fff',
+              fontFamily: 'Pro-Regular-Bold',
+              fontSize: 20,
+              fontWeight: 'bold',
+            }}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {t('fieldView.welcome')} {capitalizeWords(userName!)}
+          </Text>
         </View>
       </ImageBackground>
       {/* contenedor contenido campo */}
       <View
         style={{
+          flex: 1,
           backgroundColor: 'white',
-          width: '100%',
-          height: '100%',
-          top: rMS(-50),
           borderTopLeftRadius: 54,
           borderTopRightRadius: 54,
+          marginTop: rMS(-80),
         }}
       >
         <Text
@@ -542,18 +533,16 @@ export default function AttributeScreen() {
         </Text>
         {variablesLoading ? (
           <ActivityIndicator
-            style={{
-              marginTop: '60%',
-            }}
+            style={{ flex: 1 }}
             animating={true}
             color="#486732"
           />
         ) : !typeOfObjects?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -593,9 +582,9 @@ export default function AttributeScreen() {
         ) : !variables?.length ? (
           <View
             style={{
-              width: '100%',
+              flex: 1,
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'flex-start',
             }}
           >
             <View
@@ -634,27 +623,58 @@ export default function AttributeScreen() {
           </View>
         ) : (
           /* contenido scroll */
-          <View style={styles.spacer}>
-            <FlatList
-              style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-              data={variables}
-              keyExtractor={(item, index) => `${item.name}${index}`}
-              renderItem={({ item, index }) => {
-                const isExpanded = expandedItems.includes(index);
-                return (
-                  <ListItem
-                    item={item}
-                    index={index}
-                    isExpanded={isExpanded}
-                    toggleExpand={toggleExpand}
-                    setExpandedItems={setExpandedItems}
-                  />
-                );
-              }}
+
+          <FlatList
+            style={{
+              paddingHorizontal: rMS(20),
+              paddingTop: rMS(10),
+              marginBottom: rMS(10),
+            }}
+            data={variables}
+            keyExtractor={(item, index) => `${item.name}${index}`}
+            renderItem={({ item, index }) => {
+              const isExpanded = expandedItems.includes(index);
+              return (
+                <ListItem
+                  item={item}
+                  index={index}
+                  isExpanded={isExpanded}
+                  toggleExpand={toggleExpand}
+                  setExpandedItems={setExpandedItems}
+                />
+              );
+            }}
+          />
+        )}
+        {Array.isArray(typeOfObjects) && typeOfObjects.length > 0 && (
+          <View
+            style={{
+              alignItems: 'center',
+              backgroundColor: 'white',
+            }}
+          >
+            <CreateButton
+              text={t('attributeView.createVariableTextButton')}
+              onPress={() =>
+                router.push('/(protected)/(stack)/attributes/create')
+              }
             />
           </View>
+          // <View
+          //   style={[styles.fixedButtonContainer, { backgroundColor: 'white' }]}
+          // >
+          //   <Pressable
+          //     onPress={() => router.push('/attributes/create')}
+          //     style={styles.button}
+          //   >
+          //     <Text style={styles.buttonText2}>
+          //       {t('attributeView.createVariableTextButton')}
+          //     </Text>
+          //   </Pressable>
+          // </View>
         )}
       </View>
+
       <TwoButtonsModal
         isVisible={showDeleteModal}
         onDismiss={() => setShowDeleteModal(false)}
@@ -677,7 +697,6 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
     height: '100%',
-    alignItems: 'center',
   },
   spacer: {
     height: '72%',
@@ -774,5 +793,23 @@ const styles = StyleSheet.create({
     color: '#486732',
     fontWeight: '600',
     fontSize: rMS(17),
+  },
+  buttonText2: {
+    fontFamily: 'Pro-Regular',
+    color: 'white',
+    fontWeight: '600',
+    fontSize: rMS(17),
+  },
+  fixedButtonContainer: {
+    paddingHorizontal: 20,
+    marginTop: rMV(-14),
+  },
+  button: {
+    width: '100%',
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#486732',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

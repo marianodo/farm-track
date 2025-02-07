@@ -205,8 +205,9 @@ export default function PenScreen() {
               style={{
                 marginLeft: 20,
                 color: '#EBF2ED',
-                fontFamily: 'Pro-Regular',
-                fontSize: rMS(14),
+                fontFamily: 'Pro-Regular-Bold',
+                fontSize: rMS(22),
+                fontWeight: 'bold',
               }}
             >
               {fieldName}
