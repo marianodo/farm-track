@@ -15,6 +15,15 @@ export default function stackLayout() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="attributes/create/index"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="attributes/edit/[attributeId]"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="report/index" options={{ headerShown: false }} />
+      <Stack.Screen
         name="report/createReport/index"
         options={{ headerShown: false }}
       />

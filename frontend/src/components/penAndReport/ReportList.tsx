@@ -19,6 +19,7 @@ import {
   Keyboard,
   Image,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import {
   Swipeable,
@@ -363,6 +364,10 @@ const ReportList: React.FC<PenListProps> = ({
         </View>
       ) : (
         <FlatList
+          ListFooterComponentStyle={{
+            marginBottom: Platform.OS === 'android' ? rMS(58) : rMS(50),
+          }}
+          ListFooterComponent={<View></View>}
           style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
           data={reports}
           keyExtractor={(item, index) => `${item.name}${index}`}

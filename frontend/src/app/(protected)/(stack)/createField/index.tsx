@@ -35,6 +35,7 @@ import MessageModal from '@/components/modal/MessageModal';
 import OneButtonModal from '@/components/modal/OneButtonModal';
 import useVariableStore from '@/store/variableStore';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
+import CreateButton from '@/components/createButton/CreateButton';
 
 export default function CreateField() {
   const router = useRouter();
@@ -579,7 +580,8 @@ export default function CreateField() {
         </KeyboardAwareScrollView>
 
         {/* Botón fijo */}
-        <View style={styles.fixedButtonContainer}>
+        <CreateButton t={t} onPress={handlePress} />
+        {/* <View style={styles.fixedButtonContainer}>
           <Pressable
             onPress={handlePress}
             style={({ pressed }) => [
@@ -592,7 +594,7 @@ export default function CreateField() {
               {t('detailField.createFieldText')}
             </Text>
           </Pressable>
-        </View>
+        </View> */}
       </View>
       {/* <Loader visible={fieldLoading} /> */}
       <MessageModal

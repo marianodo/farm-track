@@ -535,7 +535,7 @@ const CreateReport: React.FC = () => {
           <View style={styles.fixedButtonContainer}>
             <Pressable onPress={handleSubmit} style={styles.button}>
               <Text style={styles.buttonText}>
-                {t('reportsView.createReportTextButton')}
+                {t('reportsView.continueText')}
               </Text>
             </Pressable>
           </View>

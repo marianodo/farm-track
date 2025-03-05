@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   KeyboardEvent,
+  Dimensions,
 } from 'react-native';
 import { BackHandler } from 'react-native';
 import styles from './styles';
@@ -181,13 +182,19 @@ export default function PenScreen() {
       getAllTypeOfObjects: state.getAllTypeOfObjects,
     })
   );
-  const { getAllReportsByField, reportsByFielId, onDeleteReport, update } =
-    useReportStore((state) => ({
-      getAllReportsByField: state.getAllReportsByField,
-      reportsByFielId: state.reportsByFielId,
-      onDeleteReport: state.onDelete,
-      update: state.update,
-    }));
+  const {
+    getAllReportsByField,
+    reportsByFielId,
+    onDeleteReport,
+    update,
+    reportsLoading,
+  } = useReportStore((state) => ({
+    getAllReportsByField: state.getAllReportsByField,
+    reportsByFielId: state.reportsByFielId,
+    onDeleteReport: state.onDelete,
+    update: state.update,
+    reportsLoading: state.reportsLoading,
+  }));
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -230,8 +237,19 @@ export default function PenScreen() {
   );
 
   return (
-    <View style={styles.titleContainer}>
-      {/* {Array.isArray(typeOfObjects) &&
+    <View
+      style={[
+        styles.titleContainer,
+        { maxHeight: Dimensions.get('window').height },
+      ]}
+    >
+      {/* {!(
+        pens &&
+        pens[`${fieldId}`] &&
+        !pens[`${fieldId}`].length &&
+        penOrReportSelect !== 'pens'
+      ) && // Esta es la condición independiente
+        Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
         Array.isArray(variables) &&
         variables.length > 0 &&
@@ -242,14 +260,8 @@ export default function PenScreen() {
               iconColor="#FFF"
               onPress={() =>
                 router.push({
-                  pathname:
-                    penOrReportSelect === 'pens'
-                      ? '/pen/createPen'
-                      : '/report/createReport',
-                  params:
-                    penOrReportSelect === 'pens'
-                      ? { fieldId: fieldId }
-                      : { fieldId: fieldId, fieldName: fieldName },
+                  pathname: '/report/createReport',
+                  params: { fieldId: fieldId, fieldName: fieldName },
                 })
               }
               size={rS(24)}
@@ -262,14 +274,8 @@ export default function PenScreen() {
             iconColor="#FFF"
             onPress={() =>
               router.push({
-                pathname:
-                  penOrReportSelect === 'pens'
-                    ? '/pen/createPen'
-                    : '/report/createReport',
-                params:
-                  penOrReportSelect === 'pens'
-                    ? { fieldId: fieldId }
-                    : { fieldId: fieldId, fieldName: fieldName },
+                pathname: '/report/createReport',
+                params: { fieldId: fieldId, fieldName: fieldName },
               })
             }
             size={rS(24)}
@@ -311,14 +317,14 @@ export default function PenScreen() {
                 marginLeft: 20,
                 color: '#EBF2ED',
                 fontFamily: 'Pro-Regular-Bold',
-                fontWeight: 'bold',
                 fontSize: rMS(22),
+                fontWeight: 'bold',
               }}
             >
               {fieldName}
             </Text>
             {/* titulo */}
-            <Text style={styles.welcome}>{t('penView.title')}</Text>
+            <Text style={styles.welcome}>{t('reportsView.title')}</Text>
           </View>
         </View>
       </ImageBackground>
@@ -351,10 +357,10 @@ export default function PenScreen() {
               color: '#000',
             }}
           >
-            {t('penView.penText')}
+            {t('reportsView.reportsText')}
           </Text>
         </View>
-        {pensLoading ? (
+        {reportsLoading ? (
           <ActivityIndicator
             style={{
               marginTop: '60%',
@@ -363,24 +369,24 @@ export default function PenScreen() {
             color="#486732"
           />
         ) : (
-          /* contenido scroll */
-          <PenList
+          <ReportList
+            reports={reportsByFielId && reportsByFielId[`${fieldId}`]}
             pens={pens && pens[`${fieldId}`]}
-            fieldId={fieldId as string}
-            expandedItems={penExpandedItems}
-            toggleExpand={toggleExpandPen}
-            setExpandedItems={setPenExpandedItems}
+            expandedItems={reportExpandedItems}
+            toggleExpand={toggleExpand}
+            setExpandedItems={setReportExpandedItems}
             rMS={rMS}
-            setTexts={setTexts}
-            typeOfObjects={typeOfObjects}
-            variables={variables}
             styles={styles}
-            setSelectedPenDelete={setSelectedPenDelete}
+            lng={lng}
+            fieldName={fieldName as string}
+            setSelectedReportDelete={setSelectedReportDelete}
+            setTexts={setTexts}
             setShowModal={setShowModal}
           />
         )}
       </View>
-      {Array.isArray(typeOfObjects) &&
+      {!(pens && pens[`${fieldId}`] && !pens[`${fieldId}`].length) && // Esta es la condición independiente
+        Array.isArray(typeOfObjects) &&
         typeOfObjects.length > 0 &&
         Array.isArray(variables) &&
         variables.length > 0 && (
@@ -390,14 +396,14 @@ export default function PenScreen() {
             <Pressable
               onPress={() =>
                 router.push({
-                  pathname: '/(protected)/(stack)/pen/createPen',
+                  pathname: '/(protected)/(stack)/report/createReport',
                   params: { fieldId: fieldId, fieldName: fieldName },
                 })
               }
               style={styles.button}
             >
               <Text style={styles.buttonText}>
-                {t('penView.createPenTextButton')}
+                {t('reportsView.createReportTextButton')}
               </Text>
             </Pressable>
           </View>
