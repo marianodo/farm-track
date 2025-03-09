@@ -20,7 +20,6 @@ export default function MessageModal({
   onClose,
 }: SuccessModalProps) {
   const { t } = useTranslation();
-  // console.log('ESTE ES EL ONCLOSE', onClose);
   return (
     <Modal
       animationType="fade"

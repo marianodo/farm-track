@@ -85,6 +85,9 @@ const CreatePen: React.FC = () => {
     })) ?? []
   );
 
+  // Pen selected name
+  const [penName, setPenName] = useState<string>('');
+
   // Type of object dropdown
   const [typeOfObjectDropDownValue, setTypeOfObjectDropDownValue] = useState<
     string | undefined | string[] | null
@@ -101,7 +104,6 @@ const CreatePen: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   // ----->  DROPDOWN UTILS END <------
-
   const { validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
     penId: null,
@@ -191,6 +193,7 @@ const CreatePen: React.FC = () => {
       setTypeOfObjectDropDownValue(undefined);
       const penFound = pens[`${fieldId}`].find((p: any) => p.id == inputValue);
       if (penFound) {
+        setPenName(penFound.name);
         setTypeOfObjectDropDown(
           penFound?.type_of_objects.map((type: any) => ({
             label: type.name,
@@ -249,6 +252,7 @@ const CreatePen: React.FC = () => {
             typeOfObjectName: formData.typeOfObjectName,
             fieldId: fieldId,
             fieldName: fieldName,
+            penName: penName
           },
         });
         setFormData({
@@ -313,6 +317,7 @@ const CreatePen: React.FC = () => {
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, [formData])
   );
+
 
   return (
     <View

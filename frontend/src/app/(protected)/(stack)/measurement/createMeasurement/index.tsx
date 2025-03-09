@@ -41,7 +41,7 @@ type FormData = {
 };
 
 const CreateMeasurement: React.FC = () => {
-  const { typeOfObjectId, typeOfObjectName, fieldId, fieldName } =
+  const { typeOfObjectId, typeOfObjectName, fieldId, fieldName, penName } =
     useLocalSearchParams();
   const [texts, setTexts] = useState({
     title: '',
@@ -480,6 +480,27 @@ const CreateMeasurement: React.FC = () => {
               <Text style={styles.welcome}>
                 {t('measurementView.newMeasurementText')}
               </Text>
+              <View style={{ flexDirection: 'row',  marginTop: 10, alignContent: 'center',}}>
+                <Text style={{
+               
+                marginLeft: 20,
+                color: '#fff',
+                fontFamily: 'Pro-Regular',
+                fontSize: 16.4,
+                // fontWeight: 'bold',
+                
+              }}>
+                {t('measurementView.measureInPen')}
+              </Text>
+              <Text style={{
+                marginLeft: 4,
+                color: '#ffffff',
+                fontFamily: 'Pro-Regular-Bold',
+                fontSize: 16.4,
+                fontWeight: 'bold',
+                
+              }}>{penName}</Text>
+              </View>
             </View>
           </View>
 

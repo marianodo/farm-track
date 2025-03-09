@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 import { rMS, rS } from '@/styles/responsive';
 
 const CreateButtonTextAbsolute = ({ t, onPress }: { t: any; onPress: any }) => {
-  console.log(Platform.OS);
   return Platform.OS === 'ios' ? (
     <Pressable
       onPress={onPress}
