@@ -328,12 +328,15 @@ const CreateMeasurement: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
+    // Reemplazar comas por puntos
+    const normalizedValue = value.replace(',', '.');
+
     setValues((prevValues) => ({
       ...prevValues,
-      [key]: value,
+      [key]: normalizedValue,
     }));
 
-    if (value === '') {
+    if (normalizedValue === '') {
       setErrors((prevErrors) => ({
         ...prevErrors,
         [name]: 'El campo no puede estar vacío.',
@@ -346,7 +349,7 @@ const CreateMeasurement: React.FC = () => {
       return;
     }
 
-    const numericValue = parseFloat(value);
+    const numericValue = parseFloat(normalizedValue);
     if (!isNaN(numericValue)) {
       // Validar rango
       if (numericValue < min || numericValue > max) {
