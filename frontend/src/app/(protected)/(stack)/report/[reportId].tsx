@@ -156,7 +156,6 @@ export default function PenScreen() {
   }, [reportsLoading]);
 
   useEffect(() => {
-    console.log(reportById && reportById[0]);
     if (reportById && reportById.length > 0) {
       setPenOrReportSelect(reportById[0].name);
     }
@@ -166,7 +165,6 @@ export default function PenScreen() {
     Array.isArray(reportById) &&
     reportById?.find((report) => report.name === penOrReportSelect);
 
-  console.log('seleceted', selectedReport);
 
   return (
     <View style={styles.titleContainer}>

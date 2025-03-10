@@ -83,7 +83,10 @@ export class AuthRepository {
         isVerified: findUser.is_verified,
         role: findUser.role,
       };
-      const token = await this.jwtService.signAsync(payload);
+
+      const token = await this.jwtService.signAsync(payload, {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+      });
       const refreshToken = await this.jwtService.signAsync(payload, {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
       });
@@ -126,7 +129,9 @@ export class AuthRepository {
         isVerified: findUser.is_verified,
         role: findUser.role,
       };
-      const token = await this.jwtService.signAsync(payload);
+      const token = await this.jwtService.signAsync(payload, {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES,
+      });
       const refreshToken = await this.jwtService.signAsync(payload, {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES,
       });

@@ -220,6 +220,7 @@
     "penPlaceHolder": "Corral a medir",
     "typeOfObjectPlaceHolder": "Qué querés evaluar?",
     "variablePlaceHolder": "Qué variables querés medir?",
+    "measureInPen": "Midiendo en: ",
     "variablesSelectedText": "Variables seleccionadas",
     "subjectTextInfo": "El nombre del objeto es un dato opcional.",
     "continueButtonTEXT": "Continuar",

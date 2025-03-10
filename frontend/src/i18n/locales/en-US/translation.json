@@ -220,6 +220,7 @@
     "leaveButtonText": "Go back",
     "typeOfObjectPlaceHolder": "What do you want to evaluate?",
     "variablePlaceHolder": "What variables do you want to measure?",
+    "measureInPen": "Measuring in: ",
     "variablesSelectedText": "Selected variables",
     "subjectTextInfo": "The name of the object is optional data.",
     "continueButtonTEXT": "Continue",
