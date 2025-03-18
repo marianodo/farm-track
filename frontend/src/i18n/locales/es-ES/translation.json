@@ -221,6 +221,8 @@
     "typeOfObjectPlaceHolder": "Qué querés evaluar?",
     "variablePlaceHolder": "Qué variables querés medir?",
     "measureInPen": "Midiendo en: ",
+    "measureNumber": "Nº ",
+    "objectTextMeasurement": "Objeto a medir: ",
     "variablesSelectedText": "Variables seleccionadas",
     "subjectTextInfo": "El nombre del objeto es un dato opcional.",
     "continueButtonTEXT": "Continuar",

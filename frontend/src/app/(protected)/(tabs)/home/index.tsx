@@ -98,6 +98,8 @@ export default function HomeScreen() {
     fieldsByUserId,
     getFieldsByUser,
     onDelete,
+    fieldId,
+    setFieldId,
     setFieldProductionType,
   } = useFieldStore((state) => ({
     fieldLoading: state.fieldLoading,
@@ -105,6 +107,8 @@ export default function HomeScreen() {
     getFieldsByUser: state.getFieldsByUser,
     onDelete: state.onDelete,
     setFieldProductionType: state.setFieldProductionType,
+    setFieldId: state.setFieldId,
+    fieldId: state.fieldId,
   }));
 
   const { t } = useTranslation();
@@ -254,6 +258,7 @@ export default function HomeScreen() {
                     withObjects: 'true',
                   },
                 });
+                setFieldId(fieldInfo?.fieldId!);
               }}
               rippleColor="rgba(72, 118, 50, 0.5)"
             >
@@ -293,6 +298,7 @@ export default function HomeScreen() {
                     withObjects: 'true',
                   },
                 });
+                setFieldId(fieldInfo?.fieldId!);
               }}
               rippleColor="rgba(72, 118, 50, 0.5)"
             >
@@ -552,7 +558,7 @@ export default function HomeScreen() {
                     <Image
                       source={
                         typeOfProductionImages[
-                          field?.production_type ?? 'defaultImage'
+                        field?.production_type ?? 'defaultImage'
                         ]
                       }
                       style={{
@@ -614,23 +620,23 @@ export default function HomeScreen() {
         onPress={
           userId
             ? async () => {
-                try {
-                  await deletedUserData(userId);
-                  await getFieldsByUser(userId);
-                  await getAllTypeOfObjects();
-                  setShowDeleteModal(false);
-                  closeMenu();
-                  setSucces(true);
-                  setShowMessageModal(true);
-                  setTimeout(() => setShowMessageModal(false), 2000);
-                } catch (error) {
-                  closeMenu();
-                  setShowDeleteModal(false);
-                  setSucces(false);
-                  setShowMessageModal(true);
-                  setTimeout(() => setShowMessageModal(false), 2000);
-                }
+              try {
+                await deletedUserData(userId);
+                await getFieldsByUser(userId);
+                await getAllTypeOfObjects();
+                setShowDeleteModal(false);
+                closeMenu();
+                setSucces(true);
+                setShowMessageModal(true);
+                setTimeout(() => setShowMessageModal(false), 2000);
+              } catch (error) {
+                closeMenu();
+                setShowDeleteModal(false);
+                setSucces(false);
+                setShowMessageModal(true);
+                setTimeout(() => setShowMessageModal(false), 2000);
               }
+            }
             : undefined
         }
         vertical={false}

@@ -68,7 +68,9 @@ type FormDataError = {
 };
 
 const CreatePen: React.FC = () => {
-  const { fieldId, fieldName } = useLocalSearchParams();
+  const { fieldId, fieldName, reportName, reportCreated } = useLocalSearchParams();
+  console.log('REPORTE NAME:', reportName);
+  console.log('REPORTE CREATED:', reportCreated);
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
@@ -229,10 +231,10 @@ const CreatePen: React.FC = () => {
           ...formData,
           [field]: filters?.length
             ? filters.map((e: any) => ({
-                pen_variable_type_of_object_id: e.id,
-                custom_parameters: e.custom_parameters,
-                variable: e.variable,
-              }))
+              pen_variable_type_of_object_id: e.id,
+              custom_parameters: e.custom_parameters,
+              variable: e.variable,
+            }))
             : null,
         });
       }
@@ -252,7 +254,8 @@ const CreatePen: React.FC = () => {
             typeOfObjectName: formData.typeOfObjectName,
             fieldId: fieldId,
             fieldName: fieldName,
-            penName: penName
+            penName: penName,
+            reportName: reportName,
           },
         });
         setFormData({
@@ -414,7 +417,7 @@ const CreatePen: React.FC = () => {
               styles.scrollContent,
               { paddingVertical: 10 },
             ]}
-            // height: open ? rMS(360) : null,
+          // height: open ? rMS(360) : null,
           >
             <View style={{ marginBottom: 20 }}>
               <DropDownPicker

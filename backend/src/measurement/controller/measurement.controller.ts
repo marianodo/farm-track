@@ -8,6 +8,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { MeasurementService } from '../service/measurement.service';
 // import { CreateMeasurementDto } from '../dto/create-measurement.dto';
@@ -28,6 +29,71 @@ export class MeasurementController {
   async findAll() {
     try {
       return await this.measurementService.findAll();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('stats')
+  @HttpCode(HttpStatus.OK)
+  async getMeasurementStats(
+    @Query()
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementService.getMeasurementStats(options);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('stats/ByUserId/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getMeasurementStatsByUser(
+    @Param('userId') userId: string,
+    @Query()
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementService.getMeasurementStatsByUser(
+        userId,
+        options,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get('stats/byFieldId/:fieldId')
+  @HttpCode(HttpStatus.OK)
+  async getMeasurementStatsByField(
+    @Param('fieldId') fieldId: string,
+    @Query()
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementService.getMeasurementStatsByField(
+        fieldId,
+        options,
+      );
     } catch (error) {
       throw error;
     }
