@@ -24,6 +24,9 @@ import {
   SuccessModal,
   UnsavedModalComponent,
 } from '@/components/modal/ModalComponent';
+import useMeasurementStatsStore from '@/store/measurementStatsStore';
+import useFieldStore from '@/store/fieldStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const { width, height } = Dimensions.get('window');
 
 export type NumericValue = {
@@ -41,12 +44,16 @@ type FormData = {
 };
 
 const CreateMeasurement: React.FC = () => {
-  const { typeOfObjectId, typeOfObjectName, fieldId, fieldName, penName } =
+  const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportCreated } =
     useLocalSearchParams();
+  console.log('REPORTE NAME MEASUREMENT:', reportName);
+  console.log('REPORTE CREATED MEASUREMENT:', reportCreated);
   const [texts, setTexts] = useState({
     title: '',
     subtitle: '',
   });
+  const [lng, setLng] = useState<string | null>(null);
+  const [reloadMeasurementStats, setReloadMeasurementStats] = useState<boolean>(false)
   const navigation = useNavigation();
   const [showWarningError, setShowWarningError] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<string | null>(null);
@@ -91,6 +98,16 @@ const CreateMeasurement: React.FC = () => {
     createReportId: state.createReportId,
     measurementVariablesData: state.measurementVariablesData,
     createMeasurementWithReportId: state.createMeasurementWithReportId,
+  }));
+
+  const { getStatsByField, stats, statsLoading } = useMeasurementStatsStore((state: any) => ({
+    getStatsByField: state.getStatsByField,
+    stats: state.stats,
+    statsLoading: state.statsLoading,
+  }));
+
+  const { fieldId } = useFieldStore((state: any) => ({
+    fieldId: state.fieldId,
   }));
 
   const { t } = useTranslation();
@@ -284,6 +301,7 @@ const CreateMeasurement: React.FC = () => {
     }
     try {
       await createNewMeasurement();
+      setReloadMeasurementStats(true);
     } catch (error) {
       console.log('ERROR:', error);
     }
@@ -423,6 +441,21 @@ const CreateMeasurement: React.FC = () => {
     }));
   };
 
+  useEffect(() => {
+    setReloadMeasurementStats(false)
+    getStatsByField(fieldId, false, true);
+  }, [reloadMeasurementStats]);
+
+
+  useEffect(() => {
+    const getLanguage = async () => {
+      const language = await AsyncStorage.getItem('language');
+      setLng(language);
+    };
+    getLanguage();
+  }, []);
+  console.log(stats)
+
   return (
     <View
       style={[
@@ -483,30 +516,77 @@ const CreateMeasurement: React.FC = () => {
               <Text style={styles.welcome}>
                 {t('measurementView.newMeasurementText')}
               </Text>
-              <View style={{ flexDirection: 'row',  marginTop: 10, alignContent: 'center',}}>
+              <View style={{ flexDirection: 'row', marginTop: 10, alignContent: 'center', }}>
                 <Text style={{
-               
-                marginLeft: 20,
-                color: '#fff',
-                fontFamily: 'Pro-Regular',
-                fontSize: 16.4,
-                // fontWeight: 'bold',
-                
-              }}>
-                {t('measurementView.measureInPen')}
-              </Text>
-              <Text style={{
-                marginLeft: 4,
-                color: '#ffffff',
-                fontFamily: 'Pro-Regular-Bold',
-                fontSize: 16.4,
-                fontWeight: 'bold',
-                
-              }}>{penName}</Text>
-              </View>
-            </View>
-          </View>
+                  marginLeft: 20,
+                  color: '#ffffff',
+                  fontFamily: 'Pro-Regular',
+                  fontSize: 16.4,
+                  fontWeight: 'bold',
 
+                }}>{reportName ? reportName :
+                  "Cooming soon"
+                    //     `${t('reportsView.reportListNameText')}: ${new Date(
+                    //     reportCreated
+                    // ).toLocaleDateString(`${lng ?? 'es'}`, {
+                    //   day: '2-digit',
+                    //   month: '2-digit',
+                    //   year: 'numeric',
+                    // })}`
+
+                  }</Text>
+              </View>
+              <View style={{ flexDirection: 'row', marginTop: 0, alignContent: 'center', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View style={{ flexDirection: 'row' }}>
+
+                  <Text style={{
+
+                    marginLeft: 20,
+                    color: '#fff',
+                    fontFamily: 'Pro-Regular',
+                    fontSize: 16.4,
+                    // fontWeight: 'bold',
+
+                  }}>
+                    {t('measurementView.measureInPen')}
+                  </Text>
+                  <Text style={{
+                    marginLeft: 4,
+                    color: '#ffffff',
+                    fontFamily: 'Pro-Regular-Bold',
+                    fontSize: 16.4,
+                    fontWeight: 'bold',
+
+                  }}>{penName}</Text>
+                </View>
+                <View style={{
+                  backgroundColor: 'rgba(53, 52, 52, 0.5)', // Color con 50% de transparencia
+                  alignSelf: 'flex-end',
+                  paddingHorizontal: 14,
+                  paddingVertical: 4,
+
+                  borderRadius: 6,
+                  marginLeft: 10,
+                  marginRight: 20,
+                  justifyContent: 'center',
+                  marginTop: 10,
+                  marginBottom: 10,
+
+                }}>
+                  <Text style={{
+                    color: '#ffffff',
+                    fontFamily: 'Pro-Regular-Bold',
+                    fontWeight: 'bold',
+                    fontSize: 16.4,
+                  }}>
+                    {t('measurementView.measureNumber')}{stats && stats.measurement_by_object[`${typeOfObjectName}`] ? stats.measurement_by_object[`${typeOfObjectName}`] + 1 : 1}
+                  </Text>
+                </View>
+              </View>
+
+            </View>
+
+          </View>
           {/* contenedor contenido variable */}
         </ImageBackground>
 
@@ -586,7 +666,7 @@ const CreateMeasurement: React.FC = () => {
               <TextInput
                 mode="outlined"
                 placeholderTextColor="#486732"
-                placeholder={`Objeto a medir: ${typeOfObjectName}`}
+                placeholder={`${t('measurementView.objectTextMeasurement')}${typeOfObjectName}`}
                 editable={false}
                 activeOutlineColor="transparent"
                 outlineColor="#F1F1F1"
@@ -719,9 +799,9 @@ const CreateMeasurement: React.FC = () => {
                               Platform.OS === 'android'
                                 ? undefined
                                 : Number(
-                                    values[e.pen_variable_type_of_object_id] ||
-                                      0
-                                  )
+                                  values[e.pen_variable_type_of_object_id] ||
+                                  0
+                                )
                             }
                             onValueChange={(value) =>
                               handleSliderChange(

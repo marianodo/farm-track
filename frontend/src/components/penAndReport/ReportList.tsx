@@ -95,14 +95,14 @@ const ReportList: React.FC<PenListProps> = ({
   const renderRightActions = (progress: any, dragX: any, pen: any) => {
     const reportName = (pen?.name as string)
       ? pen.name.charAt(0).toUpperCase() + pen.name.slice(1).toLowerCase()
-      : `Reporte: ${new Date(pen.created_at).toLocaleDateString(
-          `${lng ?? 'es'}`,
-          {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          }
-        )}`;
+      : `${t('reportsView.reportListNameText')}: ${new Date(pen.created_at).toLocaleDateString(
+        `${lng ?? 'es'}`,
+        {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }
+      )}`;
     return (
       <View style={styles.rightActions}>
         <Pressable
@@ -131,11 +131,10 @@ const ReportList: React.FC<PenListProps> = ({
           onPress={() => {
             setSelectedReportDelete({ id: pen.id });
             setTexts({
-              title: `${t('reportsView.deleteAlertTitle')} "${
-                pen.name
-                  ? pen.name
-                  : `${t('reportsView.reportListNameText')} ${pen.id}`
-              }"?`,
+              title: `${t('reportsView.deleteAlertTitle')} "${pen.name
+                ? pen.name
+                : `${t('reportsView.reportListNameText')} ${pen.id}`
+                }"?`,
               subtitle: `${t('reportsView.deleteAlertSubTitle')}`,
             });
             setShowModal(true);
@@ -162,13 +161,13 @@ const ReportList: React.FC<PenListProps> = ({
     const animatedStyle = useAnimatedStyle(() => {
       const animatedHeight = isExpanded
         ? withTiming('auto', {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          })
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        })
         : withTiming(0, {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          });
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        });
       return {
         marginTop: -20,
         height: animatedHeight,
@@ -196,19 +195,20 @@ const ReportList: React.FC<PenListProps> = ({
           onPress={() => {
             const reportName = (item?.name as string)
               ? item.name.charAt(0).toUpperCase() +
-                item.name.slice(1).toLowerCase()
+              item.name.slice(1).toLowerCase()
               : `${t('reportsView.reportListNameText')}: ${new Date(
-                  item.created_at
-                ).toLocaleDateString(`${lng ?? 'es'}`, {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })}`;
+                item.created_at
+              ).toLocaleDateString(`${lng ?? 'es'}`, {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}`;
             router.push({
               pathname: `/report/[reportId]`,
               params: {
                 fieldName: fieldName,
                 reportId: +item.id,
+                reportCreated: item.created_at,
                 reportName: reportName,
                 penName: item.name,
                 type_of_objects: JSON.stringify(item.type_of_objects),
@@ -229,24 +229,23 @@ const ReportList: React.FC<PenListProps> = ({
             >
               {(item?.name as string)
                 ? `${item.name.charAt(0).toUpperCase()}${item.name
-                    .slice(1)
-                    .toLowerCase()} - ${new Date(
+                  .slice(1)
+                  .toLowerCase()} - ${new Date(
                     item.created_at
                   ).toLocaleDateString(`${lng ?? 'es'}`, {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
                   })}`
-                : `${t('reportsView.reportListNameText')} ${
-                    item.correlative_id
-                  } - ${new Date(item.created_at).toLocaleDateString(
-                    `${lng ?? 'es'}`,
-                    {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                    }
-                  )}`}
+                : `${t('reportsView.reportListNameText')} ${item.correlative_id
+                } - ${new Date(item.created_at).toLocaleDateString(
+                  `${lng ?? 'es'}`,
+                  {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  }
+                )}`}
             </Text>
           </View>
         </TouchableOpacity>
