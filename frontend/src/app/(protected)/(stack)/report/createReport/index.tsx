@@ -85,18 +85,17 @@ const CreateReport: React.FC = () => {
     typeOfObjects: state.typeOfObjects,
   }));
 
-  const { resetCreateReportId, createReport, reportsLoading, createReportId } =
+  const { resetCreateReportId, createReport, reportsLoading, createReportId, createReportName } =
     useReportStore((state: any) => ({
       reportsLoading: state.reportsLoading,
       createReport: state.createReport,
       resetDetail: state.resetDetail,
       resetCreateReportId: state.resetCreateReportId,
       createReportId: state.createReportId,
+      createReportName: state.createReportName,
     }));
 
   const { fieldProductionType } = useFieldStore();
-
-  console.log('Field productionType', fieldProductionType);
 
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
@@ -132,7 +131,6 @@ const CreateReport: React.FC = () => {
 
   // Función para manejar el cambio en los inputs
   const handleInputChange = (name: string, value: number | null | string) => {
-    console.log('asdasd', value);
     setProductivityData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -147,7 +145,6 @@ const CreateReport: React.FC = () => {
     setError(newError);
     return newError.name;
   };
-  console.log('asdasd', productivityData);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     // const updatedFormData = { ...formData, [field]: inputValue };
@@ -173,12 +170,18 @@ const CreateReport: React.FC = () => {
     };
 
     try {
-      await createReport(data, fieldId);
+      // await createReport(data, fieldId);
+      const newReport = await createReport(data, fieldId); // Get the new report
+      const reportId = newReport.correlative_id; // Use the ID from the new report
+      const reportName = createReportName && createReportName.trim() !== ''
+        ? createReportName
+        : `${t('reportsView.reportListNameText')} ${reportId} - ${new Date().toLocaleDateString('es-ES')}`;
       router.push({
         pathname: `/measurement`,
         params: {
           fieldName: fieldName,
           fieldId: fieldId,
+          reportName: formData.name ? formData.name : reportName,
         },
       });
     } catch (error) {
@@ -373,9 +376,8 @@ const CreateReport: React.FC = () => {
               <TextInput
                 mode="outlined"
                 placeholderTextColor="#486732"
-                placeholder={`${t('reportsView.reportFieldNamePlaceHolder')}: ${
-                  fieldName as string
-                }`}
+                placeholder={`${t('reportsView.reportFieldNamePlaceHolder')}: ${fieldName as string
+                  }`}
                 editable={false}
                 activeOutlineColor="transparent"
                 outlineColor="#F1F1F1"
