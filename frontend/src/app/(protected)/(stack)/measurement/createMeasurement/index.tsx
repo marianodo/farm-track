@@ -344,7 +344,7 @@ const CreateMeasurement: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
-    // Reemplazar comas por puntos
+    // Replace commas with dots
     const normalizedValue = value.replace(',', '.');
 
     setValues((prevValues) => ({
@@ -353,10 +353,11 @@ const CreateMeasurement: React.FC = () => {
     }));
 
     if (normalizedValue === '') {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
+      // Clear the error for this input field if it's empty
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors; // Remove the error for this field
+        return newErrors;
+      });
 
       setValues((prevValues) => ({
         ...prevValues,
@@ -367,7 +368,7 @@ const CreateMeasurement: React.FC = () => {
 
     const numericValue = parseFloat(normalizedValue);
     if (!isNaN(numericValue)) {
-      // Validar rango
+      // Validate range
       if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
@@ -376,10 +377,10 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Validar que el valor sea un paso válido a partir del mínimo
+      // Validate that the value is a valid step from the minimum
       const validValues = [];
       for (let current = min; current <= max; current += step) {
-        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+        validValues.push(parseFloat(current.toFixed(10))); // Rounding to avoid precision issues
       }
 
       if (!validValues.includes(numericValue)) {
@@ -390,7 +391,7 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Si pasa todas las validaciones, eliminar errores
+      // If it passes all validations, remove errors
       setErrors((prevErrors) => {
         const { [name]: _, ...newErrors } = prevErrors;
         return newErrors;
@@ -758,7 +759,7 @@ const CreateMeasurement: React.FC = () => {
                             placeholderTextColor="#292929"
                             placeholder=""
                             value={String(
-                              values[e.pen_variable_type_of_object_id] || ''
+                              (values[e.pen_variable_type_of_object_id] || values[e.pen_variable_type_of_object_id] === 0) ? values[e.pen_variable_type_of_object_id] : ''
                             )}
                             onChangeText={(value) =>
                               handleInputChange(
