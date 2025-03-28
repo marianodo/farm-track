@@ -198,7 +198,7 @@ const CreateReport: React.FC = () => {
         params: {
           fieldName: fieldName,
           fieldId: fieldId,
-          reportName: formData.name,
+          reportName: formData.name ? formData.name : reportName,
         },
       });
     } catch (error) {

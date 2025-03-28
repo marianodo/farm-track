@@ -68,9 +68,7 @@ type FormDataError = {
 };
 
 const CreatePen: React.FC = () => {
-  const { fieldId, fieldName, reportName, reportCreated } = useLocalSearchParams();
-  console.log('REPORTE NAME:', reportName);
-  console.log('REPORTE CREATED:', reportCreated);
+  const { fieldId, fieldName, reportName } = useLocalSearchParams();
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
@@ -406,7 +404,6 @@ const CreatePen: React.FC = () => {
           >
             {t('measurementView.detailMeasurementText')}
           </Text>
-
           {/* contenido scroll  */}
           <KeyboardAwareScrollView
             keyboardShouldPersistTaps="handled"

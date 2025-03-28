@@ -92,10 +92,10 @@ const ReportList: React.FC<PenListProps> = ({
   const router = useRouter();
   const { t } = useTranslation();
 
-  const renderRightActions = (progress: any, dragX: any, pen: any) => {
-    const reportName = (pen?.name as string)
-      ? pen.name.charAt(0).toUpperCase() + pen.name.slice(1).toLowerCase()
-      : `${t('reportsView.reportListNameText')}: ${new Date(pen.created_at).toLocaleDateString(
+  const renderRightActions = (progress: any, dragX: any, report: any) => {
+    const reportName = (report?.name as string)
+      ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
+      : `${t('reportsView.reportListNameText')} ${report.correlative_id} - ${new Date(report.created_at).toLocaleDateString(
         `${lng ?? 'es'}`,
         {
           day: '2-digit',
@@ -112,12 +112,12 @@ const ReportList: React.FC<PenListProps> = ({
               pathname: `/report/editReport`,
               params: {
                 fieldName: fieldName,
-                reportId: +pen.id,
-                correlative_id: +pen.correlative_id,
+                reportId: +report.id,
+                correlative_id: +report.correlative_id,
                 reportName: reportName,
-                penName: pen.name,
-                type_of_objects: JSON.stringify(pen.type_of_objects),
-                fieldId: pen.field_id,
+                penName: report.name,
+                type_of_objects: JSON.stringify(report.type_of_objects),
+                fieldId: report.field_id,
               },
             })
           }
@@ -129,11 +129,11 @@ const ReportList: React.FC<PenListProps> = ({
           style={styles.deleteButton}
           // onPress={() => deleteButtonAlert(pen.id, pen.name ? pen.name : '')}
           onPress={() => {
-            setSelectedReportDelete({ id: pen.id });
+            setSelectedReportDelete({ id: report.id });
             setTexts({
-              title: `${t('reportsView.deleteAlertTitle')} "${pen.name
-                ? pen.name
-                : `${t('reportsView.reportListNameText')} ${pen.id}`
+              title: `${t('reportsView.deleteAlertTitle')} "${report.name
+                ? report.name
+                : `${t('reportsView.reportListNameText')} ${report.id}`
                 }"?`,
               subtitle: `${t('reportsView.deleteAlertSubTitle')}`,
             });

@@ -1,4 +1,4 @@
-import { rMS, rMV, rV } from '@/styles/responsive';
+import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './styles';
@@ -46,8 +46,6 @@ type FormData = {
 const CreateMeasurement: React.FC = () => {
   const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportCreated } =
     useLocalSearchParams();
-  console.log('REPORTE NAME MEASUREMENT:', reportName);
-  console.log('REPORTE CREATED MEASUREMENT:', reportCreated);
   const [texts, setTexts] = useState({
     title: '',
     subtitle: '',
@@ -454,7 +452,6 @@ const CreateMeasurement: React.FC = () => {
     };
     getLanguage();
   }, []);
-  console.log(stats)
 
   return (
     <View
@@ -516,37 +513,35 @@ const CreateMeasurement: React.FC = () => {
               <Text style={styles.welcome}>
                 {t('measurementView.newMeasurementText')}
               </Text>
-              <View style={{ flexDirection: 'row', marginTop: 10, alignContent: 'center', }}>
+              <View style={{ flexDirection: 'row', marginTop: 10, alignContent: 'center', width: "64%" }}>
                 <Text style={{
                   marginLeft: 20,
                   color: '#ffffff',
                   fontFamily: 'Pro-Regular',
                   fontSize: 16.4,
                   fontWeight: 'bold',
-
-                }}>{reportName ? reportName :
-                  "Cooming soon"
-                    //     `${t('reportsView.reportListNameText')}: ${new Date(
-                    //     reportCreated
-                    // ).toLocaleDateString(`${lng ?? 'es'}`, {
-                    //   day: '2-digit',
-                    //   month: '2-digit',
-                    //   year: 'numeric',
-                    // })}`
-
-                  }</Text>
+                }}>{t('reportsView.reportNameText')}</Text>
+                <Text style={{
+                  marginLeft: 4,
+                  color: '#ffffff',
+                  fontFamily: 'Pro-Regular-Bold',
+                  fontSize: 16.4,
+                  fontWeight: 'bold',
+                  overflow: 'hidden', // Ensures that overflow is hidden
+                  textOverflow: 'ellipsis', // This is for web; in React Native, we use numberOfLines
+                  width: '100%',
+                }}
+                  numberOfLines={1}
+                >{reportName ? reportName : "Ops ocurred error"}</Text>
               </View>
               <View style={{ flexDirection: 'row', marginTop: 0, alignContent: 'center', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row' }}>
-
+                <View style={{ flexDirection: 'row', width: '44%' }}>
                   <Text style={{
-
                     marginLeft: 20,
                     color: '#fff',
                     fontFamily: 'Pro-Regular',
                     fontSize: 16.4,
                     // fontWeight: 'bold',
-
                   }}>
                     {t('measurementView.measureInPen')}
                   </Text>
@@ -556,8 +551,12 @@ const CreateMeasurement: React.FC = () => {
                     fontFamily: 'Pro-Regular-Bold',
                     fontSize: 16.4,
                     fontWeight: 'bold',
-
-                  }}>{penName}</Text>
+                    overflow: 'hidden', // Ensures that overflow is hidden
+                    textOverflow: 'ellipsis', // This is for web; in React Native, we use numberOfLines
+                    width: '100%',
+                  }}
+                    numberOfLines={1}
+                  >{penName}</Text>
                 </View>
                 <View style={{
                   backgroundColor: 'rgba(53, 52, 52, 0.5)', // Color con 50% de transparencia

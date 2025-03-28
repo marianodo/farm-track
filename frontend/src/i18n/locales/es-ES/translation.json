@@ -182,6 +182,7 @@
     "reportsText": "Lista de evaluaciones",
     "continueText": "Continuar",
     "dontPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
+    "reportNameText": "Nombre del reporte: ",
     "dontReportMessage": "Aún no has creado ningún reporte. Por favor añade uno desde el botón '+' para comenzar.",
     "dontReportAndPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
     "title": "Gestiona evaluaciones",
