@@ -1,4 +1,4 @@
-import { rMS, rMV, rV } from '@/styles/responsive';
+import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from './styles';
@@ -46,8 +46,6 @@ type FormData = {
 const CreateMeasurement: React.FC = () => {
   const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportCreated } =
     useLocalSearchParams();
-  console.log('REPORTE NAME MEASUREMENT:', reportName);
-  console.log('REPORTE CREATED MEASUREMENT:', reportCreated);
   const [texts, setTexts] = useState({
     title: '',
     subtitle: '',
@@ -346,7 +344,7 @@ const CreateMeasurement: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
-    // Reemplazar comas por puntos
+    // Replace commas with dots
     const normalizedValue = value.replace(',', '.');
 
     setValues((prevValues) => ({
@@ -355,10 +353,11 @@ const CreateMeasurement: React.FC = () => {
     }));
 
     if (normalizedValue === '') {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
+      // Clear the error for this input field if it's empty
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors; // Remove the error for this field
+        return newErrors;
+      });
 
       setValues((prevValues) => ({
         ...prevValues,
@@ -369,7 +368,7 @@ const CreateMeasurement: React.FC = () => {
 
     const numericValue = parseFloat(normalizedValue);
     if (!isNaN(numericValue)) {
-      // Validar rango
+      // Validate range
       if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
@@ -378,10 +377,10 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Validar que el valor sea un paso válido a partir del mínimo
+      // Validate that the value is a valid step from the minimum
       const validValues = [];
       for (let current = min; current <= max; current += step) {
-        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+        validValues.push(parseFloat(current.toFixed(10))); // Rounding to avoid precision issues
       }
 
       if (!validValues.includes(numericValue)) {
@@ -392,7 +391,7 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Si pasa todas las validaciones, eliminar errores
+      // If it passes all validations, remove errors
       setErrors((prevErrors) => {
         const { [name]: _, ...newErrors } = prevErrors;
         return newErrors;
@@ -454,7 +453,6 @@ const CreateMeasurement: React.FC = () => {
     };
     getLanguage();
   }, []);
-  console.log(stats)
 
   return (
     <View
@@ -516,37 +514,35 @@ const CreateMeasurement: React.FC = () => {
               <Text style={styles.welcome}>
                 {t('measurementView.newMeasurementText')}
               </Text>
-              <View style={{ flexDirection: 'row', marginTop: 10, alignContent: 'center', }}>
+              <View style={{ flexDirection: 'row', marginTop: 10, alignContent: 'center', width: "64%" }}>
                 <Text style={{
                   marginLeft: 20,
                   color: '#ffffff',
                   fontFamily: 'Pro-Regular',
                   fontSize: 16.4,
                   fontWeight: 'bold',
-
-                }}>{reportName ? reportName :
-                  "Cooming soon"
-                    //     `${t('reportsView.reportListNameText')}: ${new Date(
-                    //     reportCreated
-                    // ).toLocaleDateString(`${lng ?? 'es'}`, {
-                    //   day: '2-digit',
-                    //   month: '2-digit',
-                    //   year: 'numeric',
-                    // })}`
-
-                  }</Text>
+                }}>{t('reportsView.reportNameText')}</Text>
+                <Text style={{
+                  marginLeft: 4,
+                  color: '#ffffff',
+                  fontFamily: 'Pro-Regular-Bold',
+                  fontSize: 16.4,
+                  fontWeight: 'bold',
+                  overflow: 'hidden', // Ensures that overflow is hidden
+                  textOverflow: 'ellipsis', // This is for web; in React Native, we use numberOfLines
+                  width: '100%',
+                }}
+                  numberOfLines={1}
+                >{reportName ? reportName : "Ops ocurred error"}</Text>
               </View>
               <View style={{ flexDirection: 'row', marginTop: 0, alignContent: 'center', alignItems: 'center', justifyContent: 'space-between' }}>
-                <View style={{ flexDirection: 'row' }}>
-
+                <View style={{ flexDirection: 'row', width: '44%' }}>
                   <Text style={{
-
                     marginLeft: 20,
                     color: '#fff',
                     fontFamily: 'Pro-Regular',
                     fontSize: 16.4,
                     // fontWeight: 'bold',
-
                   }}>
                     {t('measurementView.measureInPen')}
                   </Text>
@@ -556,8 +552,12 @@ const CreateMeasurement: React.FC = () => {
                     fontFamily: 'Pro-Regular-Bold',
                     fontSize: 16.4,
                     fontWeight: 'bold',
-
-                  }}>{penName}</Text>
+                    overflow: 'hidden', // Ensures that overflow is hidden
+                    textOverflow: 'ellipsis', // This is for web; in React Native, we use numberOfLines
+                    width: '100%',
+                  }}
+                    numberOfLines={1}
+                  >{penName}</Text>
                 </View>
                 <View style={{
                   backgroundColor: 'rgba(53, 52, 52, 0.5)', // Color con 50% de transparencia
@@ -759,7 +759,7 @@ const CreateMeasurement: React.FC = () => {
                             placeholderTextColor="#292929"
                             placeholder=""
                             value={String(
-                              values[e.pen_variable_type_of_object_id] || ''
+                              (values[e.pen_variable_type_of_object_id] || values[e.pen_variable_type_of_object_id] === 0) ? values[e.pen_variable_type_of_object_id] : ''
                             )}
                             onChangeText={(value) =>
                               handleInputChange(

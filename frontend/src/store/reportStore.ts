@@ -13,6 +13,7 @@ interface ReportState {
   reportById: ReportWithMeasurements2[] | null | [];
   reportByIdNameAndComment: any;
   createReportId: number | null;
+  createReportName: string | null;
   measurementVariablesData: MeasurementData[] | null;
   measurementEditData: MeasurementEditData[] | null;
   reportsLoading: boolean;
@@ -46,6 +47,7 @@ const useReportStore = create<ReportState>((set) => ({
   reportById: null,
   reportsLoading: false,
   createReportId: null,
+  createReportName: null,
   reportByIdNameAndComment: null,
   measurementVariablesData: null,
   measurementEditData: null,
@@ -62,7 +64,8 @@ const useReportStore = create<ReportState>((set) => ({
       const newReport = response.data;
       useReportStore.getState().getAllReportsByField(field_id);
       //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
-      set({ reportsLoading: false, createReportId: newReport.id });
+      set({ reportsLoading: false, createReportId: newReport.correlative_id, createReportName: newReport.name });
+      return newReport;
     } catch (error: any) {
       set({ reportsLoading: false });
       if (
@@ -225,6 +228,7 @@ const useReportStore = create<ReportState>((set) => ({
   resetCreateReportId: () => {
     set({
       createReportId: null,
+      createReportName: null,
     });
   },
 

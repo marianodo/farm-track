@@ -551,9 +551,9 @@ const CreatePen: React.FC = () => {
                         borderColor: '#F1F1F1',
                         backgroundColor:
                           errors[e.pen_variable_type_of_object.variable.name] ||
-                          errorsName.includes(
-                            e.pen_variable_type_of_object.variable.name
-                          )
+                            errorsName.includes(
+                              e.pen_variable_type_of_object.variable.name
+                            )
                             ? 'rgba(217, 162, 32, 0.12)'
                             : '#F1F1F1',
                         borderRadius: 8,
@@ -585,9 +585,9 @@ const CreatePen: React.FC = () => {
                           {`Min: ${e.pen_variable_type_of_object.custom_parameters.value.min}; Max: ${e.pen_variable_type_of_object.custom_parameters.value.max}`}
                         </Text>
                         {errors[e.pen_variable_type_of_object.variable.name] ||
-                        errorsName.includes(
-                          e.pen_variable_type_of_object.variable.name
-                        ) ? (
+                          errorsName.includes(
+                            e.pen_variable_type_of_object.variable.name
+                          ) ? (
                           <IconButton
                             icon={'alert-circle-outline'}
                             iconColor="#D9A220"
@@ -614,7 +614,9 @@ const CreatePen: React.FC = () => {
                           mode="outlined"
                           placeholderTextColor="#292929"
                           placeholder=""
-                          value={String(values[e.id] || '')}
+                          value={String(
+                            (values[e.id] || values[e.id] === 0) ? values[e.id] : ''
+                          )}
                           onChangeText={(value) =>
                             handleInputChange(
                               e.id,
@@ -688,11 +690,11 @@ const CreatePen: React.FC = () => {
                       </View>
                       {errors[e.pen_variable_type_of_object.variable.name] &&
                         errors[e.pen_variable_type_of_object.variable.name] !==
-                          'true' && (
+                        'true' && (
                           <Text style={styles.errorText}>
                             {
                               errors[
-                                e.pen_variable_type_of_object.variable.name
+                              e.pen_variable_type_of_object.variable.name
                               ]
                             }
                           </Text>
@@ -731,9 +733,9 @@ const CreatePen: React.FC = () => {
                         borderColor: '#F1F1F1',
                         backgroundColor:
                           errors[e.pen_variable_type_of_object.variable.name] ||
-                          errorsName.includes(
-                            e.pen_variable_type_of_object.variable.name
-                          )
+                            errorsName.includes(
+                              e.pen_variable_type_of_object.variable.name
+                            )
                             ? 'rgba(217, 162, 32, 0.12)'
                             : '#F1F1F1',
                         borderRadius: 8,
@@ -774,9 +776,9 @@ const CreatePen: React.FC = () => {
                           {errors[
                             e.pen_variable_type_of_object.variable.name
                           ] ||
-                          errorsName.includes(
-                            e.pen_variable_type_of_object.variable.name
-                          ) ? (
+                            errorsName.includes(
+                              e.pen_variable_type_of_object.variable.name
+                            ) ? (
                             <IconButton
                               icon={'alert-circle-outline'}
                               iconColor="#D9A220"
@@ -848,14 +850,14 @@ const CreatePen: React.FC = () => {
                           {errors[
                             e.pen_variable_type_of_object.variable.name
                           ] && (
-                            <Text style={styles.errorText}>
-                              {
-                                errors[
+                              <Text style={styles.errorText}>
+                                {
+                                  errors[
                                   e.pen_variable_type_of_object.variable.name
-                                ]
-                              }
-                            </Text>
-                          )}
+                                  ]
+                                }
+                              </Text>
+                            )}
                         </View>
                       </View>
                     </View>

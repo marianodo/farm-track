@@ -13,7 +13,6 @@ const Index = () => {
 
   useEffect(() => {
     initializedToken();
-    console.log('VERIFIEEED', authenticated);
   }, [authenticated]);
 
   if (authLoading) {
