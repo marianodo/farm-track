@@ -49,6 +49,60 @@ export class MeasurementService {
     }
   }
 
+  async getMeasurementStats(options?: {
+    totalMeasurement?: boolean;
+    byObject?: boolean;
+    byPen?: boolean;
+    byVariable?: boolean;
+    byVariableByPen?: boolean;
+  }) {
+    try {
+      return await this.measurementRepository.getMeasurementStats(options);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMeasurementStatsByUser(
+    userId: string,
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementRepository.getMeasurementStatsByUser(
+        userId,
+        options,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMeasurementStatsByField(
+    fieldId: string,
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementRepository.getMeasurementStatsByField(
+        fieldId,
+        options,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findOne(id: number) {
     try {
       return await this.measurementRepository.findOne(id);

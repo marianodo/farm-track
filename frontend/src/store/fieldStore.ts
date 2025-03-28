@@ -26,6 +26,8 @@ export interface FiledWithUserId extends Field {
 interface FieldState {
   fields: FieldWithMetadata[] | null;
   fieldsByUserId: Field[] | null;
+  fieldId: string | null;
+  setFieldId: (id: string) => void;
   fieldDetail: Field | null;
   fieldProductionType: string | null;
   fieldLoading: boolean;
@@ -43,6 +45,7 @@ interface FieldState {
 const useFieldStore = create<FieldState>((set: any) => ({
   fields: null,
   fieldsByUserId: null,
+  fieldId: null,
   fieldProductionType: null,
   fieldDetail: null,
   fieldLoading: false,
@@ -155,6 +158,9 @@ const useFieldStore = create<FieldState>((set: any) => ({
       fieldsByUserId: null,
       fieldDetail: null,
     });
+  },
+  setFieldId: (id: string) => {
+    set({ fieldId: id });
   },
 }));
 

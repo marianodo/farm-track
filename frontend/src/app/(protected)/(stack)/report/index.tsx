@@ -224,7 +224,7 @@ export default function PenScreen() {
       if (typeOfObjects === null) {
         getAllTypeOfObjects();
       }
-      return () => {};
+      return () => { };
     }, [
       getAllTypeOfObjects,
       getAllPens,
