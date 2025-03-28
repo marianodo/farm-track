@@ -89,8 +89,6 @@ export default function HomeScreen() {
 
   useEffect(() => {
     initializedToken();
-    // console.log('AUTENTICATED EN HOME', authenticated);
-    // console.log('TOKEN EN HOME', token);
   }, [authenticated]);
 
   const {

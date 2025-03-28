@@ -15,6 +15,7 @@ import {
   Alert,
   Keyboard,
   Image,
+  Platform,
 } from 'react-native';
 import {
   Swipeable,
@@ -148,13 +149,13 @@ const ReportDetail: React.FC<PenListProps> = ({
     const animatedStyle = useAnimatedStyle(() => {
       const animatedHeight = isExpanded
         ? withTiming('auto', {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          })
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        })
         : withTiming(0, {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          });
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        });
       return {
         marginTop: -20,
         height: animatedHeight,
@@ -362,7 +363,7 @@ const ReportDetail: React.FC<PenListProps> = ({
   ) : (
     <View style={styles.spacer}>
       <FlatList
-        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10), height: "72%" }}
         data={reports.subjects}
         keyExtractor={(item, index) => `${item.name}${item.id}${index}`}
         renderItem={({ item, index }) => {
@@ -377,6 +378,10 @@ const ReportDetail: React.FC<PenListProps> = ({
             />
           );
         }}
+        ListFooterComponentStyle={{
+          marginBottom: Platform.OS === 'android' ? rMS(25) : rMS(10),
+        }}
+        ListFooterComponent={<View style={{ height: 0 }} />} // Optional: Add height if needed
       />
     </View>
   );
