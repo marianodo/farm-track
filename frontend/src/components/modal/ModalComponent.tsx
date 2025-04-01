@@ -91,11 +91,10 @@ const UnsavedModalComponent: React.FC<ModalComponentProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <Modal visible={visible} onDismiss={onDismiss} style={styles.modal}>
+    <Modal visible={visible} onDismiss={onDismiss} style={styles.modal} contentContainerStyle={marginVertical && { marginVertical }}>
       <KeyboardAvoidingView
         style={[
           styles.keyboardAvoidingView,
-          marginVertical && { marginVertical },
         ]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
