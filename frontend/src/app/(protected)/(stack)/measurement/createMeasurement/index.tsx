@@ -60,10 +60,13 @@ const CreateMeasurement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorsName, setErrorsName] = useState<string[]>([]);
-  const [sliderValue, setSliderValue] = useState<number | null>(null);
+  const [firstRender, setFirstRender] = useState<boolean>(false);
   const [values, setValues] = useState<{
     [key: string]: number | string | null;
   }>({});
+  const [sliderVal, setSliderVal] = useState<{
+    [key: string]: number | string | null;
+  } | null>({});
   const handlePress = (key: string, name: string, item: string) => {
     if (values[key] === item) {
       setValues((prevValues) => ({
@@ -173,6 +176,8 @@ const CreateMeasurement: React.FC = () => {
         })),
     };
     await createMeasurementWithReportId(newMeasurement);
+    setFirstRender(false);
+    setSliderVal(null);
     setModalVisible('success');
     measurementVariablesData.map((e: any) => {
       setValues((prevValues) => ({
@@ -350,6 +355,17 @@ const CreateMeasurement: React.FC = () => {
   ) => {
     // Replace commas with dots
     const normalizedValue = value.replace(',', '.');
+    if (!value) {
+      setSliderVal((prevValues) => ({
+        ...prevValues,
+        [key]: '',
+      }));
+    }
+
+    setSliderVal((prevValues) => ({
+      ...prevValues,
+      [key]: normalizedValue,
+    }));
 
     setValues((prevValues) => ({
       ...prevValues,
@@ -439,6 +455,24 @@ const CreateMeasurement: React.FC = () => {
     // }
 
     setValues((prevValues) => ({
+      ...prevValues,
+      [key]: parseFloat(value.toFixed(2)),
+    }));
+  };
+
+  const handleSliderSlidingComplete = (key: string,
+    name: string,
+    value: number,
+    min: number,
+    max: number,
+    step: number) => {
+    setErrors((prevErrors) => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[name];
+      return newErrors;
+    });
+
+    setSliderVal((prevValues) => ({
       ...prevValues,
       [key]: parseFloat(value.toFixed(2)),
     }));
@@ -747,7 +781,6 @@ const CreateMeasurement: React.FC = () => {
                         marginTop: rMV(10),
                       }}
                     >
-                      {console.log(values)}
                       <TextInput
                         mode="outlined"
                         placeholderTextColor="#292929"
@@ -789,18 +822,25 @@ const CreateMeasurement: React.FC = () => {
                         step={e.custom_parameters.value.granularity}
                         value={
                           Platform.OS === 'android'
-                            ? undefined
+                            ? Number(sliderVal && sliderVal[e.pen_variable_type_of_object_id] || 0)
                             : Number(
                               values[e.pen_variable_type_of_object_id] ||
                               0
                             )
                         }
                         onTouchStart={() => {
-                          setSliderValue(23); // Resetea el valor cuando se empieza a mover el slider
+                          setFirstRender(true); // Resetea el valor cuando se empieza a mover el slider
+                        }}
+                        onSlidingComplete={(value) => {
+                          handleSliderSlidingComplete(e.pen_variable_type_of_object_id,
+                            e.variable.name,
+                            value,
+                            e.custom_parameters.value.min,
+                            e.custom_parameters.value.max,
+                            e.custom_parameters.value.granularity);
                         }}
                         onValueChange={(value) => {
-                          if (sliderValue === null) {
-                            // setSliderValue(value); // Solo toma valor después de la primera interacción
+                          if (!firstRender) {
                             return
                           }
                           handleSliderChange(
