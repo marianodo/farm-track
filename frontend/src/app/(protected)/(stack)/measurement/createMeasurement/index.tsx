@@ -1,4 +1,4 @@
-import { rMS, rMV, rV } from '@/styles/responsive';
+import { rMS, rMV, rS, rV } from '@/styles/responsive';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -49,8 +49,6 @@ type FormData = {
 const CreateMeasurement: React.FC = () => {
   const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportCreated } =
     useLocalSearchParams();
-  console.log('REPORTE NAME MEASUREMENT:', reportName);
-  console.log('REPORTE CREATED MEASUREMENT:', reportCreated);
   const [texts, setTexts] = useState({
     title: '',
     subtitle: '',
@@ -62,6 +60,7 @@ const CreateMeasurement: React.FC = () => {
   const [modalVisible, setModalVisible] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorsName, setErrorsName] = useState<string[]>([]);
+  const [sliderValue, setSliderValue] = useState<number | null>(null);
   const [values, setValues] = useState<{
     [key: string]: number | string | null;
   }>({});
@@ -349,7 +348,7 @@ const CreateMeasurement: React.FC = () => {
     value: string,
     step: number = 1
   ) => {
-    // Reemplazar comas por puntos
+    // Replace commas with dots
     const normalizedValue = value.replace(',', '.');
 
     setValues((prevValues) => ({
@@ -358,10 +357,11 @@ const CreateMeasurement: React.FC = () => {
     }));
 
     if (normalizedValue === '') {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: 'El campo no puede estar vacío.',
-      }));
+      // Clear the error for this input field if it's empty
+      setErrors((prevErrors) => {
+        const { [name]: _, ...newErrors } = prevErrors; // Remove the error for this field
+        return newErrors;
+      });
 
       setValues((prevValues) => ({
         ...prevValues,
@@ -372,7 +372,7 @@ const CreateMeasurement: React.FC = () => {
 
     const numericValue = parseFloat(normalizedValue);
     if (!isNaN(numericValue)) {
-      // Validar rango
+      // Validate range
       if (numericValue < min || numericValue > max) {
         setErrors((prevErrors) => ({
           ...prevErrors,
@@ -381,10 +381,10 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Validar que el valor sea un paso válido a partir del mínimo
+      // Validate that the value is a valid step from the minimum
       const validValues = [];
       for (let current = min; current <= max; current += step) {
-        validValues.push(parseFloat(current.toFixed(10))); // Redondeo para evitar problemas de precisión
+        validValues.push(parseFloat(current.toFixed(10))); // Rounding to avoid precision issues
       }
 
       if (!validValues.includes(numericValue)) {
@@ -395,7 +395,7 @@ const CreateMeasurement: React.FC = () => {
         return;
       }
 
-      // Si pasa todas las validaciones, eliminar errores
+      // If it passes all validations, remove errors
       setErrors((prevErrors) => {
         const { [name]: _, ...newErrors } = prevErrors;
         return newErrors;
@@ -457,7 +457,6 @@ const CreateMeasurement: React.FC = () => {
     };
     getLanguage();
   }, []);
-  console.log(stats)
 
   return (
     /* Contenedor general */
@@ -680,6 +679,7 @@ const CreateMeasurement: React.FC = () => {
             selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
             style={styles.input}
           />
+
           {measurementVariablesData &&
             measurementVariablesData.map((e: any, i: any) => (
               <View key={e.pen_variable_type_of_object_id}>
@@ -747,13 +747,12 @@ const CreateMeasurement: React.FC = () => {
                         marginTop: rMV(10),
                       }}
                     >
+                      {console.log(values)}
                       <TextInput
                         mode="outlined"
                         placeholderTextColor="#292929"
                         placeholder=""
-                        value={String(
-                          values[e.pen_variable_type_of_object_id] || ''
-                        )}
+                        value={values[e.pen_variable_type_of_object_id]?.toString() ?? ''}
                         onChangeText={(value) =>
                           handleInputChange(
                             e.pen_variable_type_of_object_id,
@@ -796,7 +795,14 @@ const CreateMeasurement: React.FC = () => {
                               0
                             )
                         }
-                        onValueChange={(value) =>
+                        onTouchStart={() => {
+                          setSliderValue(23); // Resetea el valor cuando se empieza a mover el slider
+                        }}
+                        onValueChange={(value) => {
+                          if (sliderValue === null) {
+                            // setSliderValue(value); // Solo toma valor después de la primera interacción
+                            return
+                          }
                           handleSliderChange(
                             e.pen_variable_type_of_object_id,
                             e.variable.name,
@@ -805,7 +811,7 @@ const CreateMeasurement: React.FC = () => {
                             e.custom_parameters.value.max,
                             e.custom_parameters.value.granularity
                           )
-                        }
+                        }}
                         minimumTrackTintColor="#486732"
                         thumbTintColor="#FFFFFF"
                       />
@@ -1011,6 +1017,7 @@ const CreateMeasurement: React.FC = () => {
     // Fin de contenedor
   );
 }
+
 
 export default CreateMeasurement;
 

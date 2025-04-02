@@ -189,11 +189,11 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
 
 const styles = StyleSheet.create({
   modal: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   keyboardAvoidingView: {
-    flex: 1,
     alignItems: 'center',
   },
   modalContent: {
@@ -255,11 +255,11 @@ const styles = StyleSheet.create({
 
 const successStyle = StyleSheet.create({
   modal: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   keyboardAvoidingView: {
-    flex: 1,
     alignItems: 'center',
   },
   modalContent: {
