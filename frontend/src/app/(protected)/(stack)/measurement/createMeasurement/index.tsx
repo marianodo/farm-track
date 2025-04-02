@@ -969,8 +969,9 @@ const CreateMeasurement: React.FC = () => {
       {/* Fin contenido */}
       {/* Inicio de botón para final */}
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity style={styles.createButton}>
-          <Text style={styles.buttonText}>Crear Corral</Text>
+        <TouchableOpacity onPress={handleSubmit} disabled={Object.values(errors).filter((e: any) => e !== 'true').length > 0} style={styles.createButton}>
+          <Text style={styles.buttonText}>{t('measurementView.saveText')}
+          </Text>
         </TouchableOpacity>
       </View>
       {/* Fin de botón para final */}
