@@ -115,6 +115,7 @@ export class MeasurementController {
     @Body() createBullkMeasurementDto: CreateBulkMeasurementDto,
   ) {
     try {
+      console.log('Lo que llega:', createBullkMeasurementDto);
       return await this.measurementService.bulkCreate(
         createBullkMeasurementDto,
       );

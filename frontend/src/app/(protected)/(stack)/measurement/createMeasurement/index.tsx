@@ -192,6 +192,8 @@ const CreateMeasurement: React.FC = () => {
     setErrorsName([]);
   };
 
+  console.log("REPORTE ID", createReportId)
+
   const getModalButtons = () => {
     if (modalVisible === 'unsavedChanges') {
       return [
