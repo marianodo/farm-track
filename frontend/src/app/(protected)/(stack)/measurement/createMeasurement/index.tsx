@@ -47,7 +47,7 @@ type FormData = {
 };
 
 const CreateMeasurement: React.FC = () => {
-  const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportCreated } =
+  const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportNameFind } =
     useLocalSearchParams();
   const [texts, setTexts] = useState({
     title: '',
@@ -480,8 +480,12 @@ const CreateMeasurement: React.FC = () => {
 
   useEffect(() => {
     setReloadMeasurementStats(false)
-    getStatsByField(fieldId, false, true);
+    getStatsByField(fieldId, null, null, null, null, null, true);
   }, [reloadMeasurementStats]);
+
+  console.log("STATSaaa", reportNameFind)
+  console.log("rEPORT NAME", stats?.measurement_by_report?.reportNameFind)
+
 
 
   useEffect(() => {
@@ -567,7 +571,8 @@ const CreateMeasurement: React.FC = () => {
                 }}
                   numberOfLines={1}
                   ellipsizeMode="tail">
-                  {reportName ? reportName : "Cooming soon"}
+                  {reportName ? reportName
+                    : "Cooming soon"}
                 </Text>
               </View>
             </View>
@@ -614,7 +619,7 @@ const CreateMeasurement: React.FC = () => {
                   fontWeight: 'bold',
                   fontSize: 16.4,
                 }}>
-                  {t('measurementView.measureNumber')}{stats && stats.measurement_by_object[`${typeOfObjectName}`] ? stats.measurement_by_object[`${typeOfObjectName}`] + 1 : 1}
+                  {t('measurementView.measureNumber')}{stats && stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] ? stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1}
                 </Text>
               </View>
             </View>

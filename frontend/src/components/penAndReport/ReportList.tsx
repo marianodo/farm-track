@@ -95,14 +95,26 @@ const ReportList: React.FC<PenListProps> = ({
   const renderRightActions = (progress: any, dragX: any, report: any) => {
     const reportName = (report?.name as string)
       ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
-      : `${t('reportsView.reportListNameText')} ${report.correlative_id} - ${new Date(report.created_at).toLocaleDateString(
-        `${lng ?? 'es'}`,
-        {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        }
-      )}`;
+      : `${t('reportsView.reportListNameText')} ${report.correlative_id} - ${new Date(
+        report.created_at
+      ).toLocaleDateString(`${lng ?? 'es'}`, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+      }`;
+
+
+    const reportNameFind = (report?.name as string)
+      ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
+      : `Report ${report.id} - ${new Date(
+        report.created_at
+      ).toLocaleDateString(`${lng ?? 'es'}`, {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      })
+      }`;
     return (
       <View style={styles.rightActions}>
         <Pressable
@@ -115,6 +127,7 @@ const ReportList: React.FC<PenListProps> = ({
                 reportId: +report.id,
                 correlative_id: +report.correlative_id,
                 reportName: reportName,
+                reportNameFind: reportNameFind,
                 penName: report.name,
                 type_of_objects: JSON.stringify(report.type_of_objects),
                 fieldId: report.field_id,

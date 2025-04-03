@@ -7,7 +7,7 @@ interface MeasurementStatsStore {
   statsLoading: boolean;
   getStats: (totalMeasurement?: boolean, byObject?: boolean, byPen?: boolean, byVariable?: boolean, byVariableByPen?: boolean) => Promise<void>;
   getStatsByUser: (userId: string, totalMeasurement?: boolean, byObject?: boolean, byPen?: boolean, byVariable?: boolean, byVariableByPen?: boolean) => Promise<void>;
-  getStatsByField: (fieldId: string, totalMeasurement?: boolean, byObject?: boolean, byPen?: boolean, byVariable?: boolean, byVariableByPen?: boolean) => Promise<void>;
+  getStatsByField: (fieldId: string, totalMeasurement?: boolean, byObject?: boolean, byPen?: boolean, byVariable?: boolean, byVariableByPen?: boolean, byReport?: boolean) => Promise<void>;
 }
 
 const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
@@ -49,7 +49,7 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
       console.error('Error fetching stats by user:', error);
     }
   },
-  getStatsByField: async (fieldId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen) => {
+  getStatsByField: async (fieldId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen, byReport) => {
     set({ statsLoading: true });
     try {
       const response = await axiosInstance.get(`/measurements/stats/byFieldId/${fieldId}`, {
@@ -58,7 +58,8 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
           byObject,
           byPen,
           byVariable,
-          byVariableByPen
+          byVariableByPen,
+          byReport
         }
       });
       set({ stats: response.data, statsLoading: false });

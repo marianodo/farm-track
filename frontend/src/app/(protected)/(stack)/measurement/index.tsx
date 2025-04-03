@@ -68,13 +68,12 @@ type FormDataError = {
 };
 
 const CreatePen: React.FC = () => {
-  const { fieldId, fieldName, reportName } = useLocalSearchParams();
+  const { fieldId, fieldName, reportName, reportNameFind } = useLocalSearchParams();
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
   }));
   // ----->  DROPDOWN UTILS START <------
-
   // Pen dropdown
 
   const [penDropDownValue, setPenDropDownValue] = useState(null);
@@ -254,6 +253,7 @@ const CreatePen: React.FC = () => {
             fieldName: fieldName,
             penName: penName,
             reportName: reportName,
+            reportNameFind: reportNameFind
           },
         });
         setFormData({

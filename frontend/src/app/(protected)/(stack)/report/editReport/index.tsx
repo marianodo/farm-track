@@ -73,7 +73,7 @@ type FormDataError = {
 };
 
 const CreateReport: React.FC = () => {
-  const { fieldId, fieldName, reportId, correlative_id, reportName, reportCreated } =
+  const { fieldId, fieldName, reportId, correlative_id, reportName, reportNameFind } =
     useLocalSearchParams();
   const [editData, setEditData] = useState(false);
   const { validateNameInput } = useValidationRules();
@@ -126,6 +126,8 @@ const CreateReport: React.FC = () => {
     name: null,
     comment: null,
   });
+
+  console.log("ESTOY EN EDIT REPORT");
 
   const [productivityData, setProductivityData] = useState<ProductivityData>({
     total_cows: null,
@@ -197,6 +199,7 @@ const CreateReport: React.FC = () => {
           fieldName: fieldName,
           fieldId: fieldId,
           reportName: formData.name ? formData.name : reportName,
+          reportNameFind: formData.name ? formData.name : reportNameFind
         },
       });
     } catch (error) {
