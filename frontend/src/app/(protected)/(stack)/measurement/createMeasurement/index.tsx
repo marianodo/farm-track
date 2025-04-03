@@ -483,10 +483,8 @@ const CreateMeasurement: React.FC = () => {
     getStatsByField(fieldId, null, null, null, null, null, true);
   }, [reloadMeasurementStats]);
 
-  console.log("STATSaaa", reportNameFind)
-  console.log("rEPORT NAME", stats?.measurement_by_report?.reportNameFind)
-
-
+  // console.log("STATSaaa", reportNameFind)
+  // console.log("rEPORT NAME", stats?.measurement_by_report?.reportNameFind)
 
   useEffect(() => {
     const getLanguage = async () => {
@@ -619,7 +617,7 @@ const CreateMeasurement: React.FC = () => {
                   fontWeight: 'bold',
                   fontSize: 16.4,
                 }}>
-                  {t('measurementView.measureNumber')}{stats && stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] ? stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1}
+                  {t('measurementView.measureNumber')}{stats?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] ? stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1}
                 </Text>
               </View>
             </View>
