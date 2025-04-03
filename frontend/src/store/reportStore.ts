@@ -64,7 +64,7 @@ const useReportStore = create<ReportState>((set) => ({
       const newReport = response.data;
       useReportStore.getState().getAllReportsByField(field_id);
       //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
-      set({ reportsLoading: false, createReportId: newReport.correlative_id, createReportName: newReport.name });
+      set({ reportsLoading: false, createReportId: newReport.id, createReportName: newReport.name });
       return newReport;
     } catch (error: any) {
       set({ reportsLoading: false });
