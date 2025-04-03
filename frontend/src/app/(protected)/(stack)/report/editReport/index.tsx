@@ -127,8 +127,6 @@ const CreateReport: React.FC = () => {
     comment: null,
   });
 
-  console.log("ESTOY EN EDIT REPORT");
-
   const [productivityData, setProductivityData] = useState<ProductivityData>({
     total_cows: null,
     milking_cows: null,

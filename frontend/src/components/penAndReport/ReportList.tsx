@@ -95,7 +95,7 @@ const ReportList: React.FC<PenListProps> = ({
   const renderRightActions = (progress: any, dragX: any, report: any) => {
     const reportName = (report?.name as string)
       ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
-      : `${t('reportsView.reportListNameText')} ${report.correlative_id} - ${new Date(
+      : `Report ${report.correlative_id} - ${new Date(
         report.created_at
       ).toLocaleDateString(`${lng ?? 'es'}`, {
         day: '2-digit',
@@ -209,7 +209,7 @@ const ReportList: React.FC<PenListProps> = ({
             const reportName = (item?.name as string)
               ? item.name.charAt(0).toUpperCase() +
               item.name.slice(1).toLowerCase()
-              : `${t('reportsView.reportListNameText')}: ${new Date(
+              : `Report ${new Date(
                 item.created_at
               ).toLocaleDateString(`${lng ?? 'es'}`, {
                 day: '2-digit',
