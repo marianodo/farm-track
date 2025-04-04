@@ -53,9 +53,9 @@ const CreateMeasurement: React.FC = () => {
     title: '',
     subtitle: '',
   });
-  const [statsCounter, setStatsCounter] = useState<any>(0)
   const [lng, setLng] = useState<string | null>(null);
   const [reloadMeasurementStats, setReloadMeasurementStats] = useState<boolean>(false)
+  const [measurementCount, setMeasurementCount] = useState<any>(null);
   const navigation = useNavigation();
   const [showWarningError, setShowWarningError] = useState<boolean>(true);
   const [modalVisible, setModalVisible] = useState<string | null>(null);
@@ -67,7 +67,7 @@ const CreateMeasurement: React.FC = () => {
   }>({});
   const [sliderVal, setSliderVal] = useState<{
     [key: string]: number | string | null;
-  } | null>({});
+  } | null>(null);
   const handlePress = (key: string, name: string, item: string) => {
     if (values[key] === item) {
       setValues((prevValues) => ({
@@ -106,10 +106,11 @@ const CreateMeasurement: React.FC = () => {
     createMeasurementWithReportId: state.createMeasurementWithReportId,
   }));
 
-  const { getStatsByField, stats, statsLoading } = useMeasurementStatsStore((state: any) => ({
+  const { getStatsByField, statsByField, resetStatsByField, statsLoading } = useMeasurementStatsStore((state: any) => ({
     getStatsByField: state.getStatsByField,
-    stats: state.stats,
+    statsByField: state.statsByField,
     statsLoading: state.statsLoading,
+    resetStatsByField: state.resetStatsByField
   }));
 
   const { fieldId } = useFieldStore((state: any) => ({
@@ -120,6 +121,8 @@ const CreateMeasurement: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     name: null,
   });
+
+
 
   useEffect(() => {
     if (measurementVariablesData) {
@@ -177,9 +180,10 @@ const CreateMeasurement: React.FC = () => {
         })),
     };
     await createMeasurementWithReportId(newMeasurement);
-    setStatsCounter((prevCount: any) => prevCount + 1);
-    setFirstRender(false);
     setSliderVal(null);
+    setMeasurementCount((prevCount: any) => prevCount + 1);
+    setFirstRender(false);
+    // setReloadMeasurementStats(true);
     setModalVisible('success');
     measurementVariablesData.map((e: any) => {
       setValues((prevValues) => ({
@@ -310,7 +314,7 @@ const CreateMeasurement: React.FC = () => {
     }
     try {
       await createNewMeasurement();
-      setReloadMeasurementStats(true);
+
     } catch (error) {
       console.log('ERROR:', error);
     }
@@ -481,15 +485,10 @@ const CreateMeasurement: React.FC = () => {
   };
 
   useEffect(() => {
-    setReloadMeasurementStats(false)
-    getStatsByField(fieldId, null, null, null, null, null, true);
-  }, [reloadMeasurementStats]);
+    setMeasurementCount(statsByField?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] ?
+      statsByField.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1);
+  }, []);
 
-  useEffect(() => {
-    setStatsCounter(stats?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] + 1)
-  }, [stats]);
-
-  // console.log("rEPORT NAME", stats?.measurement_by_report?.reportNameFind)
 
   useEffect(() => {
     const getLanguage = async () => {
@@ -622,7 +621,9 @@ const CreateMeasurement: React.FC = () => {
                   fontWeight: 'bold',
                   fontSize: 16.4,
                 }}>
-                  {t('measurementView.measureNumber')}{statsCounter ? statsCounter : 1}
+                  {t('measurementView.measureNumber')}{measurementCount}
+                  {/* {stats?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] ? stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1} */}
+
                 </Text>
               </View>
             </View>
@@ -1467,5 +1468,3 @@ const styles = StyleSheet.create({
     fontSize: rMS(11),
   },
 });
-
-

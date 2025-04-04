@@ -97,7 +97,7 @@ const ReportList: React.FC<PenListProps> = ({
       ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
       : `Report ${report.correlative_id} - ${new Date(
         report.created_at
-      ).toLocaleDateString(`${lng ?? 'es'}`, {
+      ).toLocaleDateString("es", {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -109,7 +109,7 @@ const ReportList: React.FC<PenListProps> = ({
       ? report.name.charAt(0).toUpperCase() + report.name.slice(1).toLowerCase()
       : `Report ${report.id} - ${new Date(
         report.created_at
-      ).toLocaleDateString(`${lng ?? 'es'}`, {
+      ).toLocaleDateString("es", {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -211,7 +211,7 @@ const ReportList: React.FC<PenListProps> = ({
               item.name.slice(1).toLowerCase()
               : `Report ${new Date(
                 item.created_at
-              ).toLocaleDateString(`${lng ?? 'es'}`, {
+              ).toLocaleDateString("es", {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -245,14 +245,14 @@ const ReportList: React.FC<PenListProps> = ({
                   .slice(1)
                   .toLowerCase()} - ${new Date(
                     item.created_at
-                  ).toLocaleDateString(`${lng ?? 'es'}`, {
+                  ).toLocaleDateString("es", {
                     day: '2-digit',
                     month: '2-digit',
                     year: 'numeric',
                   })}`
                 : `${t('reportsView.reportListNameText')} ${item.correlative_id
                 } - ${new Date(item.created_at).toLocaleDateString(
-                  `${lng ?? 'es'}`,
+                  "es",
                   {
                     day: '2-digit',
                     month: '2-digit',

@@ -427,7 +427,11 @@ const CreateReport: React.FC = () => {
               placeholderTextColor="#486732"
               placeholder={`${t(
                 'reportsView.reportDatePlaceHolder'
-              )}: ${new Date().toLocaleDateString('es-Es')}`}
+              )}: ${new Date().toLocaleDateString('es', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}`}
               editable={false}
               activeOutlineColor="transparent"
               outlineColor="#F1F1F1"

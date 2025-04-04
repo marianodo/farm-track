@@ -33,6 +33,7 @@ import usePenStore from '@/store/penStore';
 import { ViewStyle } from 'react-native-size-matters';
 import useReportStore from '@/store/reportStore';
 import usePenVariableTypeOfObjectStore from '@/store/pen_variable_typeOfObject_store';
+import useMeasurementStatsStore from '@/store/measurementStatsStore';
 const { width } = Dimensions.get('window');
 
 type Item = {
@@ -119,6 +120,10 @@ const CreatePen: React.FC = () => {
       typeOfObjectById: state.typeOfObjectById,
     })
   );
+
+  const { getStatsByField } = useMeasurementStatsStore((state: any) => ({
+    getStatsByField: state.getStatsByField,
+  }));
 
   const {
     getPenVariableTypeOfObjectsByObjectIdAndPen,
@@ -276,6 +281,7 @@ const CreatePen: React.FC = () => {
   useFocusEffect(
     React.useCallback(() => {
       // Aca se puede ejecutar codigo cuando el componente obtiene el foco.
+      getStatsByField(fieldId, null, null, null, null, null, true);
       return () => {
         // Cy aca se puede ejecutar codigo cuando el componente pierde el foco.
         setPenDropDownValue(null);

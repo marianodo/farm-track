@@ -176,14 +176,14 @@ const CreateReport: React.FC = () => {
       const reportRealId = newReport.id;
       const reportName = createReportName && createReportName.trim() !== ''
         ? createReportName
-        : `Report ${reportId} - ${new Date().toLocaleDateString('es-ES', {
+        : `Report ${reportId} - ${new Date().toLocaleDateString('es', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
         })}`;
       const reportNameFind = createReportName && createReportName.trim() !== ''
         ? createReportName
-        : `Report ${reportRealId} - ${new Date().toLocaleDateString('es-ES', {
+        : `Report ${reportRealId} - ${new Date().toLocaleDateString('es', {
           day: '2-digit',
           month: '2-digit',
           year: 'numeric',
@@ -403,7 +403,11 @@ const CreateReport: React.FC = () => {
                 placeholderTextColor="#486732"
                 placeholder={`${t(
                   'reportsView.reportDatePlaceHolder'
-                )}: ${new Date().toLocaleDateString('es-Es')}`}
+                )}: ${new Date().toLocaleDateString('es', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}`}
                 editable={false}
                 activeOutlineColor="transparent"
                 outlineColor="#F1F1F1"
