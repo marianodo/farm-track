@@ -10,7 +10,7 @@ import {
 } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { PaperProvider } from 'react-native-paper';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -18,6 +18,8 @@ import { Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import useAuthStore from '@/store/authStore';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 // SplashScreen.preventAutoHideAsync();
 const StackLayout = () => {
   //Estoy protegiendo las rutas.

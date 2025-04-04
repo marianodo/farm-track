@@ -167,6 +167,7 @@ export class MeasurementRepository {
     `);
 
       const response: any = {
+        total_measurement: 0,
         measurement_by_object: {},
         measurement_by_pen: {},
         measurement_by_variable: {},
@@ -176,6 +177,12 @@ export class MeasurementRepository {
 
       // Verificar las opciones y agregar los valores correspondientes
       const includeAll = !options || Object.keys(options).length === 0;
+
+      if (includeAll || options?.totalMeasurement) {
+        response.total_measurement = Number(
+          rawStats[0]?.total_measurement || 0,
+        );
+      }
 
       // measurement_by_object
       if (includeAll || options?.byObject) {
@@ -232,7 +239,13 @@ export class MeasurementRepository {
         measurementByReportStats.forEach((row) => {
           const reportKey =
             row.report_name ||
-            `Report ${row.report_id} - ${row.report_created_at?.toISOString().split('T')[0]}`;
+            `Report ${row.report_id} - ${new Date(
+              row.report_created_at,
+            ).toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}`;
           if (!response.measurement_by_report[reportKey]) {
             response.measurement_by_report[reportKey] = {};
           }

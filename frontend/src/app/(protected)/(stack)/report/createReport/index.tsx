@@ -173,15 +173,29 @@ const CreateReport: React.FC = () => {
       // await createReport(data, fieldId);
       const newReport = await createReport(data, fieldId); // Get the new report
       const reportId = newReport.correlative_id; // Use the ID from the new report
+      const reportRealId = newReport.id;
       const reportName = createReportName && createReportName.trim() !== ''
         ? createReportName
-        : `${t('reportsView.reportListNameText')} ${reportId} - ${new Date().toLocaleDateString('es-ES')}`;
+        : `Report ${reportId} - ${new Date().toLocaleDateString('es', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })}`;
+      const reportNameFind = createReportName && createReportName.trim() !== ''
+        ? createReportName
+        : `Report ${reportRealId} - ${new Date().toLocaleDateString('es', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })}`;
+      console.log(reportNameFind)
       router.push({
         pathname: `/measurement`,
         params: {
           fieldName: fieldName,
           fieldId: fieldId,
           reportName: formData.name ? formData.name : reportName,
+          reportNameFind: reportNameFind
         },
       });
     } catch (error) {
@@ -389,7 +403,11 @@ const CreateReport: React.FC = () => {
                 placeholderTextColor="#486732"
                 placeholder={`${t(
                   'reportsView.reportDatePlaceHolder'
-                )}: ${new Date().toLocaleDateString('es-Es')}`}
+                )}: ${new Date().toLocaleDateString('es', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}`}
                 editable={false}
                 activeOutlineColor="transparent"
                 outlineColor="#F1F1F1"

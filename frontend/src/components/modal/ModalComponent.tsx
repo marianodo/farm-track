@@ -91,11 +91,10 @@ const UnsavedModalComponent: React.FC<ModalComponentProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <Modal visible={visible} onDismiss={onDismiss} style={styles.modal}>
+    <Modal visible={visible} onDismiss={onDismiss} style={styles.modal} contentContainerStyle={marginVertical && { marginVertical }}>
       <KeyboardAvoidingView
         style={[
           styles.keyboardAvoidingView,
-          marginVertical && { marginVertical },
         ]}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
@@ -190,11 +189,11 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
 
 const styles = StyleSheet.create({
   modal: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   keyboardAvoidingView: {
-    flex: 1,
     alignItems: 'center',
   },
   modalContent: {
@@ -256,11 +255,11 @@ const styles = StyleSheet.create({
 
 const successStyle = StyleSheet.create({
   modal: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   keyboardAvoidingView: {
-    flex: 1,
     alignItems: 'center',
   },
   modalContent: {

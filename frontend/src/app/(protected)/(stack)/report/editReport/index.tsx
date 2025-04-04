@@ -73,10 +73,8 @@ type FormDataError = {
 };
 
 const CreateReport: React.FC = () => {
-  const { fieldId, fieldName, reportId, correlative_id, reportName, reportCreated } =
+  const { fieldId, fieldName, reportId, correlative_id, reportName, reportNameFind } =
     useLocalSearchParams();
-  console.log('REPORTE CREATED:', reportCreated);
-  console.log('REPORTE NAME:', reportName);
   const [editData, setEditData] = useState(false);
   const { validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
@@ -199,6 +197,7 @@ const CreateReport: React.FC = () => {
           fieldName: fieldName,
           fieldId: fieldId,
           reportName: formData.name ? formData.name : reportName,
+          reportNameFind: formData.name ? formData.name : reportNameFind
         },
       });
     } catch (error) {
@@ -428,7 +427,11 @@ const CreateReport: React.FC = () => {
               placeholderTextColor="#486732"
               placeholder={`${t(
                 'reportsView.reportDatePlaceHolder'
-              )}: ${new Date().toLocaleDateString('es-Es')}`}
+              )}: ${new Date().toLocaleDateString('es', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}`}
               editable={false}
               activeOutlineColor="transparent"
               outlineColor="#F1F1F1"
