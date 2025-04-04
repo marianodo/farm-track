@@ -53,6 +53,7 @@ const CreateMeasurement: React.FC = () => {
     title: '',
     subtitle: '',
   });
+  const [statsCounter, setStatsCounter] = useState<any>(0)
   const [lng, setLng] = useState<string | null>(null);
   const [reloadMeasurementStats, setReloadMeasurementStats] = useState<boolean>(false)
   const navigation = useNavigation();
@@ -176,6 +177,7 @@ const CreateMeasurement: React.FC = () => {
         })),
     };
     await createMeasurementWithReportId(newMeasurement);
+    setStatsCounter((prevCount: any) => prevCount + 1);
     setFirstRender(false);
     setSliderVal(null);
     setModalVisible('success');
@@ -483,7 +485,10 @@ const CreateMeasurement: React.FC = () => {
     getStatsByField(fieldId, null, null, null, null, null, true);
   }, [reloadMeasurementStats]);
 
-  // console.log("STATSaaa", reportNameFind)
+  useEffect(() => {
+    setStatsCounter(stats?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] + 1)
+  }, [stats]);
+
   // console.log("rEPORT NAME", stats?.measurement_by_report?.reportNameFind)
 
   useEffect(() => {
@@ -617,7 +622,7 @@ const CreateMeasurement: React.FC = () => {
                   fontWeight: 'bold',
                   fontSize: 16.4,
                 }}>
-                  {t('measurementView.measureNumber')}{stats?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] ? stats.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1}
+                  {t('measurementView.measureNumber')}{statsCounter ? statsCounter : 1}
                 </Text>
               </View>
             </View>
@@ -1462,3 +1467,5 @@ const styles = StyleSheet.create({
     fontSize: rMS(11),
   },
 });
+
+
