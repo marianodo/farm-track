@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "farm-project",
-    "slug": "farm-track",
+    "name": "Measure Me",
+    "slug": "measure-me",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/main-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/images/main-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -29,7 +29,7 @@
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.anonymous.farmproject",
+      "package": "com.BDMetrics.measureme",
       "runtimeVersion": "1.0.0"
     },
     "web": {
@@ -62,7 +62,7 @@
         "projectId": "683963ba-26c0-43fe-a449-8522761f6f88"
       }
     },
-    "owner": "farm-project",
+    "owner": "BDMetrics",
     "updates": {
       "url": "https://u.expo.dev/683963ba-26c0-43fe-a449-8522761f6f88"
     }
