@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Measure Me",
-    "slug": "measure-me",
+    "slug": "farm-track",
     "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/main-icon.png",
@@ -15,8 +15,8 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.farmproject",
-      "runtimeVersion": "1.0.0"
+      "bundleIdentifier": "com.bdmetrics.measureme",
+      "runtimeVersion": "1.0.1"
     },
     "android": {
       "config": {
@@ -29,8 +29,8 @@
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.BDMetrics.measureme",
-      "runtimeVersion": "1.0.0"
+      "package": "com.bdmetrics.measureme",
+      "runtimeVersion": "1.0.1"
     },
     "web": {
       "bundler": "metro",
@@ -62,7 +62,7 @@
         "projectId": "683963ba-26c0-43fe-a449-8522761f6f88"
       }
     },
-    "owner": "BDMetrics",
+    "owner": "bdmetrics",
     "updates": {
       "url": "https://u.expo.dev/683963ba-26c0-43fe-a449-8522761f6f88"
     }
