@@ -30,7 +30,6 @@
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.bdmetrics.measureme",
-      "versionCode": 2,
       "runtimeVersion": "1.0.1"
     },
     "web": {
