@@ -14,9 +14,7 @@
         "simulator": true
       }
     },
-    "production": {
-      "gradleCommand": ":app:cleanBuildCache"
-    }
+    "production": {}
   },
   "submit": {
     "production": {}
