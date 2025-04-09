@@ -15,7 +15,6 @@
       }
     },
     "production": {
-      "versionCode": 2
     }
   },
   "submit": {
