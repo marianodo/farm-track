@@ -14,7 +14,9 @@
         "simulator": true
       }
     },
-    "production": {}
+    "production": {
+      "versionCode": 2
+    }
   },
   "submit": {
     "production": {}
