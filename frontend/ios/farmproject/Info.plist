@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>myapp</string>
-          <string>com.anonymous.farmproject</string>
+          <string>com.bdmetrics.measureme</string>
         </array>
       </dict>
       <dict>
