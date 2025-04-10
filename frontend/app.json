@@ -19,13 +19,15 @@
       "runtimeVersion": "1.0.1"
     },
     "android": {
+      "icon": "./assets/images/main-icon.png",
       "config": {
         "googleMaps": {
           "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY"
         }
       },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/main-icon.png",
+        "backgroundImage": "./assets/images/main-icon.png",
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
