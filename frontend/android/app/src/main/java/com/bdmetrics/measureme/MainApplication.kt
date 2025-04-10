@@ -1,4 +1,4 @@
-package com.anonymous.farmproject
+package com.bdmetrics.measureme
 
 import android.app.Application
 import android.content.res.Configuration
