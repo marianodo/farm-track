@@ -2,24 +2,35 @@
   "expo": {
     "name": "Measure Me",
     "slug": "farm-track",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/main-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/main-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "resizeMode": "cover",
+      "backgroundColor": "#000000"
     },
     "newArchEnabled": true,
     "ios": {
+      "icon": "./assets/images/main-icon.png",
+      "splash": {
+        "image": "./assets/images/main-icon.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#000000"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.bdmetrics.measureme",
       "runtimeVersion": "1.0.1"
     },
     "android": {
       "icon": "./assets/images/main-icon.png",
+      "splash": {
+        "image": "./assets/images/main-icon.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#000000"
+      },
       "config": {
         "googleMaps": {
           "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY"
