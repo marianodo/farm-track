@@ -146,7 +146,7 @@ const ReportList: React.FC<PenListProps> = ({
             setTexts({
               title: `${t('reportsView.deleteAlertTitle')} "${report.name
                 ? report.name
-                : `${t('reportsView.reportListNameText')} ${report.id}`
+                : `${t('reportsView.reportListNameText')} ${report.correlative_id}`
                 }"?`,
               subtitle: `${t('reportsView.deleteAlertSubTitle')}`,
             });
