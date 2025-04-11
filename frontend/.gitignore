@@ -12,3 +12,4 @@ expo-env.d.ts
 # Expo
 .expo/**
 .expo/types/router.d.ts
+.DS_Store
