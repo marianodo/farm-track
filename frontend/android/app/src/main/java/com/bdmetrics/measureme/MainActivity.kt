@@ -1,4 +1,4 @@
-package com.anonymous.farmproject
+package com.bdmetrics.measureme
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
