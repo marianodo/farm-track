@@ -372,6 +372,11 @@ export default function HomeScreen() {
                 onPress={() => onLogoutPressed()}
                 title={t('menuInitial.logout')}
               />
+              <View style={{ padding: 10, alignItems: 'center' }}>
+                <Text style={{ fontSize: 12, color: '#666' }}>
+                  {t('version')} {require('../../../../../app.json').expo.version}
+                </Text>
+              </View>
             </Menu>
           </View>
           <Text
