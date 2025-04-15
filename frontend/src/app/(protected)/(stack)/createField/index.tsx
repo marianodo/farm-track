@@ -24,7 +24,7 @@ import useAuthStore from '@/store/authStore';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import DropDownPicker from 'react-native-dropdown-picker';
 const { width, height } = Dimensions.get('window');
 import MapView, { Marker } from 'react-native-maps';
@@ -50,12 +50,18 @@ export default function CreateField() {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
+  const [openInstallation, setOpenInstallation] = useState<boolean>(false);
+  const [openBreed, setOpenBreed] = useState<boolean>(false);
+  const [breedValue, setBreedValue] = useState<string | undefined>();
+  const [installationValue, setInstallationValue] = useState<string | undefined>();
+  const [breedValueText, setBreedValueText] = useState<string | undefined>();
+  const [installationValueText, setInstallationValueText] = useState<string | undefined>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(true);
   const [oneButtonOnPress, setOneButtonOnPress] = useState<
     () => void | undefined
-  >(() => () => {});
+  >(() => () => { });
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const [ubication, setUbication] = useState({
     origin: {
@@ -97,6 +103,14 @@ export default function CreateField() {
     production_type: {
       placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
     },
+    breed: {
+      value: '',
+      placeholder: t('detailField.fieldBreedPlaceHolder'),
+    },
+    installation: {
+      value: '',
+      placeholder: t('detailField.fieldInstallationPlaceHolder'),
+    },
     number_of_animals: {
       value: 0,
       placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
@@ -109,6 +123,8 @@ export default function CreateField() {
     latitude: ubication.userLocation.latitude,
     longitude: ubication.userLocation.longitude,
     production_type: value,
+    breed: breedValue !== "other" ? breedValue : breedValueText && breedValueText.trim().length > 0 ? breedValueText.trim() : undefined,
+    installation: installationValue !== "other" ? installationValue : installationValueText && installationValueText.trim().length > 0 ? installationValueText.trim() : undefined,
     number_of_animals: +inputsData.number_of_animals.value,
     userId: userId,
     // autoConfig: true,
@@ -125,6 +141,55 @@ export default function CreateField() {
       value: 'posture_poultry',
     },
     { label: t('typeProductionText.customized'), value: 'customized' },
+  ]);
+
+  const [breed, setBreed] = useState<{ label: string; value: string }[]>([
+    {
+      label: t('breedText.holstein'),
+      value: 'holstein',
+    },
+    {
+      label: t('breedText.jersey'),
+      value: 'jersey',
+    },
+    {
+      label: t('breedText.crossbreed'),
+      value: 'crossbreed',
+    },
+    {
+      label: t('breedText.other'),
+      value: 'other',
+    },
+  ]);
+  const [installation, setInstallation] = useState<{ label: string; value: string }[]>([
+    {
+      label: t('installationText.grazing'),
+      value: 'grazing',
+    },
+    {
+      label: t('installationText.dry_lot'),
+      value: 'dry_lot',
+    },
+    {
+      label: t('installationText.freestall'),
+      value: 'freestall',
+    },
+    {
+      label: t('installationText.robot_grazing'),
+      value: 'robot_grazing',
+    },
+    {
+      label: t('installationText.robot_freestall'),
+      value: 'robot_freestall',
+    },
+    {
+      label: t('installationText.mixed'),
+      value: 'mixed',
+    },
+    {
+      label: t('installationText.other'),
+      value: 'other',
+    },
   ]);
 
   const [lang, setLang] = useState<any>('');
@@ -368,11 +433,11 @@ export default function CreateField() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={[
             styles.scrollContent,
-            { height: open ? rMS(700) : null },
+            { height: open ? rMS(900) : (openBreed ? rMS(900) : openInstallation ? rMS(1000) : null) },
           ]}
           style={{ flexGrow: 1 }}
           extraScrollHeight={20}
-          scrollEnabled={Platform.OS === 'ios' ? true : !open}
+          scrollEnabled={Platform.OS === 'ios' ? true : true}
         >
           <View style={styles.formContainer}>
             {/* TextInputs */}
@@ -535,6 +600,163 @@ export default function CreateField() {
                   />
                 );
               }
+
+              if (key === "breed") {
+                return (
+                  <Fragment key={key}>
+                    <DropDownPicker
+                      placeholder={t(
+                        'detailField.fieldBreedPlaceHolder'
+                      )}
+                      placeholderStyle={{
+                        fontSize: width * 0.04,
+                        fontFamily: 'Pro-Regular',
+                        color: '#292929',
+                        paddingLeft: rMS(4),
+                      }}
+                      style={styles.input}
+                      dropDownContainerStyle={{
+                        marginTop: 4,
+                        backgroundColor: '#fafafa',
+                        borderColor: '#dadada',
+                        borderRadius: 20,
+                        borderTopStartRadius: 12,
+                        borderTopEndRadius: 12,
+                      }}
+                      listMode="SCROLLVIEW"
+                      zIndex={openBreed ? (Platform.OS === 'ios' ? 9999 : 1) : 0}
+                      zIndexInverse={
+                        openBreed ? (Platform.OS === 'ios' ? 9999 : 1) : 0
+                      }
+                      arrowIconStyle={{ tintColor: '#486732' }}
+                      open={openBreed}
+                      value={breedValue}
+                      items={breed}
+                      setOpen={setOpenBreed}
+                      setValue={(value) => {
+                        if (value() !== 'other') {
+                          setBreedValue(value);
+                          setBreedValueText(undefined); // Reiniciar el texto si no es "other"
+                        } else {
+                          setBreedValue(value); // Mantener 'other' como valor
+                        }
+                      }}
+                      setItems={setBreed}
+                      // multiple={true}
+                      mode="BADGE"
+                      badgeDotColors={[
+                        '#e76f51',
+                        '#00b4d8',
+                        '#e9c46a',
+                        '#e76f51',
+                        '#8ac926',
+                        '#00b4d8',
+                        '#e9c46a',
+                      ]}
+                      dropDownDirection="BOTTOM"
+                      onOpen={() => setOpenBreed(true)}
+                      onClose={() => setOpenBreed(false)}
+                    />
+                    {breedValue === 'other' && (
+                      <TextInput
+                        mode="outlined"
+                        placeholder={t(
+                          'detailField.fieldICreateBreedPlaceHolder'
+                        )}
+                        cursorColor="#486732"
+                        selectionColor={
+                          Platform.OS == 'ios' ? '#486732' : '#486732'
+                        }
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        style={styles.input}
+                        value={breedValueText}
+                        onChangeText={setBreedValueText}
+                      />
+                    )}
+                  </Fragment>
+                )
+              }
+
+              if (key === "installation") {
+
+                return (
+                  <Fragment key={key}>
+                    <DropDownPicker
+                      placeholder={t(
+                        'detailField.fieldInstallationPlaceHolder'
+                      )}
+                      placeholderStyle={{
+                        fontSize: width * 0.04,
+                        fontFamily: 'Pro-Regular',
+                        color: '#292929',
+                        paddingLeft: rMS(4),
+                      }}
+                      style={styles.input}
+                      dropDownContainerStyle={{
+                        marginTop: 4,
+                        backgroundColor: '#fafafa',
+                        borderColor: '#dadada',
+                        borderRadius: 20,
+                        borderTopStartRadius: 12,
+                        borderTopEndRadius: 12,
+                      }}
+                      listMode="SCROLLVIEW"
+                      zIndex={openInstallation ? (Platform.OS === 'ios' ? 9998 : 1) : 0}
+                      zIndexInverse={
+                        openInstallation ? (Platform.OS === 'ios' ? 9998 : 1) : 0
+                      }
+                      arrowIconStyle={{ tintColor: '#486732' }}
+                      open={openInstallation}
+                      value={installationValue}
+                      items={installation}
+                      setOpen={setOpenInstallation}
+                      setValue={(value) => {
+                        if (value() !== 'other') {
+                          setInstallationValue(value);
+                          setInstallationValueText(undefined); // Reiniciar el texto si no es "other"
+                        } else {
+                          setInstallationValue(value); // Mantener 'other' como valor
+                        }
+                      }}
+                      setItems={setInstallation}
+                      // multiple={true}
+                      mode="BADGE"
+                      badgeDotColors={[
+                        '#e76f51',
+                        '#00b4d8',
+                        '#e9c46a',
+                        '#e76f51',
+                        '#8ac926',
+                        '#00b4d8',
+                        '#e9c46a',
+                      ]}
+                      dropDownDirection="BOTTOM"
+                      onOpen={() => setOpenInstallation(true)}
+                      onClose={() => setOpenInstallation(false)}
+                    />
+                    {installationValue === 'other' && (
+                      <TextInput
+                        mode="outlined"
+                        placeholder={t(
+                          'detailField.fieldCreateInstallationPlaceHolder'
+                        )}
+                        cursorColor="#486732"
+                        selectionColor={
+                          Platform.OS == 'ios' ? '#486732' : '#486732'
+                        }
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        style={styles.input}
+                        value={installationValueText}
+                        onChangeText={setInstallationValueText}
+                      />
+                    )}
+                  </Fragment>
+                )
+              }
+
+
 
               if (key === 'number_of_animals') {
                 return (

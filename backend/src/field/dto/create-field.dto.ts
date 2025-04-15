@@ -32,6 +32,14 @@ export class CreateFieldDto {
   @IsOptional()
   production_type: string;
 
+  @IsString()
+  @IsOptional()
+  breed: string;
+
+  @IsString()
+  @IsOptional()
+  installation: string;
+
   @IsNumber()
   @IsOptional()
   number_of_animals: number;

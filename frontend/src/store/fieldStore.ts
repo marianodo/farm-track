@@ -10,6 +10,8 @@ export interface Field {
   latitude?: number;
   longitude?: number;
   production_type?: string;
+  breed?: string;
+  installation?: string;
   number_of_animals?: number;
 }
 
