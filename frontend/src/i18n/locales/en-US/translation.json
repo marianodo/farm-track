@@ -89,6 +89,10 @@
     "fieldDescriptionPlaceHolder": "Description",
     "fieldUbicationPlaceHolder": "Location",
     "fieldTypeProductionPlaceHolder": "Production type",
+    "fieldInstallationPlaceHolder": "Installation",
+    "fieldCreateInstallationPlaceHolder": "Enter your installation",
+    "fieldICreateBreedPlaceHolder": "Enter your breed",
+    "fieldBreedPlaceHolder": "Breed",
     "fieldNumberOfAnimalsPlaceHolder": "Number of animals",
     "createFieldText": "Create field",
     "goBackText": "Go back",
@@ -255,6 +259,21 @@
     "posture_poultry": "Posture poultry",
     "customized": "Customized",
     "NoType": "Without type"
+  },
+  "breedText": {
+    "holstein": "Holstein",
+    "jersey": "Jersey",
+    "crossbreed": "Crossbreed",
+    "other": "Other"
+  },
+  "installationText": {
+    "grazing": "Grazing",
+    "dry_lot": "Dry lot",
+    "freestall": "Freestall",
+    "robot_grazing": "Robot grazing",
+    "robot_freestall": "Robot freestall",
+    "mixed": "Mixed",
+    "other": "Other"
   },
   "recoveryPasswordView": {
     "title": "Reset your",
