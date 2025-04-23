@@ -1,4 +1,5 @@
 {
+  "enter": "Ingresar ",
   "deleteAllDataTitle": "¿Está seguro de que desea borrar todos los datos?",
   "deleteAllDataSubTitle": "Esta acción es irreversible y eliminará permanentemente toda la información asociada.",
   "language": "Lenguaje",

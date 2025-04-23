@@ -1,43 +1,49 @@
-import { IconButton, Text, TextInput } from 'react-native-paper';
+import * as Location from 'expo-location';
+
 import {
   Alert,
+  Button,
+  Dimensions,
+  ImageBackground,
+  Keyboard,
+  Modal,
+  PermissionsAndroid,
+  Platform,
   Pressable,
   StyleSheet,
-  View,
-  ImageBackground,
-  Platform,
-  Dimensions,
-  PermissionsAndroid,
-  Modal,
-  Button,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
-  // Image,
+  View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import * as Location from 'expo-location';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { IconButton, Text, TextInput } from 'react-native-paper';
+import MapView, { Marker } from 'react-native-maps';
 // import * as Localization from 'expo-localization';
 import { rMS, rV } from '@/styles/responsive';
-import Loader from '@/components/Loader';
-import useAuthStore from '@/store/authStore';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import DropDownPicker from 'react-native-dropdown-picker';
-const { width, height } = Dimensions.get('window');
-import MapView, { Marker } from 'react-native-maps';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CreateButton from '@/components/createButton/CreateButton';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { Image } from 'expo-image';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Loader from '@/components/Loader';
 import MessageModal from '@/components/modal/MessageModal';
 import OneButtonModal from '@/components/modal/OneButtonModal';
-import useVariableStore from '@/store/variableStore';
+import { Selector } from '@/components/Selector/Selector';
+import useAuthStore from '@/store/authStore';
+import { useFieldSelectorTypes } from '@/components/fieldSelectorTypes/FieldSelectorTypes';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
-import CreateButton from '@/components/createButton/CreateButton';
+import useVariableStore from '@/store/variableStore';
+
+const { width, height } = Dimensions.get('window');
 
 export default function CreateField() {
+  const [selectedValues, setSelectedValues] = useState<any>({})
+  const fieldSelectorTypes = useFieldSelectorTypes()
   const router = useRouter();
   const { userId, authLoading } = useAuthStore((state) => ({
     userId: state.userId,
@@ -116,20 +122,42 @@ export default function CreateField() {
       placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
     },
   });
-  const formData: Omit<FiledWithUserId, 'id'> = {
+
+  const [formData, setFormData] = useState<any>({
     name: inputsData.nameField.value,
     description: inputsData.description.value,
     location: ubication.userLocation.direction,
     latitude: ubication.userLocation.latitude,
     longitude: ubication.userLocation.longitude,
-    production_type: value,
-    breed: breedValue !== "other" ? breedValue : breedValueText && breedValueText.trim().length > 0 ? breedValueText.trim() : undefined,
-    installation: installationValue !== "other" ? installationValue : installationValueText && installationValueText.trim().length > 0 ? installationValueText.trim() : undefined,
+    production_type: undefined,
+    breed: undefined,
+    installation: undefined,
     number_of_animals: +inputsData.number_of_animals.value,
     userId: userId,
-    // autoConfig: true,
-    // userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
-  };
+  });
+
+  useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      name: inputsData.nameField.value,
+      description: inputsData.description.value,
+      location: ubication.userLocation.direction,
+      latitude: ubication.userLocation.latitude,
+      longitude: ubication.userLocation.longitude,
+      production_type: selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      breed: selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      installation: selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      number_of_animals: +inputsData.number_of_animals.value,
+      userId: userId,
+    }));
+  }, [inputsData, selectedValues]);
+  
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
     { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
@@ -551,212 +579,21 @@ export default function CreateField() {
 
               if (key === 'production_type') {
                 return (
-                  <DropDownPicker
-                    placeholder={t(
-                      'detailField.fieldTypeProductionPlaceHolder'
-                    )}
-                    placeholderStyle={{
-                      fontSize: width * 0.04,
-                      fontFamily: 'Pro-Regular',
-                      color: '#292929',
-                      paddingLeft: rMS(4),
-                    }}
-                    style={styles.input}
-                    dropDownContainerStyle={{
-                      marginTop: 4,
-                      backgroundColor: '#fafafa',
-                      borderColor: '#dadada',
-                      borderRadius: 20,
-                      borderTopStartRadius: 12,
-                      borderTopEndRadius: 12,
-                    }}
-                    key={key}
-                    listMode="SCROLLVIEW"
-                    zIndex={open ? (Platform.OS === 'ios' ? 9999 : 1) : 0}
-                    zIndexInverse={
-                      open ? (Platform.OS === 'ios' ? 9999 : 1) : 0
-                    }
-                    arrowIconStyle={{ tintColor: '#486732' }}
-                    open={open}
-                    value={value}
-                    items={items}
-                    setOpen={setOpen}
-                    setValue={setValue}
-                    setItems={setItems}
-                    // multiple={true}
-                    mode="BADGE"
-                    badgeDotColors={[
-                      '#e76f51',
-                      '#00b4d8',
-                      '#e9c46a',
-                      '#e76f51',
-                      '#8ac926',
-                      '#00b4d8',
-                      '#e9c46a',
-                    ]}
-                    dropDownDirection="BOTTOM"
-                    onOpen={() => setOpen(true)}
-                    onClose={() => setOpen(false)}
-                  />
-                );
-              }
-
-              if (key === "breed") {
-                return (
-                  <Fragment key={key}>
-                    <DropDownPicker
-                      placeholder={t(
-                        'detailField.fieldBreedPlaceHolder'
-                      )}
-                      placeholderStyle={{
-                        fontSize: width * 0.04,
-                        fontFamily: 'Pro-Regular',
-                        color: '#292929',
-                        paddingLeft: rMS(4),
-                      }}
-                      style={styles.input}
-                      dropDownContainerStyle={{
-                        marginTop: 4,
-                        backgroundColor: '#fafafa',
-                        borderColor: '#dadada',
-                        borderRadius: 20,
-                        borderTopStartRadius: 12,
-                        borderTopEndRadius: 12,
-                      }}
-                      listMode="SCROLLVIEW"
-                      zIndex={openBreed ? (Platform.OS === 'ios' ? 9999 : 1) : 0}
-                      zIndexInverse={
-                        openBreed ? (Platform.OS === 'ios' ? 9999 : 1) : 0
-                      }
-                      arrowIconStyle={{ tintColor: '#486732' }}
-                      open={openBreed}
-                      value={breedValue}
-                      items={breed}
-                      setOpen={setOpenBreed}
-                      setValue={(value) => {
-                        if (value() !== 'other') {
-                          setBreedValue(value);
-                          setBreedValueText(undefined); // Reiniciar el texto si no es "other"
-                        } else {
-                          setBreedValue(value); // Mantener 'other' como valor
-                        }
-                      }}
-                      setItems={setBreed}
-                      // multiple={true}
-                      mode="BADGE"
-                      badgeDotColors={[
-                        '#e76f51',
-                        '#00b4d8',
-                        '#e9c46a',
-                        '#e76f51',
-                        '#8ac926',
-                        '#00b4d8',
-                        '#e9c46a',
-                      ]}
-                      dropDownDirection="BOTTOM"
-                      onOpen={() => setOpenBreed(true)}
-                      onClose={() => setOpenBreed(false)}
-                    />
-                    {breedValue === 'other' && (
-                      <TextInput
-                        mode="outlined"
-                        placeholder={t(
-                          'detailField.fieldICreateBreedPlaceHolder'
-                        )}
-                        cursorColor="#486732"
-                        selectionColor={
-                          Platform.OS == 'ios' ? '#486732' : '#486732'
-                        }
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
-                        style={styles.input}
-                        value={breedValueText}
-                        onChangeText={setBreedValueText}
-                      />
-                    )}
-                  </Fragment>
-                )
+                <Selector
+                data={fieldSelectorTypes}
+                selectedValues={selectedValues}
+                onChange={setSelectedValues}
+               />
+               )
               }
 
               if (key === "installation") {
-
-                return (
-                  <Fragment key={key}>
-                    <DropDownPicker
-                      placeholder={t(
-                        'detailField.fieldInstallationPlaceHolder'
-                      )}
-                      placeholderStyle={{
-                        fontSize: width * 0.04,
-                        fontFamily: 'Pro-Regular',
-                        color: '#292929',
-                        paddingLeft: rMS(4),
-                      }}
-                      style={styles.input}
-                      dropDownContainerStyle={{
-                        marginTop: 4,
-                        backgroundColor: '#fafafa',
-                        borderColor: '#dadada',
-                        borderRadius: 20,
-                        borderTopStartRadius: 12,
-                        borderTopEndRadius: 12,
-                      }}
-                      listMode="SCROLLVIEW"
-                      zIndex={openInstallation ? (Platform.OS === 'ios' ? 9998 : 1) : 0}
-                      zIndexInverse={
-                        openInstallation ? (Platform.OS === 'ios' ? 9998 : 1) : 0
-                      }
-                      arrowIconStyle={{ tintColor: '#486732' }}
-                      open={openInstallation}
-                      value={installationValue}
-                      items={installation}
-                      setOpen={setOpenInstallation}
-                      setValue={(value) => {
-                        if (value() !== 'other') {
-                          setInstallationValue(value);
-                          setInstallationValueText(undefined); // Reiniciar el texto si no es "other"
-                        } else {
-                          setInstallationValue(value); // Mantener 'other' como valor
-                        }
-                      }}
-                      setItems={setInstallation}
-                      // multiple={true}
-                      mode="BADGE"
-                      badgeDotColors={[
-                        '#e76f51',
-                        '#00b4d8',
-                        '#e9c46a',
-                        '#e76f51',
-                        '#8ac926',
-                        '#00b4d8',
-                        '#e9c46a',
-                      ]}
-                      dropDownDirection="BOTTOM"
-                      onOpen={() => setOpenInstallation(true)}
-                      onClose={() => setOpenInstallation(false)}
-                    />
-                    {installationValue === 'other' && (
-                      <TextInput
-                        mode="outlined"
-                        placeholder={t(
-                          'detailField.fieldCreateInstallationPlaceHolder'
-                        )}
-                        cursorColor="#486732"
-                        selectionColor={
-                          Platform.OS == 'ios' ? '#486732' : '#486732'
-                        }
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
-                        style={styles.input}
-                        value={installationValueText}
-                        onChangeText={setInstallationValueText}
-                      />
-                    )}
-                  </Fragment>
-                )
+                return
               }
 
-
+              if (key === "breed") {
+                return
+              }
 
               if (key === 'number_of_animals') {
                 return (
@@ -782,6 +619,7 @@ export default function CreateField() {
               }
 
               return (
+                <>
                 <TextInput
                   key={key}
                   mode="outlined"
@@ -795,7 +633,8 @@ export default function CreateField() {
                   cursorColor="#486732"
                   selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                   style={styles.input}
-                />
+                  />
+                  </>
               );
             })}
           </View>
