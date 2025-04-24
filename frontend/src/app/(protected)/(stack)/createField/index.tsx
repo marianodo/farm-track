@@ -1,43 +1,54 @@
-import { IconButton, Text, TextInput } from 'react-native-paper';
+import * as Location from 'expo-location';
+
 import {
   Alert,
-  Pressable,
-  StyleSheet,
-  View,
-  ImageBackground,
-  Platform,
-  Dimensions,
-  PermissionsAndroid,
-  Modal,
   Button,
+  Dimensions,
+  ImageBackground,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  PermissionsAndroid,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
-  // Image,
+  View,
 } from 'react-native';
-import { Image } from 'expo-image';
-import * as Location from 'expo-location';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { IconButton, Text, TextInput } from 'react-native-paper';
+import MapView, { Marker } from 'react-native-maps';
 // import * as Localization from 'expo-localization';
 import { rMS, rV } from '@/styles/responsive';
-import Loader from '@/components/Loader';
-import useAuthStore from '@/store/authStore';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import DropDownPicker from 'react-native-dropdown-picker';
-const { width, height } = Dimensions.get('window');
-import MapView, { Marker } from 'react-native-maps';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import CreateButton from '@/components/createButton/CreateButton';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { Image } from 'expo-image';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import Loader from '@/components/Loader';
 import MessageModal from '@/components/modal/MessageModal';
 import OneButtonModal from '@/components/modal/OneButtonModal';
-import useVariableStore from '@/store/variableStore';
+import { Selector } from '@/components/Selector/Selector';
+import useAuthStore from '@/store/authStore';
+import { useFieldSelectorTypes } from '@/components/fieldSelectorTypes/FieldSelectorTypes';
+import { useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
-import CreateButton from '@/components/createButton/CreateButton';
+import useVariableStore from '@/store/variableStore';
+
+const { width, height } = Dimensions.get('window');
 
 export default function CreateField() {
+  const screenHeight = Dimensions.get('window').height;
+  const dynamicOffset = Platform.OS === 'ios' ? screenHeight * 0.29 : 0;
+  const [selectedValues, setSelectedValues] = useState<any>({})
+  const fieldSelectorTypes = useFieldSelectorTypes()
   const router = useRouter();
   const { userId, authLoading } = useAuthStore((state) => ({
     userId: state.userId,
@@ -50,12 +61,18 @@ export default function CreateField() {
   const { t } = useTranslation();
   const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
+  const [openInstallation, setOpenInstallation] = useState<boolean>(false);
+  const [openBreed, setOpenBreed] = useState<boolean>(false);
+  const [breedValue, setBreedValue] = useState<string | undefined>();
+  const [installationValue, setInstallationValue] = useState<string | undefined>();
+  const [breedValueText, setBreedValueText] = useState<string | undefined>();
+  const [installationValueText, setInstallationValueText] = useState<string | undefined>();
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(true);
   const [oneButtonOnPress, setOneButtonOnPress] = useState<
     () => void | undefined
-  >(() => () => {});
+  >(() => () => { });
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
   const [ubication, setUbication] = useState({
     origin: {
@@ -97,23 +114,55 @@ export default function CreateField() {
     production_type: {
       placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
     },
+    breed: {
+      value: '',
+      placeholder: t('detailField.fieldBreedPlaceHolder'),
+    },
+    installation: {
+      value: '',
+      placeholder: t('detailField.fieldInstallationPlaceHolder'),
+    },
     number_of_animals: {
       value: 0,
       placeholder: t('detailField.fieldNumberOfAnimalsPlaceHolder'),
     },
   });
-  const formData: Omit<FiledWithUserId, 'id'> = {
+
+  const [formData, setFormData] = useState<any>({
     name: inputsData.nameField.value,
     description: inputsData.description.value,
     location: ubication.userLocation.direction,
     latitude: ubication.userLocation.latitude,
     longitude: ubication.userLocation.longitude,
-    production_type: value,
+    production_type: undefined,
+    breed: undefined,
+    installation: undefined,
     number_of_animals: +inputsData.number_of_animals.value,
     userId: userId,
-    // autoConfig: true,
-    // userId: '4ff153da-4f34-45dd-b78e-c61ca621bfb6',
-  };
+  });
+
+  useEffect(() => {
+    setFormData((prev: any) => ({
+      ...prev,
+      name: inputsData.nameField.value,
+      description: inputsData.description.value,
+      location: ubication.userLocation.direction,
+      latitude: ubication.userLocation.latitude,
+      longitude: ubication.userLocation.longitude,
+      production_type: selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      breed: selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      installation: selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].value][0]
+        : undefined,
+      number_of_animals: +inputsData.number_of_animals.value,
+      userId: userId,
+    }));
+  }, [inputsData, selectedValues]);
+
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
     { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
@@ -125,6 +174,55 @@ export default function CreateField() {
       value: 'posture_poultry',
     },
     { label: t('typeProductionText.customized'), value: 'customized' },
+  ]);
+
+  const [breed, setBreed] = useState<{ label: string; value: string }[]>([
+    {
+      label: t('breedText.holstein'),
+      value: 'holstein',
+    },
+    {
+      label: t('breedText.jersey'),
+      value: 'jersey',
+    },
+    {
+      label: t('breedText.crossbreed'),
+      value: 'crossbreed',
+    },
+    {
+      label: t('breedText.other'),
+      value: 'other',
+    },
+  ]);
+  const [installation, setInstallation] = useState<{ label: string; value: string }[]>([
+    {
+      label: t('installationText.grazing'),
+      value: 'grazing',
+    },
+    {
+      label: t('installationText.dry_lot'),
+      value: 'dry_lot',
+    },
+    {
+      label: t('installationText.freestall'),
+      value: 'freestall',
+    },
+    {
+      label: t('installationText.robot_grazing'),
+      value: 'robot_grazing',
+    },
+    {
+      label: t('installationText.robot_freestall'),
+      value: 'robot_freestall',
+    },
+    {
+      label: t('installationText.mixed'),
+      value: 'mixed',
+    },
+    {
+      label: t('installationText.other'),
+      value: 'other',
+    },
   ]);
 
   const [lang, setLang] = useState<any>('');
@@ -363,26 +461,28 @@ export default function CreateField() {
         </Text>
 
         {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
-        <KeyboardAwareScrollView
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.scrollContent,
-            { height: open ? rMS(700) : null },
-          ]}
-          style={{ flexGrow: 1 }}
-          extraScrollHeight={20}
-          scrollEnabled={Platform.OS === 'ios' ? true : !open}
-        >
-          <View style={styles.formContainer}>
-            {/* TextInputs */}
-            {Object.keys(inputsData).map((key: string) => {
-              const input = inputsData[key];
-              if (key === 'ubication') {
-                return (
-                  <View key={key} style={{ marginBottom: 10 }}>
-                    <View>
-                      {/* <GooglePlacesAutocomplete
+        <SafeAreaView style={{ flexGrow: 1 }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={dynamicOffset}
+          >
+            <ScrollView
+              keyboardDismissMode='on-drag'
+              keyboardShouldPersistTaps="always"
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.formContainer}>
+                {/* TextInputs */}
+                {Object.keys(inputsData).map((key: string, index: number) => {
+                  const input = inputsData[key];
+                  if (key === 'ubication') {
+                    return (
+                      <View
+                        key={key + index}
+                        style={{ marginBottom: 10 }}>
+                        <View>
+                          {/* <GooglePlacesAutocomplete
                           placeholder="Ubicación"
                           minLength={3}
                           GooglePlacesDetailsQuery={{
@@ -440,161 +540,119 @@ export default function CreateField() {
                             language: lang,
                           }}
                         /> */}
+                          <TextInput
+                            mode="outlined"
+                            placeholderTextColor="#292929"
+                            placeholder={t('detailField.fieldUbicationPlaceHolder')}
+                            value={ubication.userLocation.direction ?? ''}
+                            onChangeText={(value) =>
+                              handleInputChange('location', value)
+                            }
+                            editable={false}
+                            activeOutlineColor="transparent"
+                            outlineColor="#F1F1F1"
+                            cursorColor="#486732"
+                            selectionColor={
+                              Platform.OS == 'ios' ? '#486732' : '#486732'
+                            }
+                            selection={{ start: 0, end: 0 }}
+                            style={styles.input}
+                          />
+                        </View>
+
+                        <View
+                          key={key + index}
+                        >
+                          <MapView
+                            ref={mapRef}
+                            style={{ width: width * 0.9, height: 239 }}
+                            initialRegion={ubication.origin}
+                            region={{
+                              ...ubication.marketLocation,
+                              latitudeDelta: ubication.origin.latitudeDelta,
+                              longitudeDelta: ubication.origin.longitudeDelta,
+                            }}
+                          >
+                            <Marker
+                              draggable
+                              coordinate={ubication.marketLocation}
+                              onDragEnd={(e) => {
+                                onDragEndChange(e.nativeEvent.coordinate);
+                              }}
+                            />
+                          </MapView>
+                        </View>
+                      </View>
+                    );
+                  }
+
+                  if (key === 'production_type') {
+                    return (
+                      <Selector
+                        key={key + index}
+                        data={fieldSelectorTypes}
+                        selectedValues={selectedValues}
+                        onChange={setSelectedValues}
+                      />
+                    )
+                  }
+
+                  if (key === "installation") {
+                    return
+                  }
+
+                  if (key === "breed") {
+                    return
+                  }
+
+                  if (key === 'number_of_animals') {
+                    return (
                       <TextInput
+                        key={key + index}
                         mode="outlined"
-                        placeholderTextColor="#292929"
-                        placeholder={t('detailField.fieldUbicationPlaceHolder')}
-                        value={ubication.userLocation.direction ?? ''}
-                        onChangeText={(value) =>
-                          handleInputChange('location', value)
-                        }
-                        editable={false}
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
+                        placeholder={input.placeholder}
+                        value={input.value}
+                        onChangeText={(value) => {
+                          const sanitizedValue = value.replace(/[^0-9]/g, '');
+                          handleInputChange(key, sanitizedValue);
+                        }}
+                        keyboardType="numeric"
                         cursorColor="#486732"
                         selectionColor={
                           Platform.OS == 'ios' ? '#486732' : '#486732'
                         }
-                        selection={{ start: 0, end: 0 }}
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        style={styles.input}
+                      />
+                    );
+                  }
+
+                  return (
+                    <View key={key + index}>
+                      <TextInput
+                        key={key + index}
+                        mode="outlined"
+                        placeholderTextColor="#292929"
+                        placeholder={input.placeholder}
+                        value={input.value}
+                        onChangeText={(value) => handleInputChange(key, value)}
+                        autoCapitalize="words"
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        cursorColor="#486732"
+                        selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                         style={styles.input}
                       />
                     </View>
-
-                    <View>
-                      <MapView
-                        ref={mapRef}
-                        style={{ width: width * 0.9, height: 239 }}
-                        initialRegion={ubication.origin}
-                        region={{
-                          ...ubication.marketLocation,
-                          latitudeDelta: ubication.origin.latitudeDelta,
-                          longitudeDelta: ubication.origin.longitudeDelta,
-                        }}
-                      >
-                        <Marker
-                          draggable
-                          coordinate={ubication.marketLocation}
-                          onDragEnd={(e) => {
-                            onDragEndChange(e.nativeEvent.coordinate);
-                          }}
-                        />
-                      </MapView>
-                    </View>
-                  </View>
-                );
-              }
-
-              if (key === 'production_type') {
-                return (
-                  <DropDownPicker
-                    placeholder={t(
-                      'detailField.fieldTypeProductionPlaceHolder'
-                    )}
-                    placeholderStyle={{
-                      fontSize: width * 0.04,
-                      fontFamily: 'Pro-Regular',
-                      color: '#292929',
-                      paddingLeft: rMS(4),
-                    }}
-                    style={styles.input}
-                    dropDownContainerStyle={{
-                      marginTop: 4,
-                      backgroundColor: '#fafafa',
-                      borderColor: '#dadada',
-                      borderRadius: 20,
-                      borderTopStartRadius: 12,
-                      borderTopEndRadius: 12,
-                    }}
-                    key={key}
-                    listMode="SCROLLVIEW"
-                    zIndex={open ? (Platform.OS === 'ios' ? 9999 : 1) : 0}
-                    zIndexInverse={
-                      open ? (Platform.OS === 'ios' ? 9999 : 1) : 0
-                    }
-                    arrowIconStyle={{ tintColor: '#486732' }}
-                    open={open}
-                    value={value}
-                    items={items}
-                    setOpen={setOpen}
-                    setValue={setValue}
-                    setItems={setItems}
-                    // multiple={true}
-                    mode="BADGE"
-                    badgeDotColors={[
-                      '#e76f51',
-                      '#00b4d8',
-                      '#e9c46a',
-                      '#e76f51',
-                      '#8ac926',
-                      '#00b4d8',
-                      '#e9c46a',
-                    ]}
-                    dropDownDirection="BOTTOM"
-                    onOpen={() => setOpen(true)}
-                    onClose={() => setOpen(false)}
-                  />
-                );
-              }
-
-              if (key === 'number_of_animals') {
-                return (
-                  <TextInput
-                    key={key}
-                    mode="outlined"
-                    placeholder={input.placeholder}
-                    value={input.value}
-                    onChangeText={(value) => {
-                      const sanitizedValue = value.replace(/[^0-9]/g, '');
-                      handleInputChange(key, sanitizedValue);
-                    }}
-                    keyboardType="numeric"
-                    cursorColor="#486732"
-                    selectionColor={
-                      Platform.OS == 'ios' ? '#486732' : '#486732'
-                    }
-                    activeOutlineColor="transparent"
-                    outlineColor="#F1F1F1"
-                    style={styles.input}
-                  />
-                );
-              }
-
-              return (
-                <TextInput
-                  key={key}
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={input.placeholder}
-                  value={input.value}
-                  onChangeText={(value) => handleInputChange(key, value)}
-                  autoCapitalize="words"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                />
-              );
-            })}
-          </View>
-        </KeyboardAwareScrollView>
-
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
         {/* Botón fijo */}
         <CreateButton t={t} onPress={handlePress} />
-        {/* <View style={styles.fixedButtonContainer}>
-          <Pressable
-            onPress={handlePress}
-            style={({ pressed }) => [
-              styles.button,
-              pressed ? { backgroundColor: 'rgba(67, 109, 34, 0.2)' } : null,
-            ]}
-            // style={styles.button}
-          >
-            <Text style={styles.buttonText}>
-              {t('detailField.createFieldText')}
-            </Text>
-          </Pressable>
-        </View> */}
       </View>
       {/* <Loader visible={fieldLoading} /> */}
       <MessageModal

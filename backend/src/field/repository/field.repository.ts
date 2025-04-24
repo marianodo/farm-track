@@ -92,7 +92,10 @@ export class FieldRepository {
           location: true,
           latitude: true,
           longitude: true,
+          breed: true,
+          installation: true,
           production_type: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });
@@ -117,7 +120,10 @@ export class FieldRepository {
           location: true,
           latitude: true,
           longitude: true,
+          breed: true,
+          installation: true,
           production_type: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });
@@ -150,6 +156,9 @@ export class FieldRepository {
           latitude: true,
           longitude: true,
           production_type: true,
+          breed: true,
+          installation: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });

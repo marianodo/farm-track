@@ -33,7 +33,10 @@ model Field {
   latitude          Float?
   longitude         Float?
   production_type   String?
+  breed             String?
+  installation      String?
   number_of_animals Int?
+  dashboard_url     String?
   userId            String
   created_at        DateTime  @default(now())
   updated_at        DateTime  @updatedAt

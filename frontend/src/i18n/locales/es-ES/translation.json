@@ -1,4 +1,5 @@
 {
+  "enter": "Ingresar ",
   "deleteAllDataTitle": "¿Está seguro de que desea borrar todos los datos?",
   "deleteAllDataSubTitle": "Esta acción es irreversible y eliminará permanentemente toda la información asociada.",
   "language": "Lenguaje",
@@ -89,6 +90,10 @@
     "fieldDescriptionPlaceHolder": "Descripción",
     "fieldUbicationPlaceHolder": "Ubicación",
     "fieldTypeProductionPlaceHolder": "Tipo de producción",
+     "fieldInstallationPlaceHolder": "Instalación",
+    "fieldBreedPlaceHolder": "Raza",
+     "fieldCreateInstallationPlaceHolder": "Ingrese su instalacion",
+    "fieldICreateBreedPlaceHolder": "Ingrese su raza",
     "fieldNumberOfAnimalsPlaceHolder": "Numero de animales",
     "createFieldText": "Crear campo",
     "goBackText": "Volver",
@@ -255,6 +260,21 @@
     "posture_poultry": "Avicola postura",
     "customized": "Customizada",
     "NoType": "Sin tipo"
+  },
+  "breedText": {
+    "holstein": "Holstein",
+    "jersey": "Jersey",
+    "crossbreed": "Cruza",
+    "other": "Otro"
+  },
+  "installationText": {
+    "grazing": "Pastoreo",
+    "dry_lot": "Dry lot",
+    "freestall": "Freestall",
+    "robot_grazing": "Robot pastoreo",
+    "robot_freestall": "Robot galpón",
+    "mixed": "Mixto",
+    "other": "Otro"
   },
   "recoveryPasswordView": {
     "title": "Restablece tu",

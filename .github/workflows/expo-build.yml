@@ -1,7 +1,8 @@
 name: preview
 on:
   workflow_dispatch:
-
+  push:
+  pull_request:
 jobs:
   update:
     name: EAS Update
