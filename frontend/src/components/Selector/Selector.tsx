@@ -1,5 +1,5 @@
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import {
   Dimensions,
   KeyboardAvoidingView,
@@ -111,9 +111,9 @@ export function Selector({
                 )}
               </View>
               {isExpanded ? (
-                <ChevronUp size={21} color="#486732" />
+                <AntDesign name="caretup" size={16} color="grey" />
               ) : (
-                <ChevronDown size={21} color="#486732" />
+                <AntDesign name="caretdown" size={16} color="grey" />
               )}
             </TouchableOpacity>
             {isExpanded && (
