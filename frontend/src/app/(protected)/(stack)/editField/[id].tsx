@@ -1,3 +1,5 @@
+import * as Location from 'expo-location';
+
 import {
   ActivityIndicator,
   IconButton,
@@ -5,43 +7,36 @@ import {
   TextInput,
 } from 'react-native-paper';
 import {
-  Alert,
+  Dimensions,
+  ImageBackground,
+  Platform,
   Pressable,
   StyleSheet,
   View,
-  ImageBackground,
-  Platform,
-  Dimensions,
-  PermissionsAndroid,
-  Modal,
-  Button,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
 } from 'react-native';
-import * as Location from 'expo-location';
-// import * as Localization from 'expo-localization';
-import { rMS, rV } from '@/styles/responsive';
-import Loader from '@/components/Loader';
-import useAuthStore from '@/store/authStore';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import DropDownPicker from 'react-native-dropdown-picker';
-const { width, height } = Dimensions.get('window');
 import MapView, { Marker } from 'react-native-maps';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { rMS, rV } from '@/styles/responsive';
 import useFieldStore, { Field } from '@/store/fieldStore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MessageModal from '@/components/modal/MessageModal';
+import { Selector } from '@/components/Selector/Selector';
+import useAuthStore from '@/store/authStore';
+import { useFieldSelectorTypes } from '@/components/fieldSelectorTypes/FieldSelectorTypes';
+import { useTranslation } from 'react-i18next';
+
+const { width, height } = Dimensions.get('window');
 
 export default function EditField() {
+  const fieldSelectorTypes = useFieldSelectorTypes();
+  const [allTypes, setAllTypes] = useState<any>(fieldSelectorTypes);
+  const [selectedValues, setSelectedValues] = useState<any>({});
+  const [initialValues, setInitialValues] = useState<any>({});
   const router = useRouter();
   const { id }: { id: string } = useLocalSearchParams();
-  const { userId, authLoading } = useAuthStore((state) => ({
-    userId: state.userId,
-    authLoading: state.authLoading,
-  }));
   const { fieldDetail, getFieldById, resetDetail, fieldLoading, onUpdate } =
     useFieldStore((state) => ({
       fieldDetail: state.fieldDetail,
@@ -64,7 +59,9 @@ export default function EditField() {
     location: string;
     latitude: number | null;
     longitude: number | null;
-    production_type: string;
+    production_type: string | null;
+    breed: string | null;
+    installation: string | null;
     number_of_animals: number | string | null;
   }>({
     name: '',
@@ -73,21 +70,10 @@ export default function EditField() {
     latitude: null,
     longitude: null,
     production_type: '',
+    breed: null,
+    installation: null,
     number_of_animals: null,
   });
-  const [open, setOpen] = useState(false);
-
-  const [items, setItems] = useState([
-    { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
-    { label: t('typeProductionText.bovine_of_meat'), value: 'bovine_of_meat' },
-    { label: t('typeProductionText.swine'), value: 'swine' },
-    { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
-    {
-      label: t('typeProductionText.posture_poultry'),
-      value: 'posture_poultry',
-    },
-    { label: t('typeProductionText.customized'), value: 'customized' },
-  ]);
 
   const [lang, setLang] = useState<any>('');
 
@@ -109,17 +95,86 @@ export default function EditField() {
   useEffect(() => {
     // Actualizar el estado con los datos obtenidos cuando lleguen
     if (fieldDetail) {
+      const placeholders = {
+        production_type: t('detailField.fieldTypeProductionPlaceHolder'),
+        breed: t('detailField.fieldBreedPlaceHolder'),
+        installation: t('detailField.fieldInstallationPlaceHolder'),
+      };
+
+      const updatedTypes = [...fieldSelectorTypes];
+
+      ['production_type', 'breed', 'installation'].forEach((key) => {
+        const value = fieldDetail[key];
+        const label = value; // Podés traducirlo si hace falta
+
+        const categoryIndex = updatedTypes.findIndex((cat) =>
+          Object.keys(cat)[0] === placeholders[key]
+        );
+
+        if (categoryIndex !== -1 && value) {
+          const category = updatedTypes[categoryIndex];
+          const categoryKey = Object.keys(category)[0];
+          const options = category[categoryKey];
+
+          const alreadyExists = options.some((opt: any) => opt.value === value);
+
+          if (!alreadyExists) {
+            options.push({ label, value });
+          }
+
+          // 👉 Mover 'other' al final si existe
+          const otherOptionIndex = options.findIndex((opt: any) => opt.value === 'other');
+          if (otherOptionIndex !== -1) {
+            const [otherOption] = options.splice(otherOptionIndex, 1);
+            options.push(otherOption);
+          }
+        }
+      });
+
+      // Seteamos todo
+      setAllTypes(updatedTypes);
+      setSelectedValues({
+        [t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]: {
+          value: fieldDetail.production_type,
+          customValue: '',
+        },
+        [t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]: {
+          value: fieldDetail.breed,
+          customValue: '',
+        },
+        [t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]: {
+          value: fieldDetail.installation,
+          customValue: '',
+        },
+      });
       setFieldData({
         name: fieldDetail.name || '',
         description: fieldDetail.description || '',
         location: fieldDetail.location || '',
         latitude: fieldDetail.latitude || null,
         longitude: fieldDetail.longitude || null,
-        production_type: fieldDetail.production_type || '',
+        production_type: fieldData.production_type || null,
+        breed: fieldData.breed || null,
+        installation: fieldData.installation || null,
         number_of_animals: fieldDetail.number_of_animals || '',
       });
     }
   }, [fieldDetail]);
+
+  useEffect(() => {
+    setFieldData({
+      ...fieldData,
+      production_type: selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].value][0]
+        : null,
+      breed: selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')].value][0]
+        : null,
+      installation: selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]?.value
+        ? [selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')].value][0]
+        : null,
+    })
+  }, [selectedValues])
 
   const onDragEndChange = async (coordinate: any) => {
     try {
@@ -262,13 +317,10 @@ export default function EditField() {
             <KeyboardAwareScrollView
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={[
-                styles.scrollContent,
-                { height: open ? rMS(700) : null },
-              ]}
+                contentContainerStyle={styles.scrollContent}
               style={{ flexGrow: 1 }}
               extraScrollHeight={20}
-              scrollEnabled={Platform.OS === 'ios' ? true : !open}
+             
             >
               <View style={styles.formContainer}>
                 {/* TextInputs */}
@@ -353,50 +405,14 @@ export default function EditField() {
                 </View>
 
                 {/* fin mapa */}
-                {/* production dropDown*/}
-                <DropDownPicker
-                  placeholder={t('detailField.fieldTypeProductionPlaceHolder')}
-                  placeholderStyle={{
-                    fontSize: width * 0.04,
-                    fontFamily: 'Pro-Regular',
-                    color: '#292929',
-                    paddingLeft: rMS(4),
-                  }}
-                  style={styles.input}
-                  dropDownContainerStyle={{
-                    marginTop: 4,
-                    backgroundColor: '#fafafa',
-                    borderColor: '#dadada',
-                    borderRadius: 20,
-                    borderTopStartRadius: 12,
-                    borderTopEndRadius: 12,
-                  }}
-                  listMode="SCROLLVIEW"
-                  zIndex={open ? 1 : 0}
-                  zIndexInverse={open ? 1 : 0}
-                  arrowIconStyle={{ tintColor: '#486732' }}
-                  open={open}
-                  value={fieldData.production_type}
-                  items={items}
-                  setOpen={setOpen}
-                  setValue={(e) => handleInputChange('production_type', e)}
-                  setItems={setItems}
-                  // multiple={true}
-                  mode="BADGE"
-                  badgeDotColors={[
-                    '#e76f51',
-                    '#00b4d8',
-                    '#e9c46a',
-                    '#e76f51',
-                    '#8ac926',
-                    '#00b4d8',
-                    '#e9c46a',
-                  ]}
-                  dropDownDirection="BOTTOM"
-                  onOpen={() => setOpen(true)}
-                  onClose={() => setOpen(false)}
-                />
-              </View>
+                </View>
+                <Selector
+                key={fieldData?.name}
+                data={allTypes}
+                selectedValues={selectedValues}
+                onChange={setSelectedValues}
+                initialSelection={initialValues}
+              />
               {/* number of animals*/}
               <TextInput
                 mode="outlined"
