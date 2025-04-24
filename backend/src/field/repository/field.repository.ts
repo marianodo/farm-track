@@ -95,6 +95,7 @@ export class FieldRepository {
           breed: true,
           installation: true,
           production_type: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });
@@ -122,6 +123,7 @@ export class FieldRepository {
           breed: true,
           installation: true,
           production_type: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });
@@ -156,6 +158,7 @@ export class FieldRepository {
           production_type: true,
           breed: true,
           installation: true,
+          dashboard_url: true,
           number_of_animals: true,
         },
       });

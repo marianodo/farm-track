@@ -8,5 +8,6 @@ export type FieldWithoutMeta = {
   breed?: string;
   installation?: string;
   production_type?: string;
+  dashboard_url?: string;
   number_of_animals?: number;
 };
