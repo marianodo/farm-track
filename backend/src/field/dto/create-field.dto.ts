@@ -40,6 +40,10 @@ export class CreateFieldDto {
   @IsOptional()
   installation: string;
 
+  @IsString()
+  @IsOptional()
+  dashboard_url: string;
+
   @IsNumber()
   @IsOptional()
   number_of_animals: number;
