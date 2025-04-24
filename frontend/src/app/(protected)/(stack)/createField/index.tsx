@@ -6,10 +6,13 @@ import {
   Dimensions,
   ImageBackground,
   Keyboard,
+  KeyboardAvoidingView,
   Modal,
   PermissionsAndroid,
   Platform,
   Pressable,
+  SafeAreaView,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -42,6 +45,8 @@ import useVariableStore from '@/store/variableStore';
 const { width, height } = Dimensions.get('window');
 
 export default function CreateField() {
+  const screenHeight = Dimensions.get('window').height;
+  const dynamicOffset = Platform.OS === 'ios' ? screenHeight * 0.29 : 0;
   const [selectedValues, setSelectedValues] = useState<any>({})
   const fieldSelectorTypes = useFieldSelectorTypes()
   const router = useRouter();
@@ -157,7 +162,7 @@ export default function CreateField() {
       userId: userId,
     }));
   }, [inputsData, selectedValues]);
-  
+
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([
     { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
@@ -456,26 +461,28 @@ export default function CreateField() {
         </Text>
 
         {/* Usar KeyboardAwareScrollView para manejar inputs y teclado */}
-        <KeyboardAwareScrollView
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[
-            styles.scrollContent,
-            { height: open ? rMS(900) : (openBreed ? rMS(900) : openInstallation ? rMS(1000) : null) },
-          ]}
-          style={{ flexGrow: 1 }}
-          extraScrollHeight={20}
-          scrollEnabled={Platform.OS === 'ios' ? true : true}
-        >
-          <View style={styles.formContainer}>
-            {/* TextInputs */}
-            {Object.keys(inputsData).map((key: string) => {
-              const input = inputsData[key];
-              if (key === 'ubication') {
-                return (
-                  <View key={key} style={{ marginBottom: 10 }}>
-                    <View>
-                      {/* <GooglePlacesAutocomplete
+        <SafeAreaView style={{ flexGrow: 1 }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={dynamicOffset}
+          >
+            <ScrollView
+              keyboardDismissMode='on-drag'
+              keyboardShouldPersistTaps="always"
+              contentContainerStyle={styles.scrollContent}
+            >
+              <View style={styles.formContainer}>
+                {/* TextInputs */}
+                {Object.keys(inputsData).map((key: string, index: number) => {
+                  const input = inputsData[key];
+                  if (key === 'ubication') {
+                    return (
+                      <View
+                        key={key + index}
+                        style={{ marginBottom: 10 }}>
+                        <View>
+                          {/* <GooglePlacesAutocomplete
                           placeholder="Ubicación"
                           minLength={3}
                           GooglePlacesDetailsQuery={{
@@ -533,129 +540,119 @@ export default function CreateField() {
                             language: lang,
                           }}
                         /> */}
+                          <TextInput
+                            mode="outlined"
+                            placeholderTextColor="#292929"
+                            placeholder={t('detailField.fieldUbicationPlaceHolder')}
+                            value={ubication.userLocation.direction ?? ''}
+                            onChangeText={(value) =>
+                              handleInputChange('location', value)
+                            }
+                            editable={false}
+                            activeOutlineColor="transparent"
+                            outlineColor="#F1F1F1"
+                            cursorColor="#486732"
+                            selectionColor={
+                              Platform.OS == 'ios' ? '#486732' : '#486732'
+                            }
+                            selection={{ start: 0, end: 0 }}
+                            style={styles.input}
+                          />
+                        </View>
+
+                        <View
+                          key={key + index}
+                        >
+                          <MapView
+                            ref={mapRef}
+                            style={{ width: width * 0.9, height: 239 }}
+                            initialRegion={ubication.origin}
+                            region={{
+                              ...ubication.marketLocation,
+                              latitudeDelta: ubication.origin.latitudeDelta,
+                              longitudeDelta: ubication.origin.longitudeDelta,
+                            }}
+                          >
+                            <Marker
+                              draggable
+                              coordinate={ubication.marketLocation}
+                              onDragEnd={(e) => {
+                                onDragEndChange(e.nativeEvent.coordinate);
+                              }}
+                            />
+                          </MapView>
+                        </View>
+                      </View>
+                    );
+                  }
+
+                  if (key === 'production_type') {
+                    return (
+                      <Selector
+                        key={key + index}
+                        data={fieldSelectorTypes}
+                        selectedValues={selectedValues}
+                        onChange={setSelectedValues}
+                      />
+                    )
+                  }
+
+                  if (key === "installation") {
+                    return
+                  }
+
+                  if (key === "breed") {
+                    return
+                  }
+
+                  if (key === 'number_of_animals') {
+                    return (
                       <TextInput
+                        key={key + index}
                         mode="outlined"
-                        placeholderTextColor="#292929"
-                        placeholder={t('detailField.fieldUbicationPlaceHolder')}
-                        value={ubication.userLocation.direction ?? ''}
-                        onChangeText={(value) =>
-                          handleInputChange('location', value)
-                        }
-                        editable={false}
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
+                        placeholder={input.placeholder}
+                        value={input.value}
+                        onChangeText={(value) => {
+                          const sanitizedValue = value.replace(/[^0-9]/g, '');
+                          handleInputChange(key, sanitizedValue);
+                        }}
+                        keyboardType="numeric"
                         cursorColor="#486732"
                         selectionColor={
                           Platform.OS == 'ios' ? '#486732' : '#486732'
                         }
-                        selection={{ start: 0, end: 0 }}
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        style={styles.input}
+                      />
+                    );
+                  }
+
+                  return (
+                    <View key={key + index}>
+                      <TextInput
+                        key={key + index}
+                        mode="outlined"
+                        placeholderTextColor="#292929"
+                        placeholder={input.placeholder}
+                        value={input.value}
+                        onChangeText={(value) => handleInputChange(key, value)}
+                        autoCapitalize="words"
+                        activeOutlineColor="transparent"
+                        outlineColor="#F1F1F1"
+                        cursorColor="#486732"
+                        selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                         style={styles.input}
                       />
                     </View>
-
-                    <View>
-                      <MapView
-                        ref={mapRef}
-                        style={{ width: width * 0.9, height: 239 }}
-                        initialRegion={ubication.origin}
-                        region={{
-                          ...ubication.marketLocation,
-                          latitudeDelta: ubication.origin.latitudeDelta,
-                          longitudeDelta: ubication.origin.longitudeDelta,
-                        }}
-                      >
-                        <Marker
-                          draggable
-                          coordinate={ubication.marketLocation}
-                          onDragEnd={(e) => {
-                            onDragEndChange(e.nativeEvent.coordinate);
-                          }}
-                        />
-                      </MapView>
-                    </View>
-                  </View>
-                );
-              }
-
-              if (key === 'production_type') {
-                return (
-                <Selector
-                data={fieldSelectorTypes}
-                selectedValues={selectedValues}
-                onChange={setSelectedValues}
-               />
-               )
-              }
-
-              if (key === "installation") {
-                return
-              }
-
-              if (key === "breed") {
-                return
-              }
-
-              if (key === 'number_of_animals') {
-                return (
-                  <TextInput
-                    key={key}
-                    mode="outlined"
-                    placeholder={input.placeholder}
-                    value={input.value}
-                    onChangeText={(value) => {
-                      const sanitizedValue = value.replace(/[^0-9]/g, '');
-                      handleInputChange(key, sanitizedValue);
-                    }}
-                    keyboardType="numeric"
-                    cursorColor="#486732"
-                    selectionColor={
-                      Platform.OS == 'ios' ? '#486732' : '#486732'
-                    }
-                    activeOutlineColor="transparent"
-                    outlineColor="#F1F1F1"
-                    style={styles.input}
-                  />
-                );
-              }
-
-              return (
-                <>
-                <TextInput
-                  key={key}
-                  mode="outlined"
-                  placeholderTextColor="#292929"
-                  placeholder={input.placeholder}
-                  value={input.value}
-                  onChangeText={(value) => handleInputChange(key, value)}
-                  autoCapitalize="words"
-                  activeOutlineColor="transparent"
-                  outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                  style={styles.input}
-                  />
-                  </>
-              );
-            })}
-          </View>
-        </KeyboardAwareScrollView>
-
+                  );
+                })}
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
         {/* Botón fijo */}
         <CreateButton t={t} onPress={handlePress} />
-        {/* <View style={styles.fixedButtonContainer}>
-          <Pressable
-            onPress={handlePress}
-            style={({ pressed }) => [
-              styles.button,
-              pressed ? { backgroundColor: 'rgba(67, 109, 34, 0.2)' } : null,
-            ]}
-            // style={styles.button}
-          >
-            <Text style={styles.buttonText}>
-              {t('detailField.createFieldText')}
-            </Text>
-          </Pressable>
-        </View> */}
       </View>
       {/* <Loader visible={fieldLoading} /> */}
       <MessageModal

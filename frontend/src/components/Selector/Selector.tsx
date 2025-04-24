@@ -84,16 +84,7 @@ export function Selector({
   };
 
   return (
-     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.keyboardAvoidingView}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 80}
-    >
-    <ScrollView
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollContent}
-      showsVerticalScrollIndicator={false}
-    >
+    <>
       {data.map((categoryData: any, categoryIndex: any) => {
         const category = Object.keys(categoryData)[0];
         const options = categoryData[category];
@@ -110,7 +101,7 @@ export function Selector({
             <TouchableOpacity
               style={styles.categoryHeader}
               onPress={() => handleCategoryPress(category)}
-                >
+            >
               <View style={styles.categoryTitleContainer}>
                 <Text style={styles.categoryTitle}>{category}</Text>
                 {selectedOption && (
@@ -168,8 +159,7 @@ export function Selector({
           </View>
         )
       })}
-      </ScrollView >
-      </KeyboardAvoidingView>
+    </>
   );
 };
 
