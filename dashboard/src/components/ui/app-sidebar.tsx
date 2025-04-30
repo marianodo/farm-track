@@ -1,10 +1,14 @@
+"use client"
+
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarMenuButton } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
 import { ListIcon, CheckCheck, LayoutDashboard, LogOut } from "lucide-react"; // Importa los íconos de lucide-react
+import { useAuthStore } from "@/store/authStore";
 
 export function AppSidebar() {
-    const router = useRouter()
+    const { logout, authLoading } = useAuthStore();
+    const router = useRouter();
     const pathname = usePathname();
     const navItems = [
         {
@@ -23,6 +27,10 @@ export function AppSidebar() {
             icon: <LayoutDashboard className="h-5 w-5" />
         }
     ];
+    const onClick = () => {
+        logout();
+        router.replace('/login');
+    }
     return (
         <Sidebar className="w-72">
             <SidebarContent>
@@ -49,7 +57,7 @@ export function AppSidebar() {
                             <h1>Jhon Doe</h1>
                         </div>
                         <button className="p-4 gap-2 w-full cursor-pointer flex flex-row items-center text-green-dark font-bold text-1xl"
-                            onClick={() => router.push("/login")}
+                            onClick={onClick}
                         >
                             <LogOut className="h-5 w-5" />
                             <h1>Cerrar Sesión</h1>

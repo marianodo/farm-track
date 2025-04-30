@@ -1,56 +1,39 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link'
-
+import { useAuthStore } from '@/store/authStore';
+import { useRouter } from 'next/navigation';
 // import { useAuthStore } from '@/store/authStore';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    // const login = useAuthStore((state) => state.login);
+    const { login, authLoading, isAuthenticated } = useAuthStore();
+    const router = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
-        // e.preventDefault();
-
-        // if (!email || !password) {
-        //     toast({
-        //         variant: "destructive",
-        //         title: "Error de validación",
-        //         description: "Por favor complete todos los campos"
-        //     });
-        //     return;
-        // }
+        e.preventDefault();
+        if (!email || !password) {
+            return alert('Por favor complete todos los campos');
+        }
 
         // setIsLoading(true);
 
-        // try {
-        //     // const success = await login(email, password);
-
-        //     if (success) {
-        //         toast({
-        //             title: "Inicio de sesión exitoso",
-        //             description: "Bienvenido a Measure Me"
-        //         });
-        //         navigate('/dashboard');
-        //     } else {
-        //         toast({
-        //             variant: "destructive",
-        //             title: "Error de autenticación",
-        //             description: "Correo electrónico o contraseña incorrectos"
-        //         });
-        //     }
-        // } catch (error) {
-        //     toast({
-        //         variant: "destructive",
-        //         title: "Error",
-        //         description: "Ocurrió un error durante el inicio de sesión"
-        //     });
-        // } finally {
-        //     setIsLoading(false);
-        // }
+        try {
+            await login(email, password);
+            router.replace('/dashboard');
+        } catch (error) {
+            alert(error?.message);
+        }
     };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            router.replace('/dashboard');
+        }
+    }, [isAuthenticated, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center w-full bg-background-green-light">
