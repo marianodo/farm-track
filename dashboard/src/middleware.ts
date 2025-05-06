@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // 1. Definimos las rutas según el nivel de acceso
-const rutasPublicas = ['/login', '/register', '/forgot-password'] // Rutas que cualquiera puede acceder
+const rutasPublicas = ['/','/login', '/register', '/forgot-password'] // Rutas que cualquiera puede acceder
 const rutasUsuario = ['/dashboard', '/profile'] // Rutas que requieren ser usuario
 const rutasAdmin = ['/admin', '/admin/users'] // Rutas que requieren ser administrador
 
