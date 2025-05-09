@@ -193,11 +193,11 @@ export default function HomeScreen() {
         return true; // Prevenir el comportamiento por defecto
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
       // Limpiamos el listener cuando el componente pierde el foco o se desmonta
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        backHandler.remove();
       };
     }, [])
   );
