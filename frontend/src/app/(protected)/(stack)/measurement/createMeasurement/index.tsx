@@ -343,10 +343,10 @@ const CreateMeasurement: React.FC = () => {
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        backHandler.remove();
       };
     }, [values])
   );

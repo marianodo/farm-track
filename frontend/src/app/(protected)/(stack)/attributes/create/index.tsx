@@ -375,10 +375,10 @@ const CreateAttribute: React.FC = () => {
         return false;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
       return () =>
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        backHandler.remove();
     }, [formData])
   );
 
