@@ -22,7 +22,7 @@ import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import MessageModal from '@/components/modal/MessageModal';
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type Item = {
   label: string;
@@ -37,7 +37,10 @@ export type NumericValue = {
   granularity: number | string;
 };
 
-export type CategoricalValue = string[];
+export type CategoricalValue = {
+  categoricalDefaultValues: string[];
+  categoricalOptimalValues: string[];
+};
 
 type DefaultParameters = {
   value: NumericValue | CategoricalValue;
@@ -92,6 +95,7 @@ const CreateAttribute: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [itemsValue, setItemsValue] = useState<string | undefined>();
   const [categoricalValue, setCategoricalValue] = useState<string | null>(null);
+  const [optimalValues, setOptimalValues] = useState<string[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const options = [0.1, 0.25, 0.5, 1];
 
@@ -117,13 +121,13 @@ const CreateAttribute: React.FC = () => {
       defaultValue:
         formData.type === 'NUMBER'
           ? validateRangeOrGranularity(
-              formData.defaultValue?.value as NumericValue,
-              t
-            )
+            formData.defaultValue?.value as NumericValue,
+            t
+          )
           : validateCategoricalValue(
-              formData.defaultValue?.value as CategoricalValue,
-              t
-            ),
+            formData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
+            t
+          ),
       type_of_object_ids: validateTypeObjectValue(
         formData.type_of_object_ids,
         t
@@ -153,6 +157,40 @@ const CreateAttribute: React.FC = () => {
     }
   }, []);
 
+  const onChangeOptimalValue = (value: string) => {
+    if (
+      value &&
+      value.trim() !== '' &&
+      !optimalValues.some(
+        (item) => item.toLowerCase() === value.toLowerCase()
+      )
+    ) {
+      setOptimalValues([...optimalValues, value]);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        defaultValue: {
+          ...prevFormData.defaultValue,
+          value: {
+            ...prevFormData.defaultValue.value,
+            categoricalOptimalValues: [...optimalValues, value],
+          },
+        },
+      }));
+    } else {
+      setOptimalValues(optimalValues.filter((item) => item !== value));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        defaultValue: {
+          ...prevFormData.defaultValue,
+          value: {
+            ...prevFormData.defaultValue.value,
+            categoricalOptimalValues: optimalValues.filter((item) => item !== value),
+          },
+        },
+      }));
+    }
+  };
+
   const onChange = (field: keyof FormData, inputValue: any) => {
     const updatedFormData = { ...formData, [field]: inputValue };
     switch (field) {
@@ -170,7 +208,10 @@ const CreateAttribute: React.FC = () => {
           };
         } else if (inputValue === 'CATEGORICAL') {
           updatedFormData.defaultValue = {
-            value: [],
+            value: {
+              categoricalDefaultValues: [],
+              categoricalOptimalValues: [],
+            },
           };
         }
         setError({
@@ -227,25 +268,25 @@ const CreateAttribute: React.FC = () => {
     if (formData.type !== null && formData.type === 'CATEGORICAL') {
       if (key === 'delete') {
         setFormData((prevFormData) => {
-          const updatedValues = Array.isArray(prevFormData.defaultValue?.value)
-            ? prevFormData.defaultValue.value.filter(
-                (item: string) => item.toLowerCase() !== value.toLowerCase()
-              )
+          const updatedValues = Array.isArray(prevFormData.defaultValue?.value.categoricalDefaultValues)
+            ? prevFormData.defaultValue?.value.categoricalDefaultValues.filter(
+              (item: string) => item.toLowerCase() !== value.toLowerCase()
+            )
             : [];
+          setOptimalValues(optimalValues.filter((item) => item !== value));
 
           const newFormData = {
             ...prevFormData,
-            defaultValue:
-              updatedValues.length > 0
-                ? {
-                    ...prevFormData.defaultValue,
-                    value: updatedValues,
-                  }
-                : null,
+            defaultValue: {
+              value: {
+                categoricalDefaultValues: updatedValues,
+                categoricalOptimalValues: formData.defaultValue?.value.categoricalOptimalValues?.filter((item: string) => item !== value),
+              },
+            },
           };
 
           const errors = validateCategoricalValue(
-            newFormData.defaultValue?.value as CategoricalValue,
+            newFormData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
             t
           );
 
@@ -259,9 +300,8 @@ const CreateAttribute: React.FC = () => {
       } else {
         setFormData((prevFormData) => {
           let newFormData: FormData;
-          const currentValues = Array.isArray(prevFormData.defaultValue?.value)
-            ? prevFormData.defaultValue.value
-            : [];
+          const currentValues =
+            prevFormData.defaultValue?.value?.categoricalDefaultValues || [];
 
           if (
             value &&
@@ -274,8 +314,10 @@ const CreateAttribute: React.FC = () => {
             newFormData = {
               ...prevFormData,
               defaultValue: {
-                ...prevFormData.defaultValue,
-                value: newValues,
+                value: {
+                  categoricalDefaultValues: newValues,
+                  categoricalOptimalValues: optimalValues,
+                },
               },
             };
           } else {
@@ -283,7 +325,7 @@ const CreateAttribute: React.FC = () => {
           }
 
           const errors = validateCategoricalValue(
-            newFormData.defaultValue?.value as CategoricalValue,
+            newFormData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
             t
           );
 
@@ -460,8 +502,8 @@ const CreateAttribute: React.FC = () => {
         >
           {formData.type !== null
             ? `${t('attributeView.createAttributeText')} ${t(
-                `attributeView.${formData.type}`
-              )}`
+              `attributeView.${formData.type}`
+            )}`
             : t('attributeView.createAttributeText')}
         </Text>
         {/* contenido scroll  */}
@@ -667,8 +709,8 @@ const CreateAttribute: React.FC = () => {
                       value={
                         (formData.type === 'NUMBER'
                           ? (
-                              formData.defaultValue?.value as NumericValue
-                            )?.min.toString()
+                            formData.defaultValue?.value as NumericValue
+                          )?.min.toString()
                           : '') ?? ''
                       }
                       onChangeText={(value) =>
@@ -780,15 +822,15 @@ const CreateAttribute: React.FC = () => {
                         >
                           {formData.defaultValue?.value['granularity'] ===
                             value && (
-                            <View
-                              style={{
-                                height: 8,
-                                width: 8,
-                                borderRadius: 5,
-                                backgroundColor: '#486732',
-                              }}
-                            />
-                          )}
+                              <View
+                                style={{
+                                  height: 8,
+                                  width: 8,
+                                  borderRadius: 5,
+                                  backgroundColor: '#486732',
+                                }}
+                              />
+                            )}
                         </View>
                         <Text
                           style={{
@@ -838,7 +880,14 @@ const CreateAttribute: React.FC = () => {
               </>
             ) : formData.type !== null && formData.type === 'CATEGORICAL' ? (
               <>
-                <View style={[styles.input, styles.inputContainerCategorical]}>
+                <View style={[styles.input, styles.inputContainerCategorical, {
+                  marginBottom: 0, borderBottomEndRadius: formData.defaultValue?.value &&
+                    Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                    formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                  borderBottomStartRadius: formData.defaultValue?.value &&
+                    Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                    formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                }]}>
                   <Text style={styles.textDefaultValues}>
                     {t('attributeView.createPlaceHolderDefaultValues')}
                   </Text>
@@ -878,39 +927,135 @@ const CreateAttribute: React.FC = () => {
                 </View>
 
                 {formData.defaultValue?.value &&
-                  Array.isArray(formData.defaultValue.value) &&
-                  formData.defaultValue?.value.length > 0 && (
-                    <View style={[styles.input, styles.definedValuesContainer]}>
-                      <Text style={styles.definedValuesText}>
-                        {t('attributeView.createTextDefinedValues')}
-                      </Text>
-                      <View style={styles.definedValuesRow}>
-                        {formData.defaultValue.value.length > 0 &&
-                          formData.defaultValue.value.map((item, index) => (
-                            <Pressable
-                              key={index}
-                              onPress={() =>
-                                onChangeDefaultValue(item, 'delete')
-                              }
-                            >
-                              <View style={styles.definedValueItem}>
-                                <Text style={styles.definedValueText}>
-                                  {item}
-                                </Text>
-                                <View style={styles.definedValueSeparator} />
-                                <Text style={styles.definedValueDeleteText}>
-                                  x
-                                </Text>
-                              </View>
-                            </Pressable>
-                          ))}
-                      </View>
-                      {error?.defaultValue?.categorical && (
-                        <Text style={styles.errorText}>
-                          {error?.defaultValue?.categorical}
+                  Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                  formData.defaultValue?.value.categoricalDefaultValues.length > 0 && (
+                    <>
+                      <View style={[{
+                        alignSelf: 'center',
+                        justifyContent: 'center',
+                        marginVertical: 0,
+                        width: width * 0.9,
+                        height: height * 0.07,
+                        borderWidth: 1,
+                        fontSize: width * 0.04,
+                        fontFamily: 'Pro-Regular',
+                        color: '#292929',
+                        borderColor: '#F1F1F1',
+                        backgroundColor: '#F1F1F1',
+                        borderRadius: 8,
+                      }, styles.definedValuesContainer,
+                      {
+                        marginBottom: 0, borderTopEndRadius: formData.defaultValue?.value &&
+                          Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                          formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                        borderTopStartRadius: formData.defaultValue?.value &&
+                          Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                          formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                        borderBottomEndRadius: formData.defaultValue?.value &&
+                          Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                          formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                        borderBottomStartRadius: formData.defaultValue?.value &&
+                          Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
+                          formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                      }
+                      ]}>
+                        <Text style={styles.definedValuesText}>
+                          {t('attributeView.createTextDefinedValues')}
                         </Text>
-                      )}
-                    </View>
+                        <Text style={{
+                          fontSize: 10,
+                          fontFamily: "Pro-Regular",
+                          color: "#292929",
+                          marginTop: 5,
+                        }}>
+                          {t('attributeView.createSubTextDefinedValues')}
+                        </Text>
+                        <View style={styles.definedValuesRow}>
+                          {formData.defaultValue.value.categoricalDefaultValues.length > 0 &&
+                            formData.defaultValue.value.categoricalDefaultValues.map((item, index) => (
+                              <Pressable
+                                key={index}
+                                onPress={() =>
+                                  onChangeDefaultValue(item, 'delete')
+                                }
+                              >
+                                <View style={styles.definedValueItem}>
+                                  <Text style={styles.definedValueText}>
+                                    {item}
+                                  </Text>
+                                  <View style={styles.definedValueSeparator} />
+                                  <Text style={styles.definedValueDeleteText}>
+                                    x
+                                  </Text>
+                                </View>
+                              </Pressable>
+                            ))}
+                        </View>
+                        {error?.defaultValue?.categorical && (
+                          <Text style={styles.errorText}>
+                            {error?.defaultValue?.categorical}
+                          </Text>
+                        )}
+                      </View>
+                      {/* Valores optimos */}
+                      {
+                        formData.defaultValue?.value.categoricalDefaultValues?.length > 1 &&
+                        <View style={[{
+                          alignSelf: 'center',
+                          justifyContent: 'center',
+                          marginVertical: 0,
+                          paddingTop: 15,
+                          width: width * 0.9,
+                          height: height * 0.07,
+                          backgroundColor: '#F1F1F1',
+                          borderRadius: 8,
+                          borderTopWidth: 1,
+                          borderTopColor: '#486732',
+                        }, styles.definedValuesContainer,
+                        {
+                          marginBottom: 0, borderTopEndRadius: 0,
+                          borderTopStartRadius: 0,
+                        }
+                        ]}>
+                          <Text style={styles.definedValuesText}>
+                            {t('attributeView.createTextDefinedValuesOptimal')}
+                          </Text>
+                          <Text style={{
+                            fontSize: 10,
+                            fontFamily: "Pro-Regular",
+                            color: "#292929",
+                            marginTop: 5,
+                          }}>
+                            {t('attributeView.createSubTextDefinedValuesOptimal')}
+                          </Text>
+                          <View style={styles.definedValuesRow}>
+                            {formData.defaultValue?.value.categoricalDefaultValues.length > 0 &&
+                              formData.defaultValue.value.categoricalDefaultValues.map((item, index) => (
+                                <Pressable
+                                  key={index}
+                                  onPress={() =>
+                                    onChangeOptimalValue(item)
+                                  }
+                                >
+                                  <View style={[styles.definedValueItem, {
+                                    backgroundColor: optimalValues.includes(item) ? 'rgba(144, 238, 144, 0.2)' : '#F1F1F1'
+                                  }]}>
+                                    <Text style={styles.definedValueText}>
+                                      {item}
+                                    </Text>
+                                    <View style={styles.definedValueSeparator} />
+                                    <Text style={[styles.definedValueDeleteText, {
+                                      color: optimalValues.includes(item) ? '#FF0000' : '#292929'
+                                    }]}>
+                                      {optimalValues.includes(item) ? '-' : '+'}
+                                    </Text>
+                                  </View>
+                                </Pressable>
+                              ))}
+                          </View>
+                        </View>
+                      }
+                    </>
                   )}
               </>
             ) : null}
