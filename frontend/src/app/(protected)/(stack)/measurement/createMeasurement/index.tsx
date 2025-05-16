@@ -957,7 +957,7 @@ const CreateMeasurement: React.FC = () => {
                             rowGap: 0,
                           }}
                         >
-                          {e.custom_parameters.value.map(
+                          {e.custom_parameters.value && e.custom_parameters.value.categoricalDefaultValues.map(
                             (item: any, index: number) => (
                               <Pressable
                                 key={index}

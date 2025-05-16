@@ -798,7 +798,7 @@ const CreatePen: React.FC = () => {
                               rowGap: 0,
                             }}
                           >
-                            {e.pen_variable_type_of_object.custom_parameters.value.map(
+                            {e.pen_variable_type_of_object.custom_parameters.value && e.pen_variable_type_of_object.custom_parameters.value.categoricalDefaultValues.map(
                               (item: string, index: number) => (
                                 <Pressable
                                   key={index}
