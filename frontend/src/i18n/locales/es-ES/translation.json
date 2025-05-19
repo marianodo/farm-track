@@ -139,6 +139,9 @@
     "createPlaceHolderOptimalValues": "Valores óptimos",
     "createTextGranularity": "Granularidad",
     "createTextDefinedValues": "Valores definidos",
+    "createSubTextDefinedValues": "Si quiere eliminar un valor definido, simplemente toque sobre el",
+    "createTextDefinedValuesOptimal": "Valores óptimos (opcional)",
+    "createSubTextDefinedValuesOptimal": "Puede indicar los valores que serían óptimos para esta variable simplemente tocando sobre ellos.",
     "createPlaceHolderGranularity": "Ingrese un valor",
     "createPlaceHolderMinValue": "Minimo",
     "createPlaceHolderMaxValue": "Máximo",
@@ -248,6 +251,7 @@
     "subtitleVariable": "Variable",
     "goBackText": "Volver",
     "categoricalText": "Valores categóricos",
+    "categoricalTextOptimal": "Valores óptimos: ",
     "numberTextDefault": "Rango de valores por defecto",
     "numberTextOptimum": "Rango de valores óptimos",
     "granularityText": "Granularidad"

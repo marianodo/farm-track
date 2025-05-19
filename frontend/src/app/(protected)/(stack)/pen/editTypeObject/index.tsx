@@ -153,13 +153,13 @@ const EditTypeObject: React.FC = () => {
       defaultValue:
         formData.type === 'NUMBER'
           ? validateRangeOrGranularity(
-              formData.defaultValue?.value as NumericValue,
-              t
-            )
+            formData.defaultValue?.value as NumericValue,
+            t
+          )
           : validateCategoricalValue(
-              formData.defaultValue?.value as CategoricalValue,
-              t
-            ),
+            formData.defaultValue?.value as CategoricalValue,
+            t
+          ),
       type_of_object_ids: validateTypeObjectValue(
         formData.type_of_object_ids,
         t
@@ -275,8 +275,8 @@ const EditTypeObject: React.FC = () => {
         setFormData((prevFormData) => {
           const updatedValues = Array.isArray(prevFormData.defaultValue?.value)
             ? prevFormData.defaultValue.value.filter(
-                (item: string) => item.toLowerCase() !== value.toLowerCase()
-              )
+              (item: string) => item.toLowerCase() !== value.toLowerCase()
+            )
             : [];
 
           const newFormData = {
@@ -284,9 +284,9 @@ const EditTypeObject: React.FC = () => {
             defaultValue:
               updatedValues.length > 0
                 ? {
-                    ...prevFormData.defaultValue,
-                    value: updatedValues,
-                  }
+                  ...prevFormData.defaultValue,
+                  value: updatedValues,
+                }
                 : null,
           };
 
@@ -418,13 +418,13 @@ const EditTypeObject: React.FC = () => {
     const animatedStyle = useAnimatedStyle(() => {
       const animatedHeight = isExpanded
         ? withTiming('auto', {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          })
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        })
         : withTiming(0, {
-            duration: 3000,
-            easing: Easing.out(Easing.linear),
-          });
+          duration: 3000,
+          easing: Easing.out(Easing.linear),
+        });
       return {
         marginTop: -20,
         height: animatedHeight,
@@ -488,19 +488,19 @@ const EditTypeObject: React.FC = () => {
               }}
             >
               <Text style={{ color: '#486732' }}>
-                {`${t('editTypeObject.numberTextDefault')}:   `}
+                {`${t('editTypeObject.numberTextDefault')}: `}
                 <Text style={{ color: '#292929' }}>
                   {`${item.custom_parameters.value.min} - ${item.custom_parameters.value.max}`}
                 </Text>
               </Text>
               <Text style={{ color: '#486732' }}>
-                {`${t('editTypeObject.numberTextOptimum')}:   `}
+                {`${t('editTypeObject.numberTextOptimum')}: `}
                 <Text style={{ color: '#292929' }}>
                   {`${item.custom_parameters.value.optimal_min} - ${item.custom_parameters.value.optimal_max}`}
                 </Text>
               </Text>
               <Text style={{ color: '#486732' }}>
-                {`${t('editTypeObject.granularityText')}:   `}
+                {`${t('editTypeObject.granularityText')}: `}
                 <Text style={{ color: '#292929' }}>
                   {`${item.custom_parameters.value.granularity}`}
                 </Text>
@@ -518,8 +518,8 @@ const EditTypeObject: React.FC = () => {
                 width: '100%',
               }}
             >
-              <Text style={{ color: '#486732', paddingVertical: rMS(8) }}>
-                {`${t('editTypeObject.categoricalText')}:   `}
+              <Text style={{ color: '#486732', paddingTop: rMS(8), paddingBottom: rMS(4) }}>
+                {`${t('editTypeObject.categoricalText')}: `}
                 {Array.isArray(item.custom_parameters.value) ? (
                   item.custom_parameters.value.map((val, idx) => (
                     <Text key={idx} style={{ color: '#292929' }}>
@@ -527,10 +527,29 @@ const EditTypeObject: React.FC = () => {
                       {idx < item.custom_parameters.value.length - 1 && ', '}
                     </Text>
                   ))
+                ) : item.custom_parameters?.value?.categories ? (
+                  item.custom_parameters.value.categories.map((category, idx) => (
+                    <Text key={idx} style={{ color: '#292929' }}>
+                      {category}
+                      {idx < item.custom_parameters.value.categories.length - 1 && ', '}
+                    </Text>
+                  ))
                 ) : (
                   <Text style={{ color: '#292929' }}>Invalid data</Text>
                 )}
               </Text>
+              {!Array.isArray(item.custom_parameters.value) &&
+                item.custom_parameters?.value?.optimal_values?.length ? (
+                <Text style={{ color: '#486732' }}>
+                  {t('editTypeObject.categoricalTextOptimal')}
+                  {item.custom_parameters.value.optimal_values.map((optimal, idx) => (
+                    <Text key={idx} style={{ color: '#292929' }}>
+                      {optimal}
+                      {idx < item.custom_parameters.value.optimal_values.length - 1 && ', '}
+                    </Text>
+                  ))}
+                </Text>
+              ) : null}
             </View>
           )}
         </Animated.View>
