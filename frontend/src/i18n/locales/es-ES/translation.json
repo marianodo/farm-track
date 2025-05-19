@@ -251,6 +251,7 @@
     "subtitleVariable": "Variable",
     "goBackText": "Volver",
     "categoricalText": "Valores categóricos",
+    "categoricalTextOptimal": "Valores óptimos: ",
     "numberTextDefault": "Rango de valores por defecto",
     "numberTextOptimum": "Rango de valores óptimos",
     "granularityText": "Granularidad"

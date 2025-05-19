@@ -29,7 +29,7 @@ import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenVariableTypeOfObjectStore from '@/store/pen_variable_typeOfObject_store';
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type Item = {
   label: string;
@@ -100,6 +100,7 @@ const EditVariable: React.FC = () => {
   );
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const [optimalValues, setOptimalValues] = useState<string[]>([]);
   const [itemsValue, setItemsValue] = useState<string | undefined | string[]>();
   const [categoricalValue, setCategoricalValue] = useState<string | null>();
   const [items, setItems] = useState<Item[]>([]);
@@ -113,6 +114,8 @@ const EditVariable: React.FC = () => {
     ) as DefaultParameters,
   });
 
+  console.log("CUSTOMS", custom_parameters)
+
   const validateForm = () => {
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
@@ -120,11 +123,16 @@ const EditVariable: React.FC = () => {
       custom_parameters:
         type === 'NUMBER'
           ? validateRangeOrGranularity(
-              formData.custom_parameters?.value as NumericValue,
+            formData.custom_parameters?.value as NumericValue,
+            t
+          )
+          : Array.isArray(formData.custom_parameters?.value)
+            ? validateCategoricalValue(
+              formData.custom_parameters?.value as CategoricalValue,
               t
             )
-          : validateCategoricalValue(
-              formData.custom_parameters?.value as CategoricalValue,
+            : validateCategoricalValue(
+              formData.custom_parameters?.value?.categories as CategoricalValue,
               t
             ),
     };
@@ -159,6 +167,40 @@ const EditVariable: React.FC = () => {
     setFormData(updatedFormData);
   };
 
+  const onChangeOptimalValue = (value: string) => {
+    if (
+      value &&
+      value.trim() !== '' &&
+      !formData.custom_parameters?.value?.optimal_values.some(
+        (item) => item.toLowerCase() === value.toLowerCase()
+      )
+    ) {
+      // setOptimalValues([...optimalValues, value]);
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        custom_parameters: {
+          ...prevFormData.custom_parameters,
+          value: {
+            ...prevFormData.custom_parameters.value,
+            optimal_values: [...formData.custom_parameters?.value?.optimal_values, value],
+          },
+        },
+      }));
+    } else {
+      setOptimalValues(optimalValues.filter((item) => item !== value));
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        custom_parameters: {
+          ...prevFormData.custom_parameters,
+          value: {
+            ...prevFormData.custom_parameters.value,
+            optimal_values: formData.custom_parameters?.value?.optimal_values?.filter((item: string) => item !== value),
+          },
+        },
+      }));
+    }
+  };
+
   const onChangeDefaultValue = (value: any, key: string) => {
     if (type === 'NUMBER') {
       const updatedValues = {
@@ -187,30 +229,29 @@ const EditVariable: React.FC = () => {
       }));
       return;
     }
-    if (type === 'CATEGORICAL') {
+    if (type !== null && type === 'CATEGORICAL') {
       if (key === 'delete') {
         setFormData((prevFormData) => {
-          const updatedValues = Array.isArray(
-            prevFormData.custom_parameters?.value
-          )
-            ? prevFormData.custom_parameters.value.filter(
-                (item: string) => item.toLowerCase() !== value.toLowerCase()
-              )
+          const updatedValues = Array.isArray(prevFormData.custom_parameters?.value.categories)
+            ? prevFormData.custom_parameters?.value.categories.filter(
+              (item: string) => item.toLowerCase() !== value.toLowerCase()
+            )
             : [];
+          setOptimalValues(optimalValues.filter((item) => item !== value));
 
           const newFormData = {
             ...prevFormData,
-            custom_parameters:
-              updatedValues.length > 0
-                ? {
-                    ...prevFormData.custom_parameters,
-                    value: updatedValues,
-                  }
-                : null,
+            custom_parameters: {
+              ...prevFormData.custom_parameters,
+              value: {
+                categories: updatedValues,
+                optimal_values: formData.custom_parameters?.value.optimal_values?.filter((item: string) => item !== value),
+              },
+            },
           };
 
           const errors = validateCategoricalValue(
-            newFormData.custom_parameters?.value as CategoricalValue,
+            newFormData.defaultValue?.value?.categories as CategoricalValue,
             t
           );
 
@@ -224,11 +265,8 @@ const EditVariable: React.FC = () => {
       } else {
         setFormData((prevFormData) => {
           let newFormData: FormData;
-          const currentValues = Array.isArray(
-            prevFormData.custom_parameters?.value
-          )
-            ? prevFormData.custom_parameters.value
-            : [];
+          const currentValues =
+            prevFormData.custom_parameters?.value?.categories || [];
 
           if (
             value &&
@@ -242,7 +280,10 @@ const EditVariable: React.FC = () => {
               ...prevFormData,
               custom_parameters: {
                 ...prevFormData.custom_parameters,
-                value: newValues,
+                value: {
+                  categories: newValues,
+                  optimal_values: optimalValues,
+                },
               },
             };
           } else {
@@ -250,7 +291,7 @@ const EditVariable: React.FC = () => {
           }
 
           const errors = validateCategoricalValue(
-            newFormData.custom_parameters?.value as CategoricalValue,
+            newFormData.custom_parameters?.value?.categories as CategoricalValue,
             t
           );
 
@@ -408,11 +449,10 @@ const EditVariable: React.FC = () => {
             marginBottom: rMS(10),
           }}
         >
-          {`${t('editTypeObject.subtitleVariable')} ${
-            type === 'NUMBER'
-              ? t('editTypeObject.number')
-              : t('editTypeObject.categorical')
-          }`}
+          {`${t('editTypeObject.subtitleVariable')} ${type === 'NUMBER'
+            ? t('editTypeObject.number')
+            : t('editTypeObject.categorical')
+            }`}
         </Text>
 
         {/* contenido scroll  */}
@@ -630,15 +670,15 @@ const EditVariable: React.FC = () => {
                         >
                           {formData.custom_parameters?.value['granularity'] ===
                             value && (
-                            <View
-                              style={{
-                                height: 8,
-                                width: 8,
-                                borderRadius: 5,
-                                backgroundColor: '#486732',
-                              }}
-                            />
-                          )}
+                              <View
+                                style={{
+                                  height: 8,
+                                  width: 8,
+                                  borderRadius: 5,
+                                  backgroundColor: '#486732',
+                                }}
+                              />
+                            )}
                         </View>
                         <Text
                           style={{
@@ -715,43 +755,189 @@ const EditVariable: React.FC = () => {
                     </Text>
                   )}
                 </View>
-                {formData.custom_parameters?.value &&
-                  Array.isArray(formData.custom_parameters.value) &&
-                  formData.custom_parameters?.value.length > 0 && (
-                    <View style={[styles.input, styles.definedValuesContainer]}>
-                      <Text style={styles.definedValuesText}>
-                        {t('attributeView.createTextDefinedValues')}
-                      </Text>
-                      <View style={styles.definedValuesRow}>
-                        {formData.custom_parameters.value.length > 0 &&
-                          formData.custom_parameters.value.map(
-                            (item, index) => (
-                              <Pressable
-                                key={index}
-                                onPress={() =>
-                                  onChangeDefaultValue(item, 'delete')
-                                }
-                              >
-                                <View style={styles.definedValueItem}>
-                                  <Text style={styles.definedValueText}>
-                                    {item}
-                                  </Text>
-                                  <View style={styles.definedValueSeparator} />
-                                  <Text style={styles.definedValueDeleteText}>
-                                    x
-                                  </Text>
-                                </View>
-                              </Pressable>
-                            )
-                          )}
-                      </View>
-                      {error?.custom_parameters?.categorical && (
-                        <Text style={styles.errorText}>
-                          {error?.custom_parameters?.categorical}
-                        </Text>
+                {Array.isArray(formData.custom_parameters?.value) &&
+                  formData.custom_parameters?.value.length > 0 ? (
+                  <View style={[
+                    {
+                      alignSelf: 'center',
+                      justifyContent: 'center',
+                      marginVertical: 0,
+                      width: width * 0.9,
+                      height: height * 0.07,
+                      borderWidth: 1,
+                      borderColor: '#F1F1F1',
+                      backgroundColor: '#F1F1F1',
+                      borderRadius: 8,
+                    }, styles.definedValuesContainer,
+                    {
+                      marginBottom: 0, borderTopEndRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 0 : 8,
+                      borderTopStartRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 0 : 8,
+                      borderBottomEndRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 0 : 8,
+                      borderBottomStartRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 0 : 8,
+                    }
+                  ]}>
+                    <Text style={styles.definedValuesText}>
+                      {t('attributeView.createTextDefinedValues')}
+                    </Text>
+                    <Text style={{
+                      fontSize: 10,
+                      fontFamily: "Pro-Regular",
+                      color: "#292929",
+                      marginTop: 5,
+                    }}>
+                      {t('attributeView.createSubTextDefinedValues')}
+                    </Text>
+                    <View style={styles.definedValuesRow}>
+                      {formData.custom_parameters.value.map(
+                        (item, index) => (
+                          <Pressable
+                            key={index}
+                            onPress={() => onChangeDefaultValue(item, 'delete')}
+                          >
+                            <View style={styles.definedValueItem}>
+                              <Text style={styles.definedValueText}>{item}</Text>
+                              <View style={styles.definedValueSeparator} />
+                              <Text style={styles.definedValueDeleteText}>x</Text>
+                            </View>
+                          </Pressable>
+                        )
                       )}
                     </View>
-                  )}
+                    {error?.custom_parameters?.categorical && (
+                      <Text style={styles.errorText}>
+                        {error?.custom_parameters?.categorical}
+                      </Text>
+                    )}
+                  </View>
+                ) : formData.custom_parameters?.value?.categories &&
+                  formData.custom_parameters?.value?.categories.length > 0 ? (
+                  <View style={[
+                    {
+                      alignSelf: 'center',
+                      justifyContent: 'center',
+                      marginVertical: 0,
+                      width: width * 0.9,
+                      height: height * 0.07,
+                      borderWidth: 1,
+                      borderColor: '#F1F1F1',
+                      backgroundColor: '#F1F1F1',
+                      borderRadius: 8,
+                    }, styles.definedValuesContainer,
+                    {
+                      marginBottom: 0, borderTopEndRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 8 : 0,
+                      borderTopStartRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length > 0 ? 8 : 0,
+                      borderBottomEndRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length < 2 ? 8 : 0,
+                      borderBottomStartRadius: formData.custom_parameters?.value &&
+                        Array.isArray(formData.custom_parameters.value.categories) &&
+                        formData.custom_parameters?.value.categories.length < 2 ? 8 : 0,
+                    }
+                  ]}>
+                    <Text style={styles.definedValuesText}>
+                      {t('attributeView.createTextDefinedValues')}
+                    </Text>
+                    <Text style={{
+                      fontSize: 10,
+                      fontFamily: "Pro-Regular",
+                      color: "#292929",
+                      marginTop: 5,
+                    }}>
+                      {t('attributeView.createSubTextDefinedValues')}
+                    </Text>
+                    <View style={styles.definedValuesRow}>
+                      {formData.custom_parameters?.value?.categories.map(
+                        (category, index) => (
+                          <Pressable
+                            key={index}
+                            onPress={() => onChangeDefaultValue(category, 'delete')}
+                          >
+                            <View style={styles.definedValueItem}>
+                              <Text style={styles.definedValueText}>{category}</Text>
+                              <View style={styles.definedValueSeparator} />
+                              <Text style={styles.definedValueDeleteText}>x</Text>
+                            </View>
+                          </Pressable>
+                        )
+                      )}
+                    </View>
+                    {error?.custom_parameters?.categorical && (
+                      <Text style={styles.errorText}>
+                        {error?.custom_parameters?.categorical}
+                      </Text>
+                    )}
+                  </View>
+                ) : null}
+                {/* Valores optimos */}
+                {
+                  formData.custom_parameters?.value.categories?.length > 1 &&
+                  <View style={[{
+                    alignSelf: 'center',
+                    justifyContent: 'center',
+                    marginVertical: 0,
+                    paddingTop: 15,
+                    width: width * 0.9,
+                    height: height * 0.07,
+                    backgroundColor: '#F1F1F1',
+                    borderRadius: 8,
+                    borderTopWidth: 1,
+                    borderTopColor: '#486732',
+                  }, styles.definedValuesContainer,
+                  {
+                    marginBottom: 0, borderTopEndRadius: 0,
+                    borderTopStartRadius: 0,
+                  }
+                  ]}>
+                    <Text style={styles.definedValuesText}>
+                      {t('attributeView.createTextDefinedValuesOptimal')}
+                    </Text>
+                    <Text style={{
+                      fontSize: 10,
+                      fontFamily: "Pro-Regular",
+                      color: "#292929",
+                      marginTop: 5,
+                    }}>
+                      {t('attributeView.createSubTextDefinedValuesOptimal')}
+                    </Text>
+                    <View style={styles.definedValuesRow}>
+                      {formData.custom_parameters?.value.categories.length > 0 &&
+                        formData.custom_parameters.value.categories.map((item, index) => (
+                          <Pressable
+                            key={index}
+                            onPress={() =>
+                              onChangeOptimalValue(item)
+                            }
+                          >
+                            <View style={[styles.definedValueItem, {
+                              backgroundColor: formData.custom_parameters?.value?.optimal_values?.includes(item) ? 'rgba(144, 238, 144, 0.2)' : '#F1F1F1'
+                            }]}>
+                              <Text style={styles.definedValueText}>
+                                {item}
+                              </Text>
+                              <View style={styles.definedValueSeparator} />
+                              <Text style={[styles.definedValueDeleteText, {
+                                color: formData.custom_parameters?.value?.optimal_values?.includes(item) ? '#FF0000' : '#292929'
+                              }]}>
+                                {formData.custom_parameters?.value?.optimal_values?.includes(item) ? '-' : '+'}
+                              </Text>
+                            </View>
+                          </Pressable>
+                        ))}
+                    </View>
+                  </View>
+                }
               </>
             ) : null}
           </View>
