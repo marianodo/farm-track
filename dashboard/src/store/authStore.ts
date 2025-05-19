@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.log(error)
           set({ authLoading: false });
-          return false;
+          throw new Error('Login failed');
         }
       },
       

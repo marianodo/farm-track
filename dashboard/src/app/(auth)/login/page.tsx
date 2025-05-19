@@ -29,11 +29,11 @@ const Login = () => {
         }
     };
 
-    useEffect(() => {
-        if (isAuthenticated) {
-            router.replace('/dashboard');
-        }
-    }, [isAuthenticated, router]);
+    // useEffect(() => {
+    //     if (isAuthenticated) {
+    //         router.replace('/dashboard');
+    //     }
+    // }, [isAuthenticated, router]);
 
     return (
         <div className="min-h-screen flex items-center justify-center w-full bg-background-green-light">

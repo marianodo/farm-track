@@ -1,0 +1,172 @@
+
+{
+  "navbar": {
+    "features": "Características",
+    "benefits": "Beneficios",
+    "metrics": "Métricas",
+    "login": "Iniciar Sesión",
+    "getStarted": "Registrarse"
+  },
+  "hero": {
+    "title": "Monitorea la Salud de tu Granja",
+    "titleHighlight": "Inteligentemente",
+    "description": "Haz seguimiento a las métricas de salud animal, obtén insights y mejora la productividad de tu granja con nuestra aplicación móvil todo en uno y panel de control.",
+    "downloadApp": "Descargar App",
+    "scheduleDemo": "Programar Demo"
+  },
+  "features": {
+    "title": "Monitoreo Integral de Salud en la Granja",
+    "description": "Nuestra aplicación recopila puntos de datos críticos para darte una imagen completa de la salud de tus animales y las condiciones de tu granja.",
+    "urineTracking": {
+      "title": "Seguimiento del pH Urinario",
+      "description": "Monitorea y analiza los niveles de pH en la orina para garantizar una salud digestiva óptima y prevenir trastornos metabólicos."
+    },
+    "fecalScoring": {
+      "title": "Puntuación Fecal",
+      "description": "Realiza un seguimiento y análisis de la consistencia fecal para detectar signos tempranos de problemas digestivos o infecciones parasitarias."
+    },
+    "temperatureMonitoring": {
+      "title": "Control de Temperatura",
+      "description": "Registra y haz seguimiento de las temperaturas corporales para identificar rápidamente posibles enfermedades o infecciones."
+    },
+    "bodyCondition": {
+      "title": "Evaluación de Condición Corporal",
+      "description": "Evalúa y monitorea la condición corporal de tus animales para optimizar la nutrición y los resultados de salud."
+    }
+  },
+  "metrics": {
+    "bodyCondition": {
+      "title": "Condición Corporal Promedio",
+      "value": "3.5",
+      "description": "Rango óptimo: 3.0-3.5"
+    },
+    "urinePh": {
+      "title": "Nivel de pH Urinario",
+      "value": "6.8",
+      "description": "Rango saludable: 6.0-7.0"
+    },
+    "fecalScore": {
+      "title": "Puntuación Fecal",
+      "value": "2.1",
+      "description": "Objetivo: rango 2-3"
+    },
+    "temperature": {
+      "title": "Temperatura Promedio",
+      "value": "101.5°F",
+      "description": "Rango normal: 101-102°F"
+    }
+  },
+  "benefits": {
+    "title": "Beneficios para la Operación de tu Granja",
+    "description": "Nuestra solución te ayuda a mantener una salud animal óptima mientras mejoras la rentabilidad y sostenibilidad de tu granja.",
+    "earlyDetection": {
+      "title": "Detección Temprana de Enfermedades",
+      "description": "Identifica problemas de salud antes de que se conviertan en problemas graves mediante el seguimiento de métricas vitales."
+    },
+    "increaseProductivity": {
+      "title": "Aumento de la Productividad",
+      "description": "Optimiza la salud animal para mejorar las tasas de crecimiento, la producción de leche y el rendimiento reproductivo."
+    },
+    "reduceCosts": {
+      "title": "Reducción de Costos",
+      "description": "Disminuye los gastos veterinarios y los costos de medicamentos mediante el monitoreo preventivo de la salud."
+    },
+    "dataDecisions": {
+      "title": "Decisiones Basadas en Datos",
+      "description": "Toma decisiones informadas basadas en métricas de salud reales e insights."
+    },
+    "timeEfficiency": {
+      "title": "Eficiencia de Tiempo",
+      "description": "Ahorra horas en el seguimiento y análisis de la salud animal con nuestros informes automatizados."
+    },
+    "trendAnalysis": {
+      "title": "Análisis de Tendencias",
+      "description": "Identifica patrones a lo largo del tiempo para optimizar la nutrición, el entorno y las prácticas de gestión."
+    }
+  },
+  "callToAction": {
+    "title": "¿Listo para Transformar la Gestión de Salud de tu Granja?",
+    "description": "Únete a miles de agricultores que están utilizando datos para mejorar la salud animal y la productividad de sus granjas.",
+    "downloadApp": "Descargar App",
+    "learnMore": "Aprender Más",
+    "availableOn": "Disponible en:"
+  },
+  "footer": {
+    "product": "Producto",
+    "features": "Características",
+    "pricing": "Precios",
+    "caseStudies": "Casos de Estudio",
+    "reviews": "Reseñas",
+    "resources": "Recursos",
+    "blog": "Blog",
+    "documentation": "Documentación",
+    "helpCenter": "Centro de Ayuda",
+    "webinars": "Webinars",
+    "company": "Empresa",
+    "aboutUs": "Sobre Nosotros",
+    "careers": "Carreras",
+    "contact": "Contacto",
+    "partners": "Socios",
+    "legal": "Legal",
+    "privacyPolicy": "Política de Privacidad",
+    "termsOfService": "Términos de Servicio",
+    "cookiePolicy": "Política de Cookies",
+    "gdpr": "RGPD",
+    "copyright": "© 2025 FarmHealth Technologies. Todos los derechos reservados."
+  },
+   "privacyPolicy": {
+    "title": "Política de Privacidad",
+    "lastUpdated": "Última Actualización",
+    "sections": {
+      "introduction": {
+        "title": "Introducción",
+        "content": "FarmHealth (\"nosotros\", \"nuestro\" o \"nos\") está comprometido con la protección de tu privacidad. Esta Política de Privacidad explica cómo tu información personal es recopilada, utilizada y divulgada por FarmHealth. Esta Política de Privacidad se aplica a nuestro sitio web y aplicación móvil, junto con nuestros subdominios asociados (colectivamente, nuestro \"Servicio\")."
+      },
+      "informationCollected": {
+        "title": "Información que Recopilamos",
+        "content": "Recopilamos información que nos proporcionas voluntariamente, incluyendo:",
+        "items": [
+          "Información de cuenta (ej., nombre, correo electrónico, nombre de usuario, contraseña)",
+          "Información de la granja (ej., nombre de la granja, ubicación, tamaño)",
+          "Métricas de salud animal (ej., temperatura, niveles de pH urinario, puntuación de condición corporal)",
+          "Datos de uso (ej., cómo interactúas con nuestra aplicación)"
+        ]
+      },
+      "informationUse": {
+        "title": "Cómo Usamos tu Información",
+        "content": "Utilizamos la información que recopilamos para:",
+        "items": [
+          "Proporcionar, operar y mantener nuestra aplicación",
+          "Mejorar, personalizar y expandir nuestra aplicación",
+          "Entender y analizar cómo usas nuestra aplicación",
+          "Desarrollar nuevos productos, servicios, características y funcionalidades",
+          "Comunicarnos contigo sobre actualizaciones y otra información",
+          "Procesar tus transacciones",
+          "Detectar y prevenir fraudes"
+        ]
+      },
+      "yourRights": {
+        "title": "Tus Derechos",
+        "content": "Tienes ciertos derechos respecto a tus datos personales, incluyendo:",
+        "items": [
+          "El derecho a acceder a los datos personales que tenemos sobre ti",
+          "El derecho a solicitar la corrección de datos inexactos",
+          "El derecho a solicitar la eliminación de tus datos",
+          "El derecho a retirar el consentimiento",
+          "El derecho a la portabilidad de datos"
+        ]
+      },
+      "updates": {
+        "title": "Actualizaciones de esta Política",
+        "content": "Podemos actualizar esta Política de Privacidad de vez en cuando. Te notificaremos de cualquier cambio publicando la nueva Política de Privacidad en esta página y actualizando la fecha de 'Última Actualización'."
+      },
+      "contact": {
+        "title": "Contáctanos",
+        "content": "Si tienes alguna pregunta sobre esta Política de Privacidad, por favor contáctanos en:",
+        "email": "Correo electrónico",
+        "address": "Dirección",
+        "phone": "Teléfono"
+      }
+    }
+  }
+}

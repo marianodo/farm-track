@@ -1,0 +1,172 @@
+
+{
+  "navbar": {
+    "features": "Features",
+    "benefits": "Benefits",
+    "metrics": "Metrics",
+    "login": "Login",
+    "getStarted": "Register"
+  },
+  "hero": {
+    "title": "Monitor Your Farm's Health",
+    "titleHighlight": "Intelligently",
+    "description": "Track animal health metrics, get insights, and improve farm productivity with our all-in-one mobile app and dashboard.",
+    "downloadApp": "Download App",
+    "scheduleDemo": "Schedule Demo"
+  },
+  "features": {
+    "title": "Comprehensive Farm Health Monitoring",
+    "description": "Our app collects critical data points to give you a complete picture of your animals' health and farm conditions.",
+    "urineTracking": {
+      "title": "Urine pH Tracking",
+      "description": "Monitor and analyze urine pH levels to ensure optimal digestive health and prevent metabolic disorders."
+    },
+    "fecalScoring": {
+      "title": "Fecal Scoring",
+      "description": "Track and analyze fecal consistency to detect early signs of digestive problems or parasitic infections."
+    },
+    "temperatureMonitoring": {
+      "title": "Temperature Monitoring",
+      "description": "Record and track body temperatures to quickly identify potential illnesses or infections."
+    },
+    "bodyCondition": {
+      "title": "Body Condition Scoring",
+      "description": "Assess and monitor the body condition of your animals to optimize nutrition and health outcomes."
+    }
+  },
+  "metrics": {
+    "bodyCondition": {
+      "title": "Average Body Condition",
+      "value": "3.5",
+      "description": "Optimal range: 3.0-3.5"
+    },
+    "urinePh": {
+      "title": "Urine pH Level",
+      "value": "6.8",
+      "description": "Healthy range: 6.0-7.0"
+    },
+    "fecalScore": {
+      "title": "Fecal Score",
+      "value": "2.1",
+      "description": "Target: 2-3 range"
+    },
+    "temperature": {
+      "title": "Average Temperature",
+      "value": "101.5°F",
+      "description": "Normal range: 101-102°F"
+    }
+  },
+  "benefits": {
+    "title": "Benefits for Your Farm Operation",
+    "description": "Our solution helps you maintain optimal animal health while improving your farm's profitability and sustainability.",
+    "earlyDetection": {
+      "title": "Early Disease Detection",
+      "description": "Identify health issues before they become serious problems by tracking vital metrics."
+    },
+    "increaseProductivity": {
+      "title": "Increase Productivity",
+      "description": "Optimize animal health to improve growth rates, milk production, and reproductive performance."
+    },
+    "reduceCosts": {
+      "title": "Reduce Costs",
+      "description": "Decrease veterinary expenses and medication costs through preventive health monitoring."
+    },
+    "dataDecisions": {
+      "title": "Data-Driven Decisions",
+      "description": "Make informed management choices based on actual health metrics and insights."
+    },
+    "timeEfficiency": {
+      "title": "Time Efficiency",
+      "description": "Save hours tracking and analyzing animal health with our automated reporting."
+    },
+    "trendAnalysis": {
+      "title": "Trend Analysis",
+      "description": "Identify patterns over time to optimize nutrition, environment, and management practices."
+    }
+  },
+  "callToAction": {
+    "title": "Ready to Transform Your Farm's Health Management?",
+    "description": "Join thousands of farmers who are using data-driven insights to improve animal health and farm productivity.",
+    "downloadApp": "Download App",
+    "learnMore": "Learn More",
+    "availableOn": "Available on:"
+  },
+  "footer": {
+    "product": "Product",
+    "features": "Features",
+    "pricing": "Pricing",
+    "caseStudies": "Case Studies",
+    "reviews": "Reviews",
+    "resources": "Resources",
+    "blog": "Blog",
+    "documentation": "Documentation",
+    "helpCenter": "Help Center",
+    "webinars": "Webinars",
+    "company": "Company",
+    "aboutUs": "About Us",
+    "careers": "Careers",
+    "contact": "Contact",
+    "partners": "Partners",
+    "legal": "Legal",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "cookiePolicy": "Cookie Policy",
+    "gdpr": "GDPR",
+    "copyright": "© 2025 FarmHealth Technologies. All rights reserved."
+  },
+   "privacyPolicy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last Updated",
+    "sections": {
+      "introduction": {
+        "title": "Introduction",
+        "content": "FarmHealth (\"we,\" \"our,\" or \"us\") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by FarmHealth. This Privacy Policy applies to our website and mobile application, alongside our associated subdomains (collectively, our \"Service\")."
+      },
+      "informationCollected": {
+        "title": "Information We Collect",
+        "content": "We collect information that you voluntarily provide to us, including:",
+        "items": [
+          "Account information (e.g., name, email address, username, password)",
+          "Farm information (e.g., farm name, location, size)",
+          "Animal health metrics (e.g., temperature, urine pH levels, body condition scores)",
+          "Usage data (e.g., how you interact with our app)"
+        ]
+      },
+      "informationUse": {
+        "title": "How We Use Your Information",
+        "content": "We use the information we collect to:",
+        "items": [
+          "Provide, operate, and maintain our application",
+          "Improve, personalize, and expand our application",
+          "Understand and analyze how you use our application",
+          "Develop new products, services, features, and functionality",
+          "Communicate with you about updates and other information",
+          "Process your transactions",
+          "Find and prevent fraud"
+        ]
+      },
+      "yourRights": {
+        "title": "Your Rights",
+        "content": "You have certain rights regarding your personal data, including:",
+        "items": [
+          "The right to access personal data we hold about you",
+          "The right to request correction of inaccurate data",
+          "The right to request deletion of your data",
+          "The right to withdraw consent",
+          "The right to data portability"
+        ]
+      },
+      "updates": {
+        "title": "Updates to This Policy",
+        "content": "We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the 'Last Updated' date."
+      },
+      "contact": {
+        "title": "Contact Us",
+        "content": "If you have any questions about this Privacy Policy, please contact us at:",
+        "email": "Email",
+        "address": "Address",
+        "phone": "Phone"
+      }
+    }
+  }
+}
