@@ -47,9 +47,8 @@ const PrivacyPolicy = () => {
             title: t('privacyPolicy.sections.contact.title'),
             content: t('privacyPolicy.sections.contact.content'),
             contact: {
-                email: "privacy@farmhealth.example.com",
-                address: "123 Farm Lane, Agricultural District, CA 94000, USA",
-                phone: "+1 (555) 123-4567"
+                email: "info@bd-metrics.com",
+                phone: "+5493517157848"
             }
         }
     ];

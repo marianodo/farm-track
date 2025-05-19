@@ -112,7 +112,7 @@
     "termsOfService": "Terms of Service",
     "cookiePolicy": "Cookie Policy",
     "gdpr": "GDPR",
-    "copyright": "© 2025 FarmHealth Technologies. All rights reserved."
+    "copyright": "© 2025 BDMetrics Technologies. All rights reserved."
   },
    "privacyPolicy": {
     "title": "Privacy Policy",
@@ -120,7 +120,7 @@
     "sections": {
       "introduction": {
         "title": "Introduction",
-        "content": "FarmHealth (\"we,\" \"our,\" or \"us\") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by FarmHealth. This Privacy Policy applies to our website and mobile application, alongside our associated subdomains (collectively, our \"Service\")."
+        "content": "MeasureMe (\"we,\" \"our,\" or \"us\") is committed to protecting your privacy. This Privacy Policy explains how your the information about your famr is collected, used, and disclosed by BDMetrics. This Privacy Policy applies to our website and mobile application, alongside our associated subdomains (collectively, our \"Service\")."
       },
       "informationCollected": {
         "title": "Information We Collect",

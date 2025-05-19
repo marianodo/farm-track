@@ -14,7 +14,7 @@ const Navbar = () => {
         <div className="flex items-center space-x-2">
           <Sprout className="h-8 w-8 text-green-600" />
           <Link href="/">
-            <span className="text-xl font-bold text-black dark:text-white">FarmHealth</span>
+            <span className="text-xl font-bold text-black dark:text-white">MeasureMe</span>
           </Link>
         </div>
 
