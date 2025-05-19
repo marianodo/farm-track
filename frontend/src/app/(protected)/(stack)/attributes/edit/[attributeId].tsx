@@ -133,7 +133,7 @@ const EditAttribute: React.FC = () => {
             t
           )
           : validateCategoricalValue(
-            formData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
+            formData.defaultValue?.value?.categories as CategoricalValue,
             t
           ),
       type_of_object_ids: validateTypeObjectValue(
@@ -338,8 +338,8 @@ const EditAttribute: React.FC = () => {
     if (formData.type !== null && formData.type === 'CATEGORICAL') {
       if (key === 'delete') {
         setFormData((prevFormData) => {
-          const updatedValues = Array.isArray(prevFormData.defaultValue?.value.categoricalDefaultValues)
-            ? prevFormData.defaultValue?.value.categoricalDefaultValues.filter(
+          const updatedValues = Array.isArray(prevFormData.defaultValue?.value.categories)
+            ? prevFormData.defaultValue?.value.categories.filter(
               (item: string) => item.toLowerCase() !== value.toLowerCase()
             )
             : [];
@@ -349,14 +349,14 @@ const EditAttribute: React.FC = () => {
             ...prevFormData,
             defaultValue: {
               value: {
-                categoricalDefaultValues: updatedValues,
-                categoricalOptimalValues: formData.defaultValue?.value.categoricalOptimalValues?.filter((item: string) => item !== value),
+                categories: updatedValues,
+                optimal_values: formData.defaultValue?.value.optimal_values?.filter((item: string) => item !== value),
               },
             },
           };
 
           const errors = validateCategoricalValue(
-            newFormData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
+            newFormData.defaultValue?.value?.categories as CategoricalValue,
             t
           );
 
@@ -371,7 +371,7 @@ const EditAttribute: React.FC = () => {
         setFormData((prevFormData) => {
           let newFormData: FormData;
           const currentValues =
-            prevFormData.defaultValue?.value?.categoricalDefaultValues || [];
+            prevFormData.defaultValue?.value?.categories || [];
 
           if (
             value &&
@@ -385,8 +385,8 @@ const EditAttribute: React.FC = () => {
               ...prevFormData,
               defaultValue: {
                 value: {
-                  categoricalDefaultValues: newValues,
-                  categoricalOptimalValues: optimalValues,
+                  categories: newValues,
+                  optimal_values: optimalValues,
                 },
               },
             };
@@ -395,7 +395,7 @@ const EditAttribute: React.FC = () => {
           }
 
           const errors = validateCategoricalValue(
-            newFormData.defaultValue?.value?.categoricalDefaultValues as CategoricalValue,
+            newFormData.defaultValue?.value?.categories as CategoricalValue,
             t
           );
 
@@ -414,7 +414,7 @@ const EditAttribute: React.FC = () => {
     if (
       value &&
       value.trim() !== '' &&
-      !formData.defaultValue?.value?.categoricalOptimalValues.some(
+      !formData.defaultValue?.value?.optimal_values.some(
         (item) => item.toLowerCase() === value.toLowerCase()
       )
     ) {
@@ -425,7 +425,7 @@ const EditAttribute: React.FC = () => {
           ...prevFormData.defaultValue,
           value: {
             ...prevFormData.defaultValue.value,
-            categoricalOptimalValues: [...formData.defaultValue?.value?.categoricalOptimalValues, value],
+            optimal_values: [...formData.defaultValue?.value?.optimal_values, value],
           },
         },
       }));
@@ -437,7 +437,7 @@ const EditAttribute: React.FC = () => {
           ...prevFormData.defaultValue,
           value: {
             ...prevFormData.defaultValue.value,
-            categoricalOptimalValues: formData.defaultValue?.value?.categoricalOptimalValues?.filter((item) => item !== value),
+            optimal_values: formData.defaultValue?.value?.optimal_values?.filter((item) => item !== value),
           },
         },
       }));
@@ -891,11 +891,11 @@ const EditAttribute: React.FC = () => {
               <>
                 <View style={[styles.input, styles.inputContainerCategorical, {
                   marginBottom: 0, borderBottomEndRadius: formData.defaultValue?.value &&
-                    Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                    formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                    Array.isArray(formData.defaultValue.value.categories) &&
+                    formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                   borderBottomStartRadius: formData.defaultValue?.value &&
-                    Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                    formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                    Array.isArray(formData.defaultValue.value.categories) &&
+                    formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                 }]}>
                   <Text style={styles.textDefaultValues}>
                     {t('attributeView.createPlaceHolderDefaultValues')}
@@ -934,9 +934,9 @@ const EditAttribute: React.FC = () => {
                   )}
                 </View>
 
-                {formData.defaultValue?.value.categoricalDefaultValues &&
-                  Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                  formData.defaultValue?.value.categoricalDefaultValues.length > 0 && (
+                {formData.defaultValue?.value.categories &&
+                  Array.isArray(formData.defaultValue.value.categories) &&
+                  formData.defaultValue?.value.categories.length > 0 && (
                     <>
                       <View style={[
                         {
@@ -952,17 +952,17 @@ const EditAttribute: React.FC = () => {
                         }, styles.definedValuesContainer,
                         {
                           marginBottom: 0, borderTopEndRadius: formData.defaultValue?.value &&
-                            Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                            formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                            Array.isArray(formData.defaultValue.value.categories) &&
+                            formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                           borderTopStartRadius: formData.defaultValue?.value &&
-                            Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                            formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                            Array.isArray(formData.defaultValue.value.categories) &&
+                            formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                           borderBottomEndRadius: formData.defaultValue?.value &&
-                            Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                            formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                            Array.isArray(formData.defaultValue.value.categories) &&
+                            formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                           borderBottomStartRadius: formData.defaultValue?.value &&
-                            Array.isArray(formData.defaultValue.value.categoricalDefaultValues) &&
-                            formData.defaultValue?.value.categoricalDefaultValues.length > 0 ? 0 : 8,
+                            Array.isArray(formData.defaultValue.value.categories) &&
+                            formData.defaultValue?.value.categories.length > 0 ? 0 : 8,
                         }
                       ]}>
                         <Text style={styles.definedValuesText}>
@@ -977,8 +977,8 @@ const EditAttribute: React.FC = () => {
                           {t('attributeView.createSubTextDefinedValues')}
                         </Text>
                         <View style={styles.definedValuesRow}>
-                          {formData.defaultValue.value.categoricalDefaultValues.length > 0 &&
-                            formData.defaultValue.value.categoricalDefaultValues.map((item, index) => (
+                          {formData.defaultValue.value.categories.length > 0 &&
+                            formData.defaultValue.value.categories.map((item, index) => (
                               <Pressable
                                 key={index}
                                 onPress={() =>
@@ -1006,7 +1006,7 @@ const EditAttribute: React.FC = () => {
                       </View>
                       {/* Valores optimos */}
                       {
-                        formData.defaultValue?.value.categoricalDefaultValues?.length > 1 &&
+                        formData.defaultValue?.value.categories?.length > 1 &&
                         <View style={[{
                           alignSelf: 'center',
                           justifyContent: 'center',
@@ -1036,8 +1036,8 @@ const EditAttribute: React.FC = () => {
                             {t('attributeView.createSubTextDefinedValuesOptimal')}
                           </Text>
                           <View style={styles.definedValuesRow}>
-                            {formData.defaultValue?.value.categoricalDefaultValues.length > 0 &&
-                              formData.defaultValue.value.categoricalDefaultValues.map((item, index) => (
+                            {formData.defaultValue?.value.categories.length > 0 &&
+                              formData.defaultValue.value.categories.map((item, index) => (
                                 <Pressable
                                   key={index}
                                   onPress={() =>
@@ -1045,16 +1045,16 @@ const EditAttribute: React.FC = () => {
                                   }
                                 >
                                   <View style={[styles.definedValueItem, {
-                                    backgroundColor: formData.defaultValue?.value?.categoricalOptimalValues?.includes(item) ? 'rgba(144, 238, 144, 0.2)' : '#F1F1F1'
+                                    backgroundColor: formData.defaultValue?.value?.optimal_values?.includes(item) ? 'rgba(144, 238, 144, 0.2)' : '#F1F1F1'
                                   }]}>
                                     <Text style={styles.definedValueText}>
                                       {item}
                                     </Text>
                                     <View style={styles.definedValueSeparator} />
                                     <Text style={[styles.definedValueDeleteText, {
-                                      color: formData.defaultValue?.value?.categoricalOptimalValues?.includes(item) ? '#FF0000' : '#292929'
+                                      color: formData.defaultValue?.value?.optimal_values?.includes(item) ? '#FF0000' : '#292929'
                                     }]}>
-                                      {formData.defaultValue?.value?.categoricalOptimalValues?.includes(item) ? '-' : '+'}
+                                      {formData.defaultValue?.value?.optimal_values?.includes(item) ? '-' : '+'}
                                     </Text>
                                   </View>
                                 </Pressable>
