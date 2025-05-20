@@ -141,7 +141,7 @@
     "createTextGranularity": "Granularidad",
     "createTextDefinedValues": "Valores definidos",
     "createSubTextDefinedValues": "Si quiere eliminar un valor definido, simplemente toque sobre el",
-    "createTextDefinedValuesOptimal": "Valores óptimos (opcional)",
+    "createTextDefinedValuesOptimal": "Valores óptimos",
     "createSubTextDefinedValuesOptimal": "Puede indicar los valores que serían óptimos para esta variable simplemente tocando sobre ellos.",
     "createPlaceHolderGranularity": "Ingrese un valor",
     "createPlaceHolderMinValue": "Minimo",
