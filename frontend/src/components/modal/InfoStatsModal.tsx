@@ -29,7 +29,7 @@ export default function InfoStatsModal({
             <View style={styles.overlay} />
             <View style={styles.modalContent}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>Estadísticas del reporte</Text>
+                    <Text style={styles.title}>Resumen de la evaluación</Text>
                     <IconButton
                         icon="close"
                         iconColor="#486732"
