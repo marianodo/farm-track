@@ -28,6 +28,7 @@
       "maxOptimoLessThanMinOptimo": "El valor máximo óptimo debe ser mayor que el valor mínimo óptimo.",
       "minMaxInvalid": "Tanto el valor minimo como el maximo deben ser mayor a 0.",
       "invalidCategoricalLength": "Minimo deben haber 2 valores definidos",
+      "invalidCategoricalLengthOptimal": "Minimo debe haber 1 valor óptimo definido",
       "invalidTypeObjectLength": "Debes seleccionar al menos un tipo de objeto"
     },
     "granularity": {
@@ -140,7 +141,7 @@
     "createTextGranularity": "Granularidad",
     "createTextDefinedValues": "Valores definidos",
     "createSubTextDefinedValues": "Si quiere eliminar un valor definido, simplemente toque sobre el",
-    "createTextDefinedValuesOptimal": "Valores óptimos (opcional)",
+    "createTextDefinedValuesOptimal": "Valores óptimos",
     "createSubTextDefinedValuesOptimal": "Puede indicar los valores que serían óptimos para esta variable simplemente tocando sobre ellos.",
     "createPlaceHolderGranularity": "Ingrese un valor",
     "createPlaceHolderMinValue": "Minimo",
