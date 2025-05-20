@@ -99,6 +99,29 @@ export class MeasurementController {
     }
   }
 
+  @Get('stats/byReportId/:reportId')
+  @HttpCode(HttpStatus.OK)
+  async getMeasurementStatsByReport(
+    @Param('reportId') reportId: string,
+    @Query()
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementService.getMeasurementStatsByReport(
+        +reportId,
+        options,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // @Post()
   // @HttpCode(HttpStatus.CREATED)
   // async create(@Body() createMeasurementDto: CreateMeasurementDto) {

@@ -563,6 +563,152 @@ GROUP BY t.name, p.name, v.name, r.name;
     }
   }
 
+  async getMeasurementStatsByReport(report_id: number, options?: {
+    totalMeasurement?: boolean;
+    byObject?: boolean;
+    byPen?: boolean;
+    byVariable?: boolean;
+    byVariableByPen?: boolean;
+    byReport?: boolean;
+  }) {
+    try {
+      const rawStats = await this.db.$queryRaw<
+        Array<{
+          total_measurement: bigint;
+          type_of_object_name: string;
+          measurement_count_object: bigint;
+          pen_name: string;
+          measurement_count_pen: bigint;
+          variable_name: string;
+          measurement_count_variable: bigint;
+          report_name: string;
+          measurement_count_report: bigint;
+        }>
+      >(Prisma.sql`
+  SELECT 
+  (SELECT COUNT(*) FROM "Measurement" WHERE report_id = ${report_id}) AS total_measurement,
+  t.name AS type_of_object_name,
+  COUNT(*) FILTER (WHERE t.id IS NOT NULL) AS measurement_count_object,
+  p.name AS pen_name,
+  COUNT(*) FILTER (WHERE p.id IS NOT NULL) AS measurement_count_pen,
+  v.name AS variable_name,
+  COUNT(*) FILTER (WHERE v.id IS NOT NULL) AS measurement_count_variable,
+  r.name AS report_name,
+  COUNT(*) FILTER (WHERE r.id IS NOT NULL) AS measurement_count_report
+FROM "Measurement" m
+LEFT JOIN "PenVariableTypeOfObject" pvto ON m.pen_variable_type_of_object_id = pvto.id
+LEFT JOIN "TypeOfObject" t ON pvto."typeOfObjectId" = t.id
+LEFT JOIN "Pen" p ON pvto."penId" = p.id
+LEFT JOIN "Variable" v ON pvto."variableId" = v.id
+LEFT JOIN "Report" r ON m.report_id = r.id
+WHERE m.report_id = ${report_id}
+GROUP BY t.name, p.name, v.name, r.name;
+`);
+
+      // Preparamos la respuesta
+      const response: any = {};
+
+      // Convertimos BigInt a Number antes de procesar la respuesta
+      const includeAll = !options || Object.keys(options).length === 0;
+
+      // Si totalMeasurement es verdadero o no se especifican opciones, calculamos el total
+      if (includeAll || options?.totalMeasurement) {
+        response.total_measurement = Number(
+          rawStats[0]?.total_measurement || 0,
+        );
+      }
+
+      // Inicializamos las propiedades para los otros cálculos
+      if (includeAll || options?.byObject) {
+        response.measurement_by_object = {};
+      }
+
+      if (includeAll || options?.byPen) {
+        response.measurement_by_pen = {};
+      }
+
+      if (includeAll || options?.byVariable) {
+        response.measurement_by_variable = {};
+      }
+
+      if (includeAll || options?.byVariableByPen) {
+        response.measurement_by_variable_by_pen = {};
+      }
+
+      if (includeAll || options?.byReport) {
+        response.measurement_by_report = {};
+      }
+
+      // Procesamos las estadísticas crudas
+      rawStats.forEach((row) => {
+        // Sumamos las mediciones por objeto
+        if ((includeAll || options?.byObject) && row.type_of_object_name) {
+          response.measurement_by_object[row.type_of_object_name] =
+            (response.measurement_by_object[row.type_of_object_name] || 0) +
+            Number(row.measurement_count_object);
+        }
+
+        // Sumamos las mediciones por pen
+        if ((includeAll || options?.byPen) && row.pen_name) {
+          response.measurement_by_pen[row.pen_name] =
+            (response.measurement_by_pen[row.pen_name] || 0) +
+            Number(row.measurement_count_pen);
+        }
+
+        // Sumamos las mediciones por variable
+        if ((includeAll || options?.byVariable) && row.variable_name) {
+          response.measurement_by_variable[row.variable_name] =
+            (response.measurement_by_variable[row.variable_name] || 0) +
+            Number(row.measurement_count_variable);
+        }
+
+        // Sumamos las mediciones por variable y por pen
+        if (
+          (includeAll || options?.byVariableByPen) &&
+          row.pen_name &&
+          row.variable_name
+        ) {
+          if (!response.measurement_by_variable_by_pen[row.pen_name]) {
+            response.measurement_by_variable_by_pen[row.pen_name] = {};
+          }
+          response.measurement_by_variable_by_pen[row.pen_name][
+            row.variable_name
+          ] =
+            (response.measurement_by_variable_by_pen[row.pen_name][
+              row.variable_name
+            ] || 0) + Number(row.measurement_count_variable);
+        }
+
+        if (
+          (includeAll || options?.byReport) &&
+          row.report_name &&
+          row.pen_name &&
+          row.type_of_object_name
+        ) {
+          if (!response.measurement_by_report[row.report_name]) {
+            response.measurement_by_report[row.report_name] = {};
+          }
+          if (!response.measurement_by_report[row.report_name][row.pen_name]) {
+            response.measurement_by_report[row.report_name][row.pen_name] = {};
+          }
+          response.measurement_by_report[row.report_name][row.pen_name][
+            row.type_of_object_name
+          ] =
+            (response.measurement_by_report[row.report_name][row.pen_name][
+              row.type_of_object_name
+            ] || 0) + Number(row.measurement_count_report);
+        }
+      });
+
+      return response;
+    } catch (error) {
+      console.error('Error fetching measurement stats by report:', error);
+      throw new InternalServerErrorException(
+        'Error retrieving measurement stats by report',
+      );
+    }
+  }
+
   async findByReportAndSubjectId(report_id: number, subject_id: number) {
     try {
       const where: Prisma.MeasurementWhereInput = {};

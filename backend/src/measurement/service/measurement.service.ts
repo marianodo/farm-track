@@ -103,6 +103,26 @@ export class MeasurementService {
     }
   }
 
+  async getMeasurementStatsByReport(
+    reportId: number,
+    options?: {
+      totalMeasurement?: boolean;
+      byObject?: boolean;
+      byPen?: boolean;
+      byVariable?: boolean;
+      byVariableByPen?: boolean;
+    },
+  ) {
+    try {
+      return await this.measurementRepository.getMeasurementStatsByReport(
+        reportId,
+        options,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async findOne(id: number) {
     try {
       return await this.measurementRepository.findOne(id);
