@@ -27,7 +27,8 @@
       "minOptimoGreaterThanMaxOptimo": "The optimal minimum value must be less than the optimal maximum value.",
       "maxOptimoLessThanMinOptimo": "The optimal maximum value must be greater than the optimal minimum value.",
       "minMaxInvalid": "Both the minimum and maximum value must be greater or equal than 0.",
-      "invalidCategoricalLength": "There must be at least 2 defined values.",
+      "invalidCategoricalLength": "There must be at least 2 values defined.",
+      "invalidCategoricalLengthOptimal": "There must be at least 1 optimal value defined.",
       "invalidTypeObjectLength": "You must select at least one object type."
     },
     "granularity": {

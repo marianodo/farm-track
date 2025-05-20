@@ -84,7 +84,7 @@ export const useValidationRules = () => {
   };
 
   const validateCategoricalValue: (
-    inputsValue: string[] | NumericValue | null,
+    inputsValue: string[] | null,
     t: (key: string) => string
   ) => { [key: string]: string } | null = (inputsValue) => {
     const errors: { [key: string]: string } = {};
@@ -99,6 +99,28 @@ export const useValidationRules = () => {
 
     if (inputsValue.length < 2) {
       errors.categorical = t('formErrors.range.invalidCategoricalLength');
+      return errors;
+    }
+
+    return null;
+  };
+
+  const validateOptimalCategoricalValue: (
+    inputsValue: string[] | null,
+    t: (key: string) => string
+  ) => { [key: string]: string } | null = (inputsValue) => {
+    const errors: { [key: string]: string } = {};
+    if (
+      inputsValue === null ||
+      !Array.isArray(inputsValue) ||
+      inputsValue.length === 0
+    ) {
+      errors.optimalEmpty = t('formErrors.range.invalidCategoricalLengthOptimal');
+      return errors;
+    }
+
+    if (inputsValue.length < 1) {
+      errors.optimal = t('formErrors.range.invalidCategoricalLengthOptimal');
       return errors;
     }
 
@@ -159,5 +181,6 @@ export const useValidationRules = () => {
     validateCategoricalValue,
     validateTypeObjectValue,
     validateNameInput,
+    validateOptimalCategoricalValue,
   };
 };

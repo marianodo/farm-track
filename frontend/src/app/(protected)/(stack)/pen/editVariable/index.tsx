@@ -58,6 +58,7 @@ type FormData = {
 type FormDataError = {
   name: string | null;
   custom_parameters: { [key: string]: string } | null;
+  optimal_values: { [key: string]: string } | null;
 };
 
 const EditVariable: React.FC = () => {
@@ -81,10 +82,12 @@ const EditVariable: React.FC = () => {
     validateCategoricalValue,
     validateTypeObjectValue,
     validateNameInput,
+    validateOptimalCategoricalValue
   } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
     name: null,
     custom_parameters: null,
+    optimal_values: null,
   });
   const options = [0.1, 0.25, 0.5, 1];
   const [editObjects, setEditObjects] = useState<boolean>(false);
@@ -135,10 +138,13 @@ const EditVariable: React.FC = () => {
               formData.custom_parameters?.value?.categories as CategoricalValue,
               t
             ),
+      optimal_values: type === 'CATEGORICAL'
+        ? validateOptimalCategoricalValue(formData.custom_parameters?.value?.optimal_values as string[], t)
+        : null,
     };
 
     setError(newError);
-    return newError.name || newError.custom_parameters;
+    return newError.name || newError.custom_parameters || newError.optimal_values;
   };
 
   useEffect(() => {
@@ -186,6 +192,12 @@ const EditVariable: React.FC = () => {
           },
         },
       }));
+      const errors = validateOptimalCategoricalValue([...optimalValues, value], t);
+
+      setError((prevError) => ({
+        ...prevError,
+        optimal_values: errors,
+      }));
     } else {
       setOptimalValues(optimalValues.filter((item) => item !== value));
       setFormData((prevFormData) => ({
@@ -197,6 +209,12 @@ const EditVariable: React.FC = () => {
             optimal_values: formData.custom_parameters?.value?.optimal_values?.filter((item: string) => item !== value),
           },
         },
+      }));
+      const errors = validateOptimalCategoricalValue(formData.custom_parameters?.value?.optimal_values?.filter((item: string) => item !== value) ?? null, t);
+
+      setError((prevError) => ({
+        ...prevError,
+        optimal_values: errors,
       }));
     }
   };
@@ -936,6 +954,11 @@ const EditVariable: React.FC = () => {
                           </Pressable>
                         ))}
                     </View>
+                    {error?.optimal_values?.optimalEmpty && (
+                      <Text style={styles.errorText}>
+                        {error?.optimal_values?.optimalEmpty}
+                      </Text>
+                    )}
                   </View>
                 }
               </>

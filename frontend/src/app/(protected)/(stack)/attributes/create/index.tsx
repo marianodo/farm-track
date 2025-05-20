@@ -58,6 +58,7 @@ type FormDataError = {
   type: string | null;
   defaultValue: { [key: string]: string } | null;
   type_of_object_ids: string | null;
+  optimal_values: { [key: string]: string } | null;
 };
 
 const CreateAttribute: React.FC = () => {
@@ -66,12 +67,14 @@ const CreateAttribute: React.FC = () => {
     validateCategoricalValue,
     validateTypeObjectValue,
     validateNameInput,
+    validateOptimalCategoricalValue
   } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
     name: null,
     type: null,
     defaultValue: null,
     type_of_object_ids: null,
+    optimal_values: null,
   });
   const router = useRouter();
 
@@ -128,6 +131,10 @@ const CreateAttribute: React.FC = () => {
             formData.defaultValue?.value?.categories as CategoricalValue,
             t
           ),
+      optimal_values: validateOptimalCategoricalValue(
+        formData.defaultValue?.value?.optimal_values as string[],
+        t
+      ),
       type_of_object_ids: validateTypeObjectValue(
         formData.type_of_object_ids,
         t
@@ -139,7 +146,8 @@ const CreateAttribute: React.FC = () => {
       newError.name ||
       newError.type ||
       newError.defaultValue ||
-      newError.type_of_object_ids
+      newError.type_of_object_ids ||
+      newError.optimal_values
     );
   };
 
@@ -176,6 +184,12 @@ const CreateAttribute: React.FC = () => {
           },
         },
       }));
+      const errors = validateOptimalCategoricalValue([...optimalValues, value], t);
+
+      setError((prevError) => ({
+        ...prevError,
+        optimal_values: errors,
+      }));
     } else {
       setOptimalValues(optimalValues.filter((item) => item !== value));
       setFormData((prevFormData) => ({
@@ -188,9 +202,15 @@ const CreateAttribute: React.FC = () => {
           },
         },
       }));
+      const errors = validateOptimalCategoricalValue(optimalValues.filter((item) => item !== value) ?? null, t);
+
+      setError((prevError) => ({
+        ...prevError,
+        optimal_values: errors,
+      }));
+
     }
   };
-
   const onChange = (field: keyof FormData, inputValue: any) => {
     const updatedFormData = { ...formData, [field]: inputValue };
     switch (field) {
@@ -1053,6 +1073,11 @@ const CreateAttribute: React.FC = () => {
                                 </Pressable>
                               ))}
                           </View>
+                          {error?.optimal_values?.optimalEmpty && (
+                            <Text style={styles.errorText}>
+                              {error?.optimal_values?.optimalEmpty}
+                            </Text>
+                          )}
                         </View>
                       }
                     </>
