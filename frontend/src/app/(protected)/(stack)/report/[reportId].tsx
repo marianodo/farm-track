@@ -136,161 +136,12 @@ export default function PenScreen() {
   );
 
   const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
-  // const [reportStatsData] = useState({
-  //   totalMeasurements: 0,
-  //   totalPensMeasured: 0,
-  //   pensMeasured: [],
-  //   totalVariablesMeasured: 0,
-  //   variablesMeasured: [],
-  // });
 
   const [reportStatsData] = useState({
-    totalMeasurements: 85,
-    totalPensMeasured: 8,
-    pensMeasured: [
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 1',
-      'Corral 2',
-      'Corral 3',
-      'Corral 4',
-      'Corral 5',
-      'Corral 6',
-      'Corral 7',
-      'Corral 8'
-    ],
-    totalVariablesMeasured: 12,
-    variablesMeasured: [
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Score de locomocion',
-      'pH Urinario',
-      'Score de bebedero',
-      'Condicion Corporal',
-      'Temperatura rectal',
-      'Peso corporal',
-      'Nivel de glucosa',
-      'Consumo de alimento',
-      'Score de limpieza',
-      'Comportamiento al caminar',
-      'Nivel de estrés',
-      'Producción de leche'
-    ],
+    totalMeasurements: 0,
+    variablesMeasured: {},
+    totalObjectsMeasured: 0,
+    pensMeasured: {},
   });
 
   useEffect(() => {
@@ -302,12 +153,27 @@ export default function PenScreen() {
   const transformStatsData = useCallback((apiData: any) => {
     if (!apiData) return reportStatsData;
 
+    let totalObjectsMeasured = 0;
+    const pensMeasured: Record<string, Record<string, number>> = {};
+
+    if (apiData?.measurement_by_field && Object.keys(apiData.measurement_by_field).length > 0) {
+      const fieldName = Object.keys(apiData.measurement_by_field)[0];
+      const fieldData = apiData?.measurement_by_field[fieldName];
+
+      Object.entries(fieldData)?.forEach(([pen, objects]: [string, any]) => {
+        pensMeasured[pen] = objects as Record<string, number>;
+
+        Object.values(objects)?.forEach((count: any) => {
+          totalObjectsMeasured += count;
+        });
+      });
+    }
+
     return {
       totalMeasurements: apiData.total_measurement || 0,
-      totalPensMeasured: Object.keys(apiData.measurement_by_pen || {}).length,
-      pensMeasured: Object.keys(apiData.measurement_by_pen || {}),
-      totalVariablesMeasured: Object.keys(apiData.measurement_by_variable || {}).length,
-      variablesMeasured: Object.keys(apiData.measurement_by_variable || {}),
+      variablesMeasured: apiData.measurement_by_variable || {},
+      totalObjectsMeasured,
+      pensMeasured,
     };
   }, []);
 
@@ -509,7 +375,7 @@ export default function PenScreen() {
       <InfoStatsModal
         isVisible={showInfoModal}
         onClose={() => setShowInfoModal(false)}
-        stats={reportStatsData}
+        stats={modalStatsData}
       />
     </View>
   );

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
 import MeasurementStats from './interface/measurementStats.interface';
+import useFieldStore from './fieldStore';
 
 interface MeasurementStatsStore {
   stats: MeasurementStats | null;
@@ -81,13 +82,16 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
   getStatsByReport: async (reportId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen) => {
     set({ statsLoading: true });
     try {
+      const fieldId = useFieldStore.getState().fieldId;
+
       const response = await axiosInstance.get(`/measurements/stats/byReportId/${reportId}`, {
         params: {
           totalMeasurement,
           byObject,
           byPen,
           byVariable,
-          byVariableByPen
+          byVariableByPen,
+          byField: fieldId
         }
       });
       set({ statsByReport: response.data, statsLoading: false });

@@ -7,10 +7,9 @@ type InfoStatsModalProps = {
     onClose: () => void;
     stats: {
         totalMeasurements: number;
-        totalPensMeasured: number;
-        pensMeasured: string[];
-        totalVariablesMeasured: number;
-        variablesMeasured: string[];
+        variablesMeasured: Record<string, number>;
+        totalObjectsMeasured: number;
+        pensMeasured: Record<string, Record<string, number>>;
     };
 };
 
@@ -40,30 +39,39 @@ export default function InfoStatsModal({
                 </View>
 
                 <ScrollView style={styles.scrollContainer}>
+                    {/* Total Mediciones */}
                     <View style={styles.statItem}>
                         <Text style={styles.statLabel}>Total Mediciones:</Text>
                         <Text style={styles.statValue}>{stats.totalMeasurements}</Text>
                     </View>
 
+                    {/* Variables Medidas */}
                     <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total Corrales Medidos:</Text>
-                        <Text style={styles.statValue}>{stats.totalPensMeasured}</Text>
+                        <Text style={styles.statLabel}>Variables Medidas:</Text>
+                        {Object.entries(stats.variablesMeasured).map(([variable, count], index) => (
+                            <View key={index} style={styles.subStatItem}>
+                                <Text style={styles.statValue}>{variable}: {count}</Text>
+                            </View>
+                        ))}
                     </View>
 
+                    {/* Total de objetos medidos */}
                     <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Corrales Medidos:</Text>
-                        <Text style={styles.statValue}>{stats.pensMeasured.join(', ')}</Text>
+                        <Text style={styles.statLabel}>Total de objetos medidos:</Text>
+                        <Text style={styles.statValue}>{stats.totalObjectsMeasured}</Text>
                     </View>
 
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total Variables Medidas:</Text>
-                        <Text style={styles.statValue}>{stats.totalVariablesMeasured}</Text>
-                    </View>
-
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Variables medidas:</Text>
-                        <Text style={styles.statValue}>{stats.variablesMeasured.join(', ')}</Text>
-                    </View>
+                    {/* Desglose por Corral */}
+                    {Object.entries(stats.pensMeasured).map(([pen, objects], index) => (
+                        <View key={index} style={styles.statItem}>
+                            <Text style={styles.statLabel}>{pen}:</Text>
+                            {Object.entries(objects).map(([objectType, count], idx) => (
+                                <View key={idx} style={styles.subStatItem}>
+                                    <Text style={styles.statValue}>{objectType}: {count}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    ))}
                 </ScrollView>
             </View>
         </Modal>
@@ -118,6 +126,10 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(72, 103, 50, 0.2)',
         paddingBottom: rMS(8),
+    },
+    subStatItem: {
+        marginLeft: rMS(10),
+        marginBottom: rMS(4),
     },
     statLabel: {
         fontFamily: 'Pro-Bold',
