@@ -1,6 +1,7 @@
 import { Modal, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { IconButton } from 'react-native-paper';
 import { rMS } from '@/styles/responsive';
+import { useTranslation } from 'react-i18next';
 
 type InfoStatsModalProps = {
     isVisible: boolean;
@@ -18,6 +19,7 @@ export default function InfoStatsModal({
     onClose,
     stats,
 }: InfoStatsModalProps) {
+    const { t } = useTranslation();
     return (
         <Modal
             animationType="fade"
@@ -28,7 +30,7 @@ export default function InfoStatsModal({
             <View style={styles.overlay} />
             <View style={styles.modalContent}>
                 <View style={styles.header}>
-                    <Text style={styles.title}>Resumen de la evaluación</Text>
+                    <Text style={styles.title}>{t('reportsView.infoStatsModal.title')}</Text>
                     <IconButton
                         icon="close"
                         iconColor="#486732"
@@ -41,13 +43,13 @@ export default function InfoStatsModal({
                 <ScrollView style={styles.scrollContainer}>
                     {/* Total Mediciones */}
                     <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total Mediciones:</Text>
+                        <Text style={styles.statLabel}>{t('reportsView.infoStatsModal.totalMeasurements')}</Text>
                         <Text style={styles.statValue}>{stats.totalMeasurements}</Text>
                     </View>
 
                     {/* Variables Medidas */}
                     <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Variables Medidas:</Text>
+                        <Text style={styles.statLabel}>{t('reportsView.infoStatsModal.variablesMeasured')}</Text>
                         {Object.entries(stats.variablesMeasured).map(([variable, count], index) => (
                             <View key={index} style={styles.subStatItem}>
                                 <Text style={styles.statValue}>{variable}: {count}</Text>
@@ -57,7 +59,7 @@ export default function InfoStatsModal({
 
                     {/* Total de objetos medidos */}
                     <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total de objetos medidos:</Text>
+                        <Text style={styles.statLabel}>{t('reportsView.infoStatsModal.totalObjectsMeasured')}</Text>
                         <Text style={styles.statValue}>{stats.totalObjectsMeasured}</Text>
                     </View>
 

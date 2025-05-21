@@ -218,7 +218,13 @@
       "percentage_of_fat": "% of fat",
       "percentage_of_protein": "% of protein"
     },
-    "dontMeasurementOnReport": "To see report details you must first create a measurement."
+    "dontMeasurementOnReport": "To see report details you must first create a measurement.",
+    "infoStatsModal": {
+      "title": "Evaluation summary",
+      "totalMeasurements": "Total measurements:",
+      "variablesMeasured": "Variables measured:",
+      "totalObjectsMeasured": "Total objects measured:"
+    }
   },
   "measurementView": {
     "newMeasurementText": "New measurement",

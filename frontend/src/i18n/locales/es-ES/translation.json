@@ -218,7 +218,13 @@
       "percentage_of_fat": "% de grasa",
       "percentage_of_protein": "% de proteína"
     },
-    "dontMeasurementOnReport": "Para ver detalles del reporte primero debes crear una medicion."
+    "dontMeasurementOnReport": "Para ver detalles del reporte primero debes crear una medicion.",
+    "infoStatsModal": {
+      "title": "Resumen de la evaluación",
+      "totalMeasurements": "Total mediciones:",
+      "variablesMeasured": "Variables medidas:",
+      "totalObjectsMeasured": "Total objetos medidas:"
+    }
   },
   "measurementView": {
     "newMeasurementText": "Nueva medición",
