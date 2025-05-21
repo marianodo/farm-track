@@ -365,18 +365,17 @@ export default function HomeScreen() {
             >
               <Menu.Item
                 onPress={() => {
-                  closeMenu(), setShowChangePasswordModal(true);
-                }}
-                title={t('menuInitial.changePassword')}
-              />
-              <Divider style={{ backgroundColor: '#487632', height: 1 }} />
-              <Menu.Item
-                onPress={() => {
                   closeMenu(), setShowDeleteModal(true);
                 }}
                 title={t('menuInitial.deleteData')}
               />
               <Divider style={{ backgroundColor: '#487632', height: 1 }} />
+              <Menu.Item
+                onPress={() => {
+                  closeMenu(), setShowChangePasswordModal(true);
+                }}
+                title={t('menuInitial.changePassword')}
+              />
               <Menu.Item
                 onPress={() => onLogoutPressed()}
                 title={t('menuInitial.logout')}

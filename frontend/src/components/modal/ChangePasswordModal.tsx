@@ -58,10 +58,8 @@ export default function ChangePasswordModal({
 
     const handleSubmit = async () => {
         if (!validateForm()) return;
-        console.log('submit');
         const success = await changePassword(currentPassword, newPassword);
         if (success) {
-            console.log('success');
             alert(t('changePassword.success'));
             resetForm();
             onClose();
