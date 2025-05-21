@@ -20,6 +20,7 @@ import {
   Keyboard,
   KeyboardEvent,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import styles from './styles';
 import PenList from '../../components/penAndReport/PenList';
@@ -34,7 +35,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import Animated, {
@@ -49,6 +50,8 @@ import usePenStore from '@/store/penStore';
 import useReportStore from '@/store/reportStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ReportDetail from '@/components/penAndReport/reportDetail';
+import InfoStatsModal from '@/components/modal/InfoStatsModal';
+import useMeasurementStatsStore from '@/store/measurementStatsStore';
 
 interface ListItemProps {
   item: any;
@@ -62,7 +65,7 @@ export default function PenScreen() {
   const [localLoading, setLocalLoading] = useState<boolean>(true);
   const [lng, setLng] = useState<string | null>(null);
   const { fieldId, fieldName, reportName, reportId } = useLocalSearchParams();
-
+  const { statsByReport, getStatsByReport, statsLoading } = useMeasurementStatsStore();
   const router = useRouter();
 
   const { role, userName } = useAuthStore((state) => ({
@@ -132,6 +135,52 @@ export default function PenScreen() {
     (reportById && reportById[0]?.name) ?? null
   );
 
+  const [showInfoModal, setShowInfoModal] = useState<boolean>(false);
+
+  const [reportStatsData] = useState({
+    totalMeasurements: 0,
+    variablesMeasured: {},
+    totalObjectsMeasured: 0,
+    pensMeasured: {},
+  });
+
+  useEffect(() => {
+    if (reportId) {
+      getStatsByReport(reportId as string, true, true, true, true, true);
+    }
+  }, [reportId, getStatsByReport]);
+
+  const transformStatsData = useCallback((apiData: any) => {
+    if (!apiData) return reportStatsData;
+
+    let totalObjectsMeasured = 0;
+    const pensMeasured: Record<string, Record<string, number>> = {};
+
+    if (apiData?.measurement_by_field && Object.keys(apiData.measurement_by_field).length > 0) {
+      const fieldName = Object.keys(apiData.measurement_by_field)[0];
+      const fieldData = apiData?.measurement_by_field[fieldName];
+
+      Object.entries(fieldData)?.forEach(([pen, objects]: [string, any]) => {
+        pensMeasured[pen] = objects as Record<string, number>;
+
+        Object.values(objects)?.forEach((count: any) => {
+          totalObjectsMeasured += count;
+        });
+      });
+    }
+
+    return {
+      totalMeasurements: apiData.total_measurement || 0,
+      variablesMeasured: apiData.measurement_by_variable || {},
+      totalObjectsMeasured,
+      pensMeasured,
+    };
+  }, []);
+
+  const modalStatsData = useMemo(() => {
+    return statsByReport ? transformStatsData(statsByReport) : reportStatsData;
+  }, [statsByReport, reportStatsData, transformStatsData]);
+
   useEffect(() => {
     const getLanguage = async () => {
       const language = await AsyncStorage.getItem('language');
@@ -199,17 +248,28 @@ export default function PenScreen() {
               justifyContent: 'center',
             }}
           >
-            <Text
-              style={{
-                marginLeft: 20,
-                color: '#EBF2ED',
-                fontFamily: 'Pro-Regular-Bold',
-                fontSize: rMS(22),
-                fontWeight: 'bold',
-              }}
-            >
-              {fieldName}
-            </Text>
+            <View style={{
+              display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginHorizontal: rMS(18),
+            }}>
+              <Text
+                style={{
+                  color: '#EBF2ED',
+                  fontFamily: 'Pro-Regular-Bold',
+                  fontSize: rMS(22),
+                  fontWeight: 'bold',
+                }}
+              >
+                {fieldName}
+              </Text>
+              <TouchableOpacity
+                style={{ width: 0, height: 0, justifyContent: 'center', alignItems: 'center', marginRight: rMS(16) }}
+                onPress={() => {
+                  setShowInfoModal(true);
+                }}
+              >
+                <IconButton icon="information-outline" iconColor="#fff" size={rMS(24)} />
+              </TouchableOpacity>
+            </View>
             {/* titulo */}
             <Text style={styles.welcome}>{reportName}</Text>
           </View>
@@ -312,6 +372,11 @@ export default function PenScreen() {
           />
         )}
       </View>
+      <InfoStatsModal
+        isVisible={showInfoModal}
+        onClose={() => setShowInfoModal(false)}
+        stats={modalStatsData}
+      />
     </View>
   );
 }
