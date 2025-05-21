@@ -5,7 +5,26 @@
   "language": "Language",
   "menuInitial": {
     "deleteData": "Delete data",
-    "logout": "Logout"
+    "logout": "Logout",
+    "changePassword": "Change password"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "currentPassword": "Current password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "submit": "Change password",
+    "success": "Password changed successfully. Your session will be closed.",
+    "errors": {
+      "currentRequired": "Current password is required",
+      "newRequired": "New password is required",
+      "newLength": "New password must be at least 6 characters",
+      "confirmRequired": "You must confirm your new password",
+      "notMatch": "Passwords do not match"
+    }
   },
   "formErrors": {
     "required": {

@@ -23,6 +23,7 @@ interface AuthState {
   deleted: (id: string) => void;
   register: (username: string, password: string, email: string) => void;
   deletedUserData: (username: string) => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   initializedToken: () => void;
   verifiedToken: boolean;
 }
@@ -180,6 +181,32 @@ const useAuthStore = create<AuthState>((set: any) => ({
       }
     }
   },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<boolean> => {
+  set({ authLoading: true });
+  try {
+    const userId = useAuthStore.getState().userId;
+    await axiosInstance.put(
+      `${process.env.EXPO_PUBLIC_API_URL}/users/change-password`,
+      {
+        userId,
+        currentPassword,
+        newPassword,
+      }
+    );
+    
+    set({ authLoading: false });
+    return true;
+  } catch (error: any) {
+    set({ authLoading: false });
+    if (error.response && error.response.data && error.response.data.message) {
+      alert(`An error occurred while changing the password: ${error.response.data.message}`);
+    } else {
+      alert('An error occurred while changing the password.');
+    }
+    return false;
+  }
+},
 
   deleted: async (id: string) => {
     set({ authLoading: true });

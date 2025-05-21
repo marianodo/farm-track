@@ -5,7 +5,26 @@
   "language": "Lenguaje",
   "menuInitial": {
     "deleteData": "Borrar datos",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "changePassword": "Cambiar contraseña"
+  },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Ingrese su contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingrese su nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirme su nueva contraseña",
+    "submit": "Cambiar contraseña",
+    "success": "Contraseña cambiada con éxito. Se cerrará su sesión.",
+    "errors": {
+      "currentRequired": "La contraseña actual es obligatoria",
+      "newRequired": "La nueva contraseña es obligatoria",
+      "newLength": "La nueva contraseña debe tener al menos 6 caracteres",
+      "confirmRequired": "Debe confirmar la nueva contraseña",
+      "notMatch": "Las contraseñas no coinciden"
+    }
   },
   "formErrors": {
     "required": {

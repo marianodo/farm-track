@@ -38,6 +38,7 @@ import CreateButtonAbsolute from '@/components/createButton/CreateButtonAbsolute
 import CreateButton from '@/components/createButton/CreateButton';
 import CreateButtonTextAbsolute from '@/components/createButton/CreateButtonTextAbsolute';
 import capitalizeWords from '@/utils/capitalizeWords/capitalizeWords';
+import ChangePasswordModal from '@/components/modal/ChangePasswordModal';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -61,6 +62,7 @@ export default function HomeScreen() {
     subtitle: string;
   } | null>(null);
   const [showModal, setShowModal] = useState<boolean>(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
@@ -363,6 +365,13 @@ export default function HomeScreen() {
             >
               <Menu.Item
                 onPress={() => {
+                  closeMenu(), setShowChangePasswordModal(true);
+                }}
+                title={t('menuInitial.changePassword')}
+              />
+              <Divider style={{ backgroundColor: '#487632', height: 1 }} />
+              <Menu.Item
+                onPress={() => {
                   closeMenu(), setShowDeleteModal(true);
                 }}
                 title={t('menuInitial.deleteData')}
@@ -658,6 +667,10 @@ export default function HomeScreen() {
           />
         }
         textOkButton={t('fieldView.deleteButton')}
+      />
+      <ChangePasswordModal
+        isVisible={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
       />
     </View>
     // <View style={styles.titleContainer}>
