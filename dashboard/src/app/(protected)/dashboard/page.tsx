@@ -32,6 +32,7 @@ export default function DashboardPage() {
         fetch()
     }, [getFieldsByUser])
 
+    console.log(fieldsByUserId)
     const fields = [
         { value: "all", label: "Todos los campos" },
         ...(fieldsByUserId ?? []).map((field) => ({

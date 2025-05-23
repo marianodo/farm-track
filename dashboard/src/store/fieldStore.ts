@@ -83,6 +83,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
     set({ fieldLoading: true });
     try {
       const userId = useAuthStore.getState()?.user?.userId
+      console.log(userId)
       if (id) {
         const response = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/fields/byUserId/${id ?? null}`,

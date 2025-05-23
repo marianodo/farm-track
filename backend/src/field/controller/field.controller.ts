@@ -50,6 +50,16 @@ export class FieldController {
       throw error;
     }
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('dataset/:id')
+  async getFieldDataset(@Param('id') id: string) {
+    try {
+      return await this.fieldService.getFieldDataset(id);
+    } catch (error) {
+      throw error;
+    }
+  }
   @HttpCode(HttpStatus.OK)
   @Get(':id')
   async findOne(@Param('id') id: string) {

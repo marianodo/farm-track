@@ -108,6 +108,75 @@ export class FieldRepository {
     }
   }
 
+  async getFieldDataset(fieldId: string) {
+    console.log(`[FieldRepository] Getting dataset for field ID: ${fieldId}`);
+    
+    try {
+      // First verify the field exists
+      console.log('[FieldRepository] Verifying field exists...');
+      const fieldExists = await this.db.field.findUnique({
+        where: { id: fieldId },
+        select: { id: true },
+      });
+
+      if (!fieldExists) {
+        console.log(`[FieldRepository] Field with ID ${fieldId} not found`);
+        throw new NotFoundException(`Field with ID ${fieldId} not found`);
+      }
+
+      console.log('[FieldRepository] Field exists, executing query...');
+      
+      // Execute the raw SQL query
+      const query = `
+        SELECT
+          m.subject_id as "subjectId",
+          too.name as "typeOfObject",
+          v.name as variable,
+          m.value as "measuredValue",
+          p.name as "penName",
+          f.name as "fieldName",
+          m.report_id as "reportId",
+          r.name as "reportName",
+          r.created_at as "reportDate",
+          m.created_at as "measureDate"
+        FROM "Measurement" m
+        JOIN "PenVariableTypeOfObject" pvtoo ON pvtoo.id = m.pen_variable_type_of_object_id
+        JOIN "Variable" v ON pvtoo."variableId" = v.id
+        JOIN "Report" r ON m.report_id = r.id
+        JOIN "Pen" p ON pvtoo."penId" = p.id
+        JOIN "TypeOfObject" too ON pvtoo."typeOfObjectId" = too.id
+        JOIN "Field" f ON f.id = r.field_id
+        WHERE r.field_id = $1
+        ORDER BY m.created_at DESC
+      `;
+      
+      console.log('[FieldRepository] Executing query:', query);
+      
+      const measurements = await this.db.$queryRawUnsafe<Array<{
+        subjectId: number;
+        typeOfObject: string;
+        variable: string;
+        measuredValue: string;
+        penName: string;
+        fieldName: string;
+        reportId: number;
+        reportName: string;
+        reportDate: Date;
+        measureDate: Date;
+      }>>(query, fieldId);
+      
+      console.log(`[FieldRepository] Query executed successfully, found ${measurements.length} measurements`);
+      return measurements;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving field dataset.',
+      );
+    }
+  }
+
   async findOne(
     id: string,
   ): Promise<Omit<Field, 'id' | 'userId' | 'created_at' | 'updated_at'>> {

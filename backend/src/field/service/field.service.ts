@@ -65,4 +65,12 @@ export class FieldService {
       throw error;
     }
   }
+
+  async getFieldDataset(fieldId: string) {
+    try {
+      return await this.fieldRepository.getFieldDataset(fieldId);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
