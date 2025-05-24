@@ -9,6 +9,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FieldService } from '../service/field.service';
 // import { CreateFieldDto } from '../dto/create-field.dto';
@@ -56,6 +57,26 @@ export class FieldController {
   async getFieldDataset(@Param('id') id: string) {
     try {
       return await this.fieldService.getFieldDataset(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+  @HttpCode(HttpStatus.OK)
+  @Get('dataset/categorical/:id')
+  async getCategoricalMeasurementsByFieldId(@Param('id') id: string) {
+    try {
+      console.log(id)
+      return await this.fieldService.getCategoricalMeasurementsByFieldId(id);
+    } catch (error) {
+      throw error;
+    }
+  }
+  @HttpCode(HttpStatus.OK)
+  @Get('dataset/numerical/:id')
+  async getNumericalMeasurementsByFieldId(@Param('id') id: string) {
+    try {
+      console.log(id)
+      return await this.fieldService.getNumericalMeasurementsByFieldId(id);
     } catch (error) {
       throw error;
     }
