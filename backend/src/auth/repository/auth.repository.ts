@@ -171,14 +171,216 @@ export class AuthRepository {
         },
       });
 
-      return 'User successfully verified';
+      return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Email Verified</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+          }
+          .container {
+            text-align: center;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+          }
+          .success-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #487632;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+          }
+          .check-mark {
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+          }
+          h1 {
+            color: #333;
+            margin-bottom: 15px;
+          }
+          p {
+            color: #666;
+            margin-bottom: 20px;
+          }
+          .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="success-circle">
+            <span class="check-mark">✓</span>
+          </div>
+          <h1>Email Verified!</h1>
+          <p>Your account has been successfully verified. You can now use all the features of our application.</p>
+        </div>
+      </body>
+      </html>
+      `;
     } catch (error) {
       if (error instanceof NotFoundException) {
-        throw error;
+        return `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Verification Error</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              background-color: #f5f5f5;
+            }
+            .container {
+              text-align: center;
+              padding: 30px;
+              background-color: white;
+              border-radius: 10px;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              max-width: 400px;
+            }
+            .error-circle {
+              width: 80px;
+              height: 80px;
+              border-radius: 50%;
+              background-color: #f44336;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin: 0 auto 20px;
+            }
+            .error-mark {
+              color: white;
+              font-size: 40px;
+              font-weight: bold;
+            }
+            h1 {
+              color: #333;
+              margin-bottom: 15px;
+            }
+            p {
+              color: #666;
+              margin-bottom: 20px;
+            }
+            .button {
+              padding: 10px 20px;
+              background-color: #f44336;
+              color: white;
+              text-decoration: none;
+              border-radius: 5px;
+              font-weight: bold;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="error-circle">
+              <span class="error-mark">✕</span>
+            </div>
+            <h1>Verification Error</h1>
+            <p>The verification token is invalid or has expired.</p>
+          </div>
+        </body>
+        </html>
+        `;
       }
-      throw new InternalServerErrorException(
-        'An error occurred while verifying user.',
-      );
+      return `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verification Error</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+          }
+          .container {
+            text-align: center;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+          }
+          .error-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #f44336;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+          }
+          .error-mark {
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+          }
+          h1 {
+            color: #333;
+            margin-bottom: 15px;
+          }
+          p {
+            color: #666;
+            margin-bottom: 20px;
+          }
+          .button {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="error-circle">
+            <span class="error-mark">✕</span>
+          </div>
+          <h1>Verification Error</h1>
+          <p>An error occurred during verification. Please try again later.</p>
+        </div>
+      </body>
+      </html>
+      `;
     }
   }
 }

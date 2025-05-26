@@ -9,6 +9,7 @@ import {
   HttpStatus,
   Query,
   BadRequestException,
+  Header,
   // Patch,
   // Param,
   // Delete,
@@ -53,6 +54,7 @@ export class AuthController {
   @Get('verify')
   //De momento es un get, pero habria que cambiarlo en el futuro por un patch.
   @HttpCode(HttpStatus.OK) // Establece el codigo de estado HTTP 200 (Ok) si la solicitud es exitosa
+  @Header('Content-Type', 'text/html')
   async verifyEmail(@Query('token') token: string) {
     try {
       if (!token) {
