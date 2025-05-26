@@ -25,6 +25,27 @@ interface Measurement {
     correct: number;
 }
 
+interface HealthStatus {
+    field: number;
+    animal: number;
+    installation: number;
+}
+
+interface DashboardStats {
+    measurementsCount: number;
+    pensCount: number;
+    variablesCount: number;
+    reportsCount: number;
+    totalMeasurements: number;
+    totalAnimals: number;
+    totalInstallations: number;
+    healthStatus: HealthStatus;
+    correctionHistory: Array<{
+        date: string;
+        percentage: number;
+    }>;
+}
+
 const tabs = [
     { key: "general" as TabType, label: "General" },
     { key: "pens" as TabType, label: "Corrales" },
@@ -145,7 +166,177 @@ export default function DashboardPage() {
                             <p>No hay mediciones disponibles para este campo</p>
                         </div>
                     ) : (
-                        <div className="w-full">
+                        <div className="w-full space-y-6">
+                            {/* Latest Report Summary */}
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <h2 className="text-xl font-semibold mb-4">Último Reporte: {new Date().toLocaleDateString()}</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    {/* Summary Stats */}
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Cantidad Mediciones</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">96</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Total Corrales</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">2</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Variables Medidas</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">7</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Health Status Gauges */}
+                                    <div className="col-span-3 grid grid-cols-3 gap-4">
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual del Campo</h3>
+                                            <div className="relative pt-1">
+                                                <div className="flex mb-2 items-center justify-between">
+                                                    <div>
+                                                        <span className="text-3xl font-semibold inline-block py-1">
+                                                            84%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
+                                                    <div style={{ width: '84%' }} className="bg-green-400"></div>
+                                                </div>
+                                                <div className="flex text-xs justify-between">
+                                                    <span>0%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Animales</h3>
+                                            <div className="relative pt-1">
+                                                <div className="flex mb-2 items-center justify-between">
+                                                    <div>
+                                                        <span className="text-3xl font-semibold inline-block py-1">
+                                                            88%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
+                                                    <div style={{ width: '88%' }} className="bg-green-400"></div>
+                                                </div>
+                                                <div className="flex text-xs justify-between">
+                                                    <span>0%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-50 p-4 rounded-lg">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Instalaciones</h3>
+                                            <div className="relative pt-1">
+                                                <div className="flex mb-2 items-center justify-between">
+                                                    <div>
+                                                        <span className="text-3xl font-semibold inline-block py-1">
+                                                            62%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
+                                                    <div style={{ width: '62%' }} className="bg-yellow-400"></div>
+                                                </div>
+                                                <div className="flex text-xs justify-between">
+                                                    <span>0%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Historical Data */}
+                            <div className="bg-white rounded-lg shadow p-6">
+                                <h2 className="text-xl font-semibold mb-4">Histórico</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                                    {/* Historical Stats */}
+                                    <div className="bg-gray-50 p-4 rounded-lg">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Total Reportes</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">5</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Total Mediciones</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">642</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                                        <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Total Animales</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">557</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                                        <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-gray-600">Total Instalación</span>
+                                                <div className="flex items-center">
+                                                    <span className="text-2xl font-bold">85</span>
+                                                    <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm3 1h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1v2h-1v-2zm1-2V7h-1v2h1zM5 7v2h1V7H5zm1 4H5v2h1v-2z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Correction Rate Chart */}
+                                    <div className="col-span-3">
+                                        <div className="bg-gray-50 p-4 rounded-lg h-full">
+                                            <h3 className="text-sm font-medium text-gray-500 mb-4">% Corrector por Reporte</h3>
+                                            <div className="h-64">
+                                                <div className="relative h-full">
+                                                    <div className="absolute bottom-0 left-0 right-0 h-full flex items-end space-x-4">
+                                                        {[83, 81, 83, 86, 84].map((percentage, index) => (
+                                                            <div key={index} className="flex-1 flex flex-col items-center">
+                                                                <div className="w-full bg-green-400" style={{ height: `${percentage}%` }}></div>
+                                                                <div className="text-xs text-gray-500 mt-1">{percentage}%</div>
+                                                                <div className="text-xs text-gray-500">{['28/02/2025', '15/04/2025', '22/04/2025', '25/04/2025', '29/04/2025'][index]}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <Tab.Group onChange={(index) => setSelectedTab(tabs[index].key)}>
                                 <Tab.List className="flex space-x-1 rounded-xl bg-green-900/10 p-1 mb-4">
                                     {tabs.map((tab) => (
