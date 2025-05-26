@@ -2,28 +2,35 @@
 
 import useFieldStore from "@/store/fieldStore";
 import { useEffect, useState } from "react";
+
 interface Field {
-    id?: string;
+    id: string;
     value: string;
     label: string;
-    dashboard_url?: string;
 }
+
+interface AllFieldsOption {
+    value: "all";
+    label: string;
+}
+
+interface Measurement {
+    variable: string;
+    value: string | number;
+    measureDate: string;
+    pen: string;
+    correct: number;
+}
+
 export default function DashboardPage() {
-    const [selectedField, setSelectedField] = useState<Field>({
+    const [selectedField, setSelectedField] = useState<Field | AllFieldsOption>({
         value: "all",
         label: "Todos los campos",
-        dashboard_url: undefined
     });
+    const [measurements, setMeasurements] = useState<Measurement[]>([]);
+    const [loading, setLoading] = useState(false);
 
-    const FallbackComponent = () => (
-        <div className="h-[36rem] w-full flex justify-center items-center">
-            {
-                selectedField.dashboard_url ? <p>Oops! algo salio mal, no hemos podido cargar el dashboard.</p> : <p>Este campo no tiene un dashboard asignado</p>
-            }
-        </div>
-    );
-
-    const { getFieldsByUser, fieldsByUserId } = useFieldStore();
+    const { getFieldsByUser, fieldsByUserId, getCategoricalMeasurementsByFieldId, getNumericalMeasurementsByFieldId } = useFieldStore();
 
     useEffect(() => {
         const fetch = async () => {
@@ -32,30 +39,55 @@ export default function DashboardPage() {
         fetch()
     }, [getFieldsByUser])
 
-    console.log(fieldsByUserId)
-    const fields = [
-        { value: "all", label: "Todos los campos" },
-        ...(fieldsByUserId ?? []).map((field) => ({
+    const allFieldsOption: AllFieldsOption = { value: "all", label: "Todos los campos" };
+    
+    const fields: (Field | AllFieldsOption)[] = [
+        allFieldsOption,
+        ...(fieldsByUserId ?? []).map((field): Field => ({
             id: field.id,
             value: field.name,
-            label: field.name,
-            dashboard_url: field.dashboard_url ?? undefined
+            label: field.name
         }))
     ];
 
     const handleFieldChange = async (value: string) => {
-        const selected = fields.find(field => field.label === value);
-        setSelectedField(selected || { value: "all", label: "Todos los campos", dashboard_url: undefined });
+        const selected = fields.find(field => field.value === value);
+        if (!selected) return;
 
-    };
+        setSelectedField(selected);
+        
+        if (selected.value !== "all" && 'id' in selected) {
+            setLoading(true);
+            try {
+                const [categoricalData, numericalData] = await Promise.all([
+                    getCategoricalMeasurementsByFieldId(selected.id),
+                    getNumericalMeasurementsByFieldId(selected.id)
+                ]);
+                const normalizeData = (data: any[]) => data.map(m => ({
+                    variable: m.variable,
+                    value: m.measured_value,
+                    measureDate: m.measure_date,
+                    pen: m.pen_name,
+                    correct: m.correct
+                }));
 
-    const isValidURL = (url?: string): boolean => {
-        if (!url) return false;
-        try {
-            new URL(url);
-            return true;
-        } catch (e) {
-            return false;
+                const combinedData = [
+                    ...normalizeData(categoricalData),
+                    ...normalizeData(numericalData)
+                ];
+
+                // Sort by date, most recent first
+                combinedData.sort((a, b) => new Date(b.measureDate).getTime() - new Date(a.measureDate).getTime());
+                
+                setMeasurements(combinedData);
+            } catch (error) {
+                console.error('Error fetching measurements:', error);
+                setMeasurements([]);
+            } finally {
+                setLoading(false);
+            }
+        } else {
+            setMeasurements([]);
         }
     };
 
@@ -85,25 +117,53 @@ export default function DashboardPage() {
                     </select>
                 </div>
 
-                <div className={`mt-6 w-full border border-gray-200 rounded-md overflow-hidden bg-gray-50 ${selectedField.value !== "all" && isValidURL(selectedField.dashboard_url) ? "aspect-video" : "h-[36rem]"}`}>
+                <div className="mt-6 w-full border border-gray-200 rounded-md overflow-hidden bg-white p-4">
                     {selectedField.value === "all" ? (
-                        <div className="h-full w-full flex justify-center items-center">
-                            <h1>Seleccione un campo para ver el dashboard</h1>
+                        <div className="h-[36rem] w-full flex justify-center items-center">
+                            <h1>Seleccione un campo para ver las mediciones</h1>
                         </div>
-                    ) : !isValidURL(selectedField.dashboard_url) ? (
-                        <FallbackComponent />
+                    ) : loading ? (
+                        <div className="h-[36rem] w-full flex justify-center items-center">
+                            <p>Cargando mediciones...</p>
+                        </div>
+                    ) : measurements.length === 0 ? (
+                        <div className="h-[36rem] w-full flex justify-center items-center">
+                            <p>No hay mediciones disponibles para este campo</p>
+                        </div>
                     ) : (
-                        <iframe
-                            title="Power BI Dashboard"
-                            className="w-full h-full "
-                            src={selectedField.dashboard_url}
-                            frameBorder="0"
-                            allowFullScreen
-                            loading="lazy"
-                        />
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Variable</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Corral</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {measurements.map((measurement, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{measurement.variable}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{measurement.value}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{measurement.pen}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {new Date(measurement.measureDate).toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${measurement.correct === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                    {measurement.correct === 1 ? 'Correcto' : 'Incorrecto'}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </div>
             </div>
         </div>
     );
-};
+}
