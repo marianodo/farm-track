@@ -43,6 +43,10 @@ interface FieldState {
   resetDetail: () => void;
   clearFields: () => void;
   setFieldProductionType: (type: string) => void;
+  categoricalMeasurementsByFieldId: any[] | null;
+  getCategoricalMeasurementsByFieldId: (fieldId: string) => Promise<any>;
+  numericalMeasurementsByFieldId: any[] | null;
+  getNumericalMeasurementsByFieldId: (fieldId: string) => Promise<any>;
 }
 
 const useFieldStore = create<FieldState>((set: any) => ({
@@ -52,6 +56,8 @@ const useFieldStore = create<FieldState>((set: any) => ({
   fieldProductionType: null,
   fieldDetail: null,
   fieldLoading: false,
+  categoricalMeasurementsByFieldId: null,
+  numericalMeasurementsByFieldId: null,
   createField: async (field: Omit<Field, 'id'>): Promise<void> => {
     set({ fieldLoading: true });
     try {
@@ -79,6 +85,48 @@ const useFieldStore = create<FieldState>((set: any) => ({
     console.log(id, field);
   },
   getAllFields: () => {},
+  getCategoricalMeasurementsByFieldId: async (fieldId: string) => {
+    set({ fieldLoading: true });
+    try {
+      const token = useAuthStore.getState().token;
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/fields/dataset/categorical/${fieldId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      set({ categoricalMeasurementsByFieldId: response.data, fieldLoading: false });
+      return response.data;
+    } catch (error) {
+      set({ fieldLoading: false });
+      console.error('Error fetching categorical measurements:', error);
+      throw error;
+    }
+  },
+  getNumericalMeasurementsByFieldId: async (fieldId: string) => {
+    set({ fieldLoading: true });
+    try {
+      const token = useAuthStore.getState().token;
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/fields/dataset/numerical/${fieldId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      set({ numericalMeasurementsByFieldId: response.data, fieldLoading: false });
+      return response.data;
+    } catch (error) {
+      set({ fieldLoading: false });
+      console.error('Error fetching numerical measurements:', error);
+      throw error;
+    }
+  },
   getFieldsByUser: async (id?: string | null) => {
     set({ fieldLoading: true });
     try {
