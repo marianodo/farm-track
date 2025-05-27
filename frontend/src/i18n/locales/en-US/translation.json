@@ -5,7 +5,26 @@
   "language": "Language",
   "menuInitial": {
     "deleteData": "Delete data",
-    "logout": "Logout"
+    "logout": "Logout",
+    "changePassword": "Change password"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "currentPassword": "Current password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "submit": "Change password",
+    "success": "Password changed successfully. Your session will be closed.",
+    "errors": {
+      "currentRequired": "Current password is required",
+      "newRequired": "New password is required",
+      "newLength": "New password must be at least 6 characters",
+      "confirmRequired": "You must confirm your new password",
+      "notMatch": "Passwords do not match"
+    }
   },
   "formErrors": {
     "required": {
@@ -27,7 +46,8 @@
       "minOptimoGreaterThanMaxOptimo": "The optimal minimum value must be less than the optimal maximum value.",
       "maxOptimoLessThanMinOptimo": "The optimal maximum value must be greater than the optimal minimum value.",
       "minMaxInvalid": "Both the minimum and maximum value must be greater or equal than 0.",
-      "invalidCategoricalLength": "There must be at least 2 defined values.",
+      "invalidCategoricalLength": "There must be at least 2 values defined.",
+      "invalidCategoricalLengthOptimal": "There must be at least 1 optimal value defined.",
       "invalidTypeObjectLength": "You must select at least one object type."
     },
     "granularity": {
@@ -139,6 +159,9 @@
     "createPlaceHolderOptimalValues": "Optimal values",
     "createTextGranularity": "Granularity",
     "createTextDefinedValues": "Defined values",
+    "createSubTextDefinedValues": "If you want to delete a defined value, simply tap on it.",
+    "createTextDefinedValuesOptimal": "Optimal values",
+    "createSubTextDefinedValuesOptimal": "You can indicate the values that would be optimal for this variable simply by tapping on them.",
     "createPlaceHolderGranularity": "Enter a value",
     "createPlaceHolderMinValue": "Minimum",
     "createPlaceHolderMaxValue": "Maximum",
@@ -214,7 +237,13 @@
       "percentage_of_fat": "% of fat",
       "percentage_of_protein": "% of protein"
     },
-    "dontMeasurementOnReport": "To see report details you must first create a measurement."
+    "dontMeasurementOnReport": "To see report details you must first create a measurement.",
+    "infoStatsModal": {
+      "title": "Evaluation summary",
+      "totalMeasurements": "Total measurements:",
+      "variablesMeasured": "Variables measured:",
+      "totalObjectsMeasured": "Total objects measured:"
+    }
   },
   "measurementView": {
     "newMeasurementText": "New measurement",
@@ -248,6 +277,7 @@
     "subtitleVariable": "Variable",
     "goBackText": "Go back",
     "categoricalText": "Categorical values",
+    "categoricalTextOptimal": "Optimal values: ",
     "numberTextDefault": "Default value range",
     "numberTextOptimum": "Optimal value range",
     "granularityText": "Granularity"

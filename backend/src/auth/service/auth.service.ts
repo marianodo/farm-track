@@ -19,8 +19,8 @@ export class AuthService {
 
       // Enviar el correo electrónico utilizando el servicio de correo
       const sendEmailDto = {
-        from: `Welcome Farm Track <${process.env.MAIL_USER}>`,
-        subjectEmail: 'Envio de mail automatico!',
+        from: `Welcome Measure Me <${process.env.MAIL_USER}>`,
+        subjectEmail: 'Automatic mail sending!',
         sendTo: user.email,
         template: 'welcome',
         verification_token: user.verification_token,

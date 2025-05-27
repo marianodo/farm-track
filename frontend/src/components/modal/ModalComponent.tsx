@@ -146,7 +146,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
   onDismiss,
   title,
   icon,
-  duration = 700,
+  duration = 350,
   marginVertical = null,
   back = false,
 }) => {

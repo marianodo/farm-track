@@ -343,10 +343,10 @@ const CreateMeasurement: React.FC = () => {
         return true;
       };
 
-      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
 
       return () => {
-        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        backHandler.remove();
       };
     }, [values])
   );
@@ -957,7 +957,7 @@ const CreateMeasurement: React.FC = () => {
                             rowGap: 0,
                           }}
                         >
-                          {e.custom_parameters.value.map(
+                          {e?.custom_parameters?.value && e.custom_parameters.value?.categories?.map(
                             (item: any, index: number) => (
                               <Pressable
                                 key={index}

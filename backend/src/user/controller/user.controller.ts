@@ -7,9 +7,13 @@ import {
   UseGuards,
   Get,
   Query,
+  Body,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { UserService } from '../service/user.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { ChangePasswordDto } from '../dto/change-password.dto';
 
 @Controller('users')
 export class UserController {
@@ -19,6 +23,11 @@ export class UserController {
   async getUsers(@Query('includeFields') includeFields: string) {
     const include = includeFields === 'true'; // 'true' o 'false' de los query params
     return this.userService.getUsersWithFields(include);
+  }
+
+  @Put('change-password')
+  async changePassword(@Body() changePasswordDto: ChangePasswordDto) {
+    return this.userService.changePassword(changePasswordDto);
   }
 
   // @UseGuards(JwtAuthGuard)

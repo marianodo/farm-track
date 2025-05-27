@@ -1,7 +1,8 @@
-import {
-  CategoricalValue,
-  NumericValue,
-} from '@/app/(protected)/attributes/create';
+// import {
+//   CategoricalValue,
+//   NumericValue,
+// } from '@/app/(protected)/attributes/create';
+import { CategoricalValue, NumericValue } from '@/app/(protected)/(stack)/attributes/create';
 import { useTranslation } from 'react-i18next';
 
 export type ValidationRule = (
@@ -35,10 +36,10 @@ export const useValidationRules = () => {
 
   const minLength =
     (min: number): ValidationRule =>
-    (value) =>
-      value.length >= min
-        ? null
-        : `${t('formErrors.minLength.firstString')} ${min} ${t(
+      (value) =>
+        value.length >= min
+          ? null
+          : `${t('formErrors.minLength.firstString')} ${min} ${t(
             'formErrors.minLength.secondString'
           )}`;
 
@@ -49,8 +50,8 @@ export const useValidationRules = () => {
 
   const matchPassword =
     (confirmPassword: string): ValidationRule =>
-    (value) =>
-      value === confirmPassword ? null : t('formErrors.matchPassword');
+      (value) =>
+        value === confirmPassword ? null : t('formErrors.matchPassword');
 
   const validateRangeOrGranularity: (
     inputsValue: NumericValue,
@@ -83,7 +84,7 @@ export const useValidationRules = () => {
   };
 
   const validateCategoricalValue: (
-    inputsValue: CategoricalValue | null,
+    inputsValue: string[] | null,
     t: (key: string) => string
   ) => { [key: string]: string } | null = (inputsValue) => {
     const errors: { [key: string]: string } = {};
@@ -98,6 +99,28 @@ export const useValidationRules = () => {
 
     if (inputsValue.length < 2) {
       errors.categorical = t('formErrors.range.invalidCategoricalLength');
+      return errors;
+    }
+
+    return null;
+  };
+
+  const validateOptimalCategoricalValue: (
+    inputsValue: string[] | null,
+    t: (key: string) => string
+  ) => { [key: string]: string } | null = (inputsValue) => {
+    const errors: { [key: string]: string } = {};
+    if (
+      inputsValue === null ||
+      !Array.isArray(inputsValue) ||
+      inputsValue.length === 0
+    ) {
+      errors.optimalEmpty = t('formErrors.range.invalidCategoricalLengthOptimal');
+      return errors;
+    }
+
+    if (inputsValue.length < 1) {
+      errors.optimal = t('formErrors.range.invalidCategoricalLengthOptimal');
       return errors;
     }
 
@@ -158,5 +181,6 @@ export const useValidationRules = () => {
     validateCategoricalValue,
     validateTypeObjectValue,
     validateNameInput,
+    validateOptimalCategoricalValue,
   };
 };

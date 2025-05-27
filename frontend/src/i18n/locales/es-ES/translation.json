@@ -5,7 +5,26 @@
   "language": "Lenguaje",
   "menuInitial": {
     "deleteData": "Borrar datos",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "changePassword": "Cambiar contraseña"
+  },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Ingrese su contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingrese su nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirme su nueva contraseña",
+    "submit": "Cambiar contraseña",
+    "success": "Contraseña cambiada con éxito. Se cerrará su sesión.",
+    "errors": {
+      "currentRequired": "La contraseña actual es obligatoria",
+      "newRequired": "La nueva contraseña es obligatoria",
+      "newLength": "La nueva contraseña debe tener al menos 6 caracteres",
+      "confirmRequired": "Debe confirmar la nueva contraseña",
+      "notMatch": "Las contraseñas no coinciden"
+    }
   },
   "formErrors": {
     "required": {
@@ -28,6 +47,7 @@
       "maxOptimoLessThanMinOptimo": "El valor máximo óptimo debe ser mayor que el valor mínimo óptimo.",
       "minMaxInvalid": "Tanto el valor minimo como el maximo deben ser mayor a 0.",
       "invalidCategoricalLength": "Minimo deben haber 2 valores definidos",
+      "invalidCategoricalLengthOptimal": "Minimo debe haber 1 valor óptimo definido",
       "invalidTypeObjectLength": "Debes seleccionar al menos un tipo de objeto"
     },
     "granularity": {
@@ -139,6 +159,9 @@
     "createPlaceHolderOptimalValues": "Valores óptimos",
     "createTextGranularity": "Granularidad",
     "createTextDefinedValues": "Valores definidos",
+    "createSubTextDefinedValues": "Si quiere eliminar un valor definido, simplemente toque sobre el",
+    "createTextDefinedValuesOptimal": "Valores óptimos",
+    "createSubTextDefinedValuesOptimal": "Puede indicar los valores que serían óptimos para esta variable simplemente tocando sobre ellos.",
     "createPlaceHolderGranularity": "Ingrese un valor",
     "createPlaceHolderMinValue": "Minimo",
     "createPlaceHolderMaxValue": "Máximo",
@@ -214,7 +237,13 @@
       "percentage_of_fat": "% de grasa",
       "percentage_of_protein": "% de proteína"
     },
-    "dontMeasurementOnReport": "Para ver detalles del reporte primero debes crear una medicion."
+    "dontMeasurementOnReport": "Para ver detalles del reporte primero debes crear una medicion.",
+    "infoStatsModal": {
+      "title": "Resumen de la evaluación",
+      "totalMeasurements": "Total mediciones:",
+      "variablesMeasured": "Variables medidas:",
+      "totalObjectsMeasured": "Total objetos medidos:"
+    }
   },
   "measurementView": {
     "newMeasurementText": "Nueva medición",
@@ -248,6 +277,7 @@
     "subtitleVariable": "Variable",
     "goBackText": "Volver",
     "categoricalText": "Valores categóricos",
+    "categoricalTextOptimal": "Valores óptimos: ",
     "numberTextDefault": "Rango de valores por defecto",
     "numberTextOptimum": "Rango de valores óptimos",
     "granularityText": "Granularidad"

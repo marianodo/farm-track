@@ -108,6 +108,183 @@ export class FieldRepository {
     }
   }
 
+  async getFieldDataset(fieldId: string) {
+    console.log(`[FieldRepository] Getting dataset for field ID: ${fieldId}`);
+    
+    try {
+      // First verify the field exists
+      console.log('[FieldRepository] Verifying field exists...');
+      const fieldExists = await this.db.field.findUnique({
+        where: { id: fieldId },
+        select: { id: true },
+      });
+
+      if (!fieldExists) {
+        console.log(`[FieldRepository] Field with ID ${fieldId} not found`);
+        throw new NotFoundException(`Field with ID ${fieldId} not found`);
+      }
+
+      console.log('[FieldRepository] Field exists, executing query...');
+      
+      // Execute the raw SQL query
+      const query = `
+        SELECT
+          m.subject_id as "subjectId",
+          too.name as "typeOfObject",
+          v.name as variable,
+          m.value as "measuredValue",
+          p.name as "penName",
+          f.name as "fieldName",
+          m.report_id as "reportId",
+          r.name as "reportName",
+          r.created_at as "reportDate",
+          m.created_at as "measureDate"
+        FROM "Measurement" m
+        JOIN "PenVariableTypeOfObject" pvtoo ON pvtoo.id = m.pen_variable_type_of_object_id
+        JOIN "Variable" v ON pvtoo."variableId" = v.id
+        JOIN "Report" r ON m.report_id = r.id
+        JOIN "Pen" p ON pvtoo."penId" = p.id
+        JOIN "TypeOfObject" too ON pvtoo."typeOfObjectId" = too.id
+        JOIN "Field" f ON f.id = r.field_id
+        WHERE r.field_id = $1
+        ORDER BY m.created_at DESC
+      `;
+      console.log('[FieldRepository] Executing query:', query);
+      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      return measurements;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving field dataset.',
+      );
+    }
+  }
+
+  async getCategoricalMeasurementsByFieldId(fieldId: string) {
+    console.log(`[FieldRepository] Getting dataset for field ID: ${fieldId}`);
+    
+    try {
+      // First verify the field exists
+      console.log('[FieldRepository] Verifying field exists...');
+      const fieldExists = await this.db.field.findUnique({
+        where: { id: fieldId },
+        select: { id: true },
+      });
+
+      if (!fieldExists) {
+        console.log(`[FieldRepository] Field with ID ${fieldId} not found`);
+        throw new NotFoundException(`Field with ID ${fieldId} not found`);
+      }
+
+      console.log('[FieldRepository] Field exists, executing query...');
+      
+      // Execute the raw SQL query
+      const query = `
+        SELECT
+        m.subject_id,
+        too.name AS type_of_object,
+        v.name AS variable,
+        m.value AS measured_value,
+        p.name AS pen_name,
+        f.name AS field_name,
+        m.report_id AS report_id,
+        r.name AS report_name,
+        r.created_at AS report_date,
+        m.created_at::timestamp AS measure_date,
+        string_to_array(TRIM(BOTH '[]' FROM (pvtoo.custom_parameters -> 'value' ->> 'categories')), ',') AS categories,
+        string_to_array(TRIM(BOTH '[]' FROM REPLACE((pvtoo.custom_parameters -> 'value' ->> 'optimal_values'), '"', '')), ',') AS optimal_values,
+        CASE
+          WHEN LOWER(TRIM(m.value)) IN (SELECT TRIM(LOWER(unnest(string_to_array(TRIM(BOTH '[]' FROM REPLACE((pvtoo.custom_parameters -> 'value' ->> 'optimal_values'), '"', '')), ','))))) THEN 1
+          ELSE 0
+        END AS correct
+      FROM "Measurement" m
+      JOIN "PenVariableTypeOfObject" pvtoo ON pvtoo.id = m.pen_variable_type_of_object_id
+      JOIN "Variable" v ON pvtoo."variableId" = v.id
+      JOIN "Report" r ON m.report_id = r.id
+      JOIN "Pen" p ON pvtoo."penId" = p.id
+      JOIN "TypeOfObject" too ON pvtoo."typeOfObjectId" = too.id
+      JOIN "Field" f ON f.id = r.field_id
+      WHERE v.type = 'CATEGORICAL'
+      AND r.field_id = $1;
+      `;
+      console.log('[FieldRepository] Executing query:', query);
+      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      return measurements;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving field dataset.',
+      );
+    }
+  }
+
+  async getNumericalMeasurementsByFieldId(fieldId: string) {
+    console.log(`[FieldRepository] Getting dataset for field ID: ${fieldId}`);
+    
+    try {
+      // First verify the field exists
+      const fieldExists = await this.db.field.findUnique({
+        where: { id: fieldId },
+        select: { id: true },
+      });
+
+      if (!fieldExists) {
+        console.log(`[FieldRepository] Field with ID ${fieldId} not found`);
+        throw new NotFoundException(`Field with ID ${fieldId} not found`);
+      }
+
+      console.log('[FieldRepository] Field exists, executing query...');
+      
+      // Execute the raw SQL query
+      const query = `
+      SELECT
+          m.subject_id,
+          too.name AS type_of_object,
+          v.name AS variable,
+          m.value::numeric AS measured_value,
+          p.name AS pen_name,
+          f.name AS field_name,
+          m.report_id AS report_id,
+          r.name AS report_name,
+          r.created_at AS report_date,
+          m.created_at::timestamp AS measure_date,
+          (pvtoo.custom_parameters -> 'value' ->> 'max')::numeric AS max_value,
+          (pvtoo.custom_parameters -> 'value' ->> 'min')::numeric AS min_value,
+          (pvtoo.custom_parameters -> 'value' ->> 'optimal_max')::numeric AS optimo_max,
+          (pvtoo.custom_parameters -> 'value' ->> 'optimal_min')::numeric AS optimo_min,
+          CASE
+              WHEN m.value::numeric >= (pvtoo.custom_parameters -> 'value' ->> 'optimal_min')::numeric
+                  AND m.value::numeric <= (pvtoo.custom_parameters -> 'value' ->> 'optimal_max')::numeric
+              THEN 1
+              ELSE 0
+          END AS correct
+      FROM "Measurement" m
+      JOIN "PenVariableTypeOfObject" pvtoo ON pvtoo.id = m.pen_variable_type_of_object_id
+      JOIN "Variable" v ON pvtoo."variableId" = v.id
+      JOIN "Report" r ON m.report_id = r.id
+      JOIN "Pen" p ON pvtoo."penId" = p.id
+      JOIN "TypeOfObject" too ON pvtoo."typeOfObjectId" = too.id
+      JOIN "Field" f ON f.id = r.field_id
+      WHERE v.type = 'NUMBER'
+      AND r.field_id = $1;
+      `;
+      console.log('[FieldRepository] Executing query:', query);
+      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      return measurements;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'An unexpected error occurred while retrieving field dataset.',
+      );
+    }
+  }
+
   async findOne(
     id: string,
   ): Promise<Omit<Field, 'id' | 'userId' | 'created_at' | 'updated_at'>> {
