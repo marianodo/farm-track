@@ -264,6 +264,7 @@ export default function DashboardPage() {
                 </div>
                 {/* Health Status Gauges */}
                 <div className="col-span-3 grid grid-cols-3 gap-4">
+
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual del Campo</h3>
                         <div className="relative pt-1">
@@ -368,19 +369,42 @@ export default function DashboardPage() {
                     </div>
                 </div>
                 {/* Correction Rate Chart */}
-                <div className="col-span-3">
+                <div className="col-span-3 mt-6">
                     <div className="bg-gray-50 p-4 rounded-lg h-full">
                         <h3 className="text-sm font-medium text-gray-500 mb-4">% Corrector por Reporte</h3>
                         <div className="h-64">
                             <div className="relative h-full">
                                 <div className="absolute bottom-0 left-0 right-0 h-full flex items-end space-x-4">
-                                    {[83, 81, 83, 86, 84].map((percentage, index) => (
-                                        <div key={index} className="flex-1 flex flex-col items-center">
-                                            <div className="w-full bg-green-400" style={{ height: `${percentage}%` }}></div>
-                                            <div className="text-xs text-gray-500 mt-1">{percentage}%</div>
-                                            <div className="text-xs text-gray-500">{['28/02/2025', '15/04/2025', '22/04/2025', '25/04/2025', '29/04/2025'][index]}</div>
-                                        </div>
-                                    ))}
+                                    {(() => {
+  if (!measurements.length) return null;
+  // Group by report_id
+  const grouped = measurements.reduce((acc, m) => {
+    const id = m.report_id;
+    if (!acc[id]) acc[id] = [];
+    acc[id].push(m);
+    return acc;
+  }, {} as Record<string | number, Measurement[]>);
+  // Sort by report_id (descending, assuming numeric)
+  const sortedReportIds = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+  // Show up to 5 most recent reports
+  return sortedReportIds.slice(0, 5).reverse().map((reportId, index) => {
+    const rows = grouped[reportId];
+    const correctCount = rows.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = rows.length > 0 ? Math.round((correctCount / rows.length) * 100) : 0;
+    const rawDate = rows[0]?.measureDate || '';
+const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
+    return (
+      <div key={reportId} className="flex-1 flex flex-col items-center">
+  <div className="w-full flex items-end" style={{ height: 120 }}>
+    <div className="w-full bg-green-400 rounded-t" style={{ height: `${percent}%` }} />
+  </div>
+  <div className="text-xs text-gray-500 mt-1">{percent}%</div>
+  <div className="text-xs text-gray-500">{date}</div>
+</div>
+    );
+  });
+})()}
+
                                 </div>
                             </div>
                         </div>
@@ -419,10 +443,18 @@ export default function DashboardPage() {
                     <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
                     <td className="py-2 px-4 border-b">
                       {String(m.correct) === '1' || m.correct === true ? (
-                        <span className="text-green-600 font-semibold">Sí</span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">No</span>
-                      )}
+  <span className="flex justify-center">
+    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  </span>
+) : (
+  <span className="flex justify-center">
+    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </span>
+)}
                     </td>
                   </tr>
                 ))}
