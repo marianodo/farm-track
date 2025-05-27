@@ -2,6 +2,7 @@
 
 import useFieldStore from "@/store/fieldStore";
 import { useEffect, useState } from "react";
+import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
 
 type TabType = "general" | "pens" | "numerical";
@@ -266,93 +267,46 @@ export default function DashboardPage() {
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual del Campo</h3>
                         <div className="relative pt-1">
-                            <div className="flex mb-2 items-center justify-between">
-                                <div>
-                                    {(() => {
-    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+                            <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
+  {(() => {
+    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
     const correctCount = measurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
     const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
-    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
-})()}
-
-                                </div>
-                            </div>
-                            <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                {(() => {
-    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
-    const correctCount = measurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
-    const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
-    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
-})()}
-                            </div>
-                            <div className="flex text-xs justify-between">
-                                <span>0%</span>
-                                <span>100%</span>
-                            </div>
+    return <RadialGauge value={percent} size={120} />;
+  })()}
+</div>
+                            
                         </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Animales</h3>
                         <div className="relative pt-1">
-                            <div className="flex mb-2 items-center justify-between">
-                                <div>
-                                    {(() => {
-    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+                            <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
+  {(() => {
+    if (!measurements.length) return <RadialGauge value={NaN} label="Animales" color="#38bdf8" size={120} />;
     const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
-    if (!animalMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1 text-gray-400">Sin datos</span>;
+    if (!animalMeasurements.length) return <RadialGauge value={NaN} size={120} />;
     const correctCount = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
     const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
-    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
-})()}
-
-                                </div>
-                            </div>
-                            <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                {(() => {
-    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
-    const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
-    if (!animalMeasurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
-    const correctCount = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
-    const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
-    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
-})()}
-                            </div>
-                            <div className="flex text-xs justify-between">
-                                <span>0%</span>
-                                <span>100%</span>
-                            </div>
+    return <RadialGauge value={percent} size={120} />;
+  })()}
+</div>
+                            
                         </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Instalaciones</h3>
                         <div className="relative pt-1">
-                            <div className="flex mb-2 items-center justify-between">
-                                <div>
-                                    {(() => {
-    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+                            <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
+  {(() => {
+    if (!measurements.length) return <RadialGauge value={NaN} label="Instalaciones" color="#f59e42" size={120} />;
     const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
-    if (!installationMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1 text-gray-400">Sin datos</span>;
+    if (!installationMeasurements.length) return <RadialGauge value={NaN} size={120} />;
     const correctCount = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
     const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
-    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
-})()}
-
-                                </div>
-                            </div>
-                            <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                {(() => {
-    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
-    const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
-    if (!installationMeasurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
-    const correctCount = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
-    const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
-    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
-})()}
-                            </div>
-                            <div className="flex text-xs justify-between">
-                                <span>0%</span>
-                                <span>100%</span>
-                            </div>
+    return <RadialGauge value={percent} size={120} />;
+  })()}
+</div>
                         </div>
                     </div>
                 </div>
