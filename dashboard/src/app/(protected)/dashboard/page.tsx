@@ -26,6 +26,9 @@ interface Measurement {
     correct: number;
     type_of_object: string;
     report_id: string | number;
+    optimal_values?: string[]; // categorical
+    optimo_min?: number; // numeric
+    optimo_max?: number; // numeric
 }
 
 interface HealthStatus {
@@ -102,14 +105,17 @@ export default function DashboardPage() {
                     getNumericalMeasurementsByFieldId(selected.id)
                 ]);
                 const normalizeData = (data: any[]) => data.map(m => ({
-                    variable: m.variable,
-                    value: m.measured_value,
-                    measureDate: m.measure_date,
-                    pen: m.pen_name,
-                    correct: m.correct,
-                    type_of_object: m.type_of_object,
-                    report_id: m.report_id
-                }));
+    variable: m.variable,
+    value: m.measured_value,
+    measureDate: m.measure_date,
+    pen: m.pen_name,
+    correct: m.correct,
+    type_of_object: m.type_of_object,
+    report_id: m.report_id,
+    optimal_values: m.optimal_values || m.optimal_values === '' ? (Array.isArray(m.optimal_values) ? m.optimal_values : (typeof m.optimal_values === 'string' ? m.optimal_values.split(',').map((s: string) => s.trim()).filter(Boolean) : [])) : undefined,
+    optimo_min: m.optimo_min !== undefined ? Number(m.optimo_min) : undefined,
+    optimo_max: m.optimo_max !== undefined ? Number(m.optimo_max) : undefined,
+}));
 
                 const combinedData = [
                     ...normalizeData(categoricalData),
@@ -432,6 +438,7 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                   <th className="py-2 px-4 border-b">Corral</th>
                   <th className="py-2 px-4 border-b">Fecha</th>
                   <th className="py-2 px-4 border-b">¿Correcto?</th>
+<th className="py-2 px-4 border-b">Optimal Value</th>
                 </tr>
               </thead>
               <tbody>
@@ -442,20 +449,27 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                     <td className="py-2 px-4 border-b">{m.pen}</td>
                     <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
                     <td className="py-2 px-4 border-b">
-                      {String(m.correct) === '1' || m.correct === true ? (
-  <span className="flex justify-center">
-    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-  </span>
-) : (
-  <span className="flex justify-center">
-    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-  </span>
-)}
-                    </td>
+  {String(m.correct) === '1' || m.correct === true ? (
+    <span className="flex justify-center">
+      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+    </span>
+  ) : (
+    <span className="flex justify-center">
+      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </span>
+  )}
+</td>
+<td className="py-2 px-4 border-b">
+  {Array.isArray(m.optimal_values) && m.optimal_values.length > 0
+    ? m.optimal_values.join(', ')
+    : (m.optimo_min !== undefined && m.optimo_max !== undefined
+        ? `${m.optimo_min} - ${m.optimo_max}`
+        : '-')}
+</td>
                   </tr>
                 ))}
               </tbody>

@@ -72,7 +72,7 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({ value, size = 140 }) => {
         y="55%"
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={size * 0.28}
+        fontSize={isNaN(value) ? size * 0.16 : size * 0.28}
         fill="#222"
         fontWeight="bold"
       >
