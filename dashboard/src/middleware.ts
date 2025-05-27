@@ -46,6 +46,7 @@ if (authToken && rutasPublicas.some(ruta => pathname.toLowerCase() === ruta.toLo
   // Verificar acceso a rutas de usuario
   if (rutasUsuario.some(ruta => pathname.toLowerCase() === ruta.toLowerCase())) {
     console.log('verificar acceso a rutas de usuario')
+    console.log(authToken)
     if (!jerarquiaRoles.USER.includes(userRole)) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }

@@ -65,4 +65,27 @@ export class FieldService {
       throw error;
     }
   }
+
+  async getFieldDataset(fieldId: string) {
+    try {
+      return await this.fieldRepository.getFieldDataset(fieldId);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCategoricalMeasurementsByFieldId(fieldId: string) {
+    try {
+      return await this.fieldRepository.getCategoricalMeasurementsByFieldId(fieldId);
+    } catch (error) {
+      throw error;
+    }
+  }
+  async getNumericalMeasurementsByFieldId(fieldId: string) {
+    try {
+      return await this.fieldRepository.getNumericalMeasurementsByFieldId(fieldId);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
