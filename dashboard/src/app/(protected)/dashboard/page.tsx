@@ -24,6 +24,7 @@ interface Measurement {
     pen: string;
     correct: number;
     type_of_object: string;
+    report_id: string | number;
 }
 
 interface HealthStatus {
@@ -105,7 +106,8 @@ export default function DashboardPage() {
                     measureDate: m.measure_date,
                     pen: m.pen_name,
                     correct: m.correct,
-                    type_of_object: m.type_of_object
+                    type_of_object: m.type_of_object,
+                    report_id: m.report_id
                 }));
 
                 const combinedData = [
@@ -196,8 +198,12 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
             {(() => {
     if (!measurements.length) return <h2 className="text-xl font-semibold mb-4">Último Reporte: -</h2>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
+    const reportIds = measurements.map(m => m.report_id);
+    const latestReportId = Math.max(...reportIds.map(Number));
+    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
+    if (!latestMeasurements.length) return <h2 className="text-xl font-semibold mb-4">Último Reporte: -</h2>;
+    // Use the date of the first measurement in the latest report
+    const latestDate = new Date(latestMeasurements[0].measureDate).toLocaleDateString();
     return <h2 className="text-xl font-semibold mb-4">Último Reporte: {latestDate}</h2>;
 })()}
 
@@ -210,9 +216,9 @@ export default function DashboardPage() {
                             <div className="flex items-center">
                                 {(() => {
     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    const reportIds = measurements.map(m => m.report_id);
+    const latestReportId = Math.max(...reportIds.map(Number));
+    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
     return <span className="text-2xl font-bold">{latestMeasurements.length}</span>;
 })()}
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -226,9 +232,9 @@ export default function DashboardPage() {
                             <div className="flex items-center">
                                 {(() => {
     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    const reportIds = measurements.map(m => m.report_id);
+    const latestReportId = Math.max(...reportIds.map(Number));
+    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
     const uniquePens = new Set(latestMeasurements.map(m => m.pen)).size;
     return <span className="text-2xl font-bold">{uniquePens}</span>;
 })()}
@@ -242,9 +248,9 @@ export default function DashboardPage() {
                             <div className="flex items-center">
                                 {(() => {
     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    const reportIds = measurements.map(m => m.report_id);
+    const latestReportId = Math.max(...reportIds.map(Number));
+    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
     const uniqueVariables = new Set(latestMeasurements.map(m => m.variable)).size;
     return <span className="text-2xl font-bold">{uniqueVariables}</span>;
 })()}
@@ -264,19 +270,20 @@ export default function DashboardPage() {
                                 <div>
                                     {(() => {
     if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
-    if (!latestMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const correctCount = latestMeasurements.filter(m => m.correct === 1).length;
-    const percent = Math.round((correctCount / latestMeasurements.length) * 100);
+    const correctCount = measurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
     return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
 })()}
 
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                <div style={{ width: '84%' }} className="bg-green-400"></div>
+                                {(() => {
+    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
+    const correctCount = measurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
+    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
+})()}
                             </div>
                             <div className="flex text-xs justify-between">
                                 <span>0%</span>
@@ -291,21 +298,24 @@ export default function DashboardPage() {
                                 <div>
                                     {(() => {
     if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
-    console.log('latestMeasurements:', latestMeasurements);
-    const animalMeasurements = latestMeasurements.filter(m => m.type_of_object === 'Animal');
-    if (!animalMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const correctCount = animalMeasurements.filter(m => m.correct === 1).length;
-    const percent = Math.round((correctCount / animalMeasurements.length) * 100);
+    const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
+    if (!animalMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1 text-gray-400">Sin datos</span>;
+    const correctCount = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
     return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
 })()}
 
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                <div style={{ width: '88%' }} className="bg-green-400"></div>
+                                {(() => {
+    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
+    const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
+    if (!animalMeasurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
+    const correctCount = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
+    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
+})()}
                             </div>
                             <div className="flex text-xs justify-between">
                                 <span>0%</span>
@@ -320,20 +330,24 @@ export default function DashboardPage() {
                                 <div>
                                     {(() => {
     if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    const latestDate = dates[0];
-    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
-    const installationMeasurements = latestMeasurements.filter(m => m.type_of_object === 'Installation');
-    if (!installationMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
-    const correctCount = installationMeasurements.filter(m => m.correct === 1).length;
-    const percent = Math.round((correctCount / installationMeasurements.length) * 100);
+    const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
+    if (!installationMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1 text-gray-400">Sin datos</span>;
+    const correctCount = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
     return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
 })()}
 
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
-                                <div style={{ width: '62%' }} className="bg-yellow-400"></div>
+                                {(() => {
+    if (!measurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
+    const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
+    if (!installationMeasurements.length) return <div style={{ width: '0%' }} className="bg-green-400"></div>;
+    const correctCount = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
+    return <div style={{ width: `${percent}%` }} className="bg-green-400 transition-all duration-300"></div>;
+})()}
                             </div>
                             <div className="flex text-xs justify-between">
                                 <span>0%</span>
@@ -355,7 +369,11 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Reportes</span>
                             <div className="flex items-center">
-                                <span className="text-2xl font-bold">5</span>
+                                {(() => {
+    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
+    const uniqueReportIds = new Set(measurements.map(m => m.report_id)).size;
+    return <span className="text-2xl font-bold">{uniqueReportIds}</span>;
+})()}
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                                 </svg>
@@ -364,7 +382,10 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Mediciones</span>
                             <div className="flex items-center">
-                                <span className="text-2xl font-bold">642</span>
+                                {(() => {
+    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
+    return <span className="text-2xl font-bold">{measurements.length}</span>;
+})()}
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                                     <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
@@ -413,6 +434,49 @@ export default function DashboardPage() {
                 </div>
             </div>
         </div>
+    </div>
+    {/* Latest Report Measurements Table */}
+    <div className="mt-8">
+      {(() => {
+        if (!measurements.length) return null;
+        const reportIds = measurements.map(m => m.report_id);
+        const latestReportId = Math.max(...reportIds.map(Number));
+        const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
+        if (!latestMeasurements.length) return null;
+        return (
+          <div className="overflow-x-auto">
+            <h3 className="text-lg font-semibold mb-2">Mediciones del Último Reporte</h3>
+            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+              <thead>
+                <tr>
+                  <th className="py-2 px-4 border-b">Variable</th>
+                  <th className="py-2 px-4 border-b">Valor</th>
+                  <th className="py-2 px-4 border-b">Corral</th>
+                  <th className="py-2 px-4 border-b">Fecha</th>
+                  <th className="py-2 px-4 border-b">¿Correcto?</th>
+                </tr>
+              </thead>
+              <tbody>
+                {latestMeasurements.map((m, idx) => (
+                  <tr key={idx} className="text-center">
+                    <td className="py-2 px-4 border-b">{m.variable}</td>
+                    <td className="py-2 px-4 border-b">{m.value}</td>
+                    <td className="py-2 px-4 border-b">{m.pen}</td>
+                    <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
+                    <td className="py-2 px-4 border-b">
+                      {String(m.correct) === '1' || m.correct === true ? (
+                        <span className="text-green-600 font-semibold">Sí</span>
+                      ) : (
+                        <span className="text-red-600 font-semibold">No</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
     </div>
 </Tab.Panel>
                                     <Tab.Panel>
