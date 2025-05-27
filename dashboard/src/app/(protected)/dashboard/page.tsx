@@ -23,6 +23,7 @@ interface Measurement {
     measureDate: string;
     pen: string;
     correct: number;
+    type_of_object: string;
 }
 
 interface HealthStatus {
@@ -103,7 +104,8 @@ export default function DashboardPage() {
                     value: m.measured_value,
                     measureDate: m.measure_date,
                     pen: m.pen_name,
-                    correct: m.correct
+                    correct: m.correct,
+                    type_of_object: m.type_of_object
                 }));
 
                 const combinedData = [
@@ -260,7 +262,17 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex mb-2 items-center justify-between">
                                 <div>
-                                    <span className="text-3xl font-semibold inline-block py-1">84%</span>
+                                    {(() => {
+    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const latestDate = dates[0];
+    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    if (!latestMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const correctCount = latestMeasurements.filter(m => m.correct === 1).length;
+    const percent = Math.round((correctCount / latestMeasurements.length) * 100);
+    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
+})()}
+
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
@@ -277,7 +289,19 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex mb-2 items-center justify-between">
                                 <div>
-                                    <span className="text-3xl font-semibold inline-block py-1">88%</span>
+                                    {(() => {
+    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const latestDate = dates[0];
+    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    console.log('latestMeasurements:', latestMeasurements);
+    const animalMeasurements = latestMeasurements.filter(m => m.type_of_object === 'Animal');
+    if (!animalMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const correctCount = animalMeasurements.filter(m => m.correct === 1).length;
+    const percent = Math.round((correctCount / animalMeasurements.length) * 100);
+    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
+})()}
+
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
@@ -294,7 +318,18 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex mb-2 items-center justify-between">
                                 <div>
-                                    <span className="text-3xl font-semibold inline-block py-1">62%</span>
+                                    {(() => {
+    if (!measurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const dates = [...new Set(measurements.map(m => new Date(m.measureDate).toDateString()))].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    const latestDate = dates[0];
+    const latestMeasurements = measurements.filter(m => new Date(m.measureDate).toDateString() === latestDate);
+    const installationMeasurements = latestMeasurements.filter(m => m.type_of_object === 'Installation');
+    if (!installationMeasurements.length) return <span className="text-3xl font-semibold inline-block py-1">0%</span>;
+    const correctCount = installationMeasurements.filter(m => m.correct === 1).length;
+    const percent = Math.round((correctCount / installationMeasurements.length) * 100);
+    return <span className="text-3xl font-semibold inline-block py-1">{percent}%</span>;
+})()}
+
                                 </div>
                             </div>
                             <div className="flex h-2 mb-4 overflow-hidden bg-gray-200 rounded">
