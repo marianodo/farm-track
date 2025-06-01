@@ -71,6 +71,12 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(false);
     const [selectedTab, setSelectedTab] = useState<TabType>("general");
     const [selectedPen, setSelectedPen] = useState<string>("");
+    const [selectedReportId, setSelectedReportId] = useState<string>("");
+    
+    // Filtered measurements for the selected report date
+    const measurementsToShow = selectedReportId
+        ? measurements.filter((m: Measurement) => String(m.report_id) === String(selectedReportId))
+        : measurements;
 
     const { getFieldsByUser, fieldsByUserId, getCategoricalMeasurementsByFieldId, getNumericalMeasurementsByFieldId } = useFieldStore();
 
@@ -127,6 +133,20 @@ export default function DashboardPage() {
                 combinedData.sort((a, b) => new Date(b.measureDate).getTime() - new Date(a.measureDate).getTime());
                 
                 setMeasurements(combinedData);
+                
+                // Set the latest report as selected by default
+                if (combinedData.length > 0) {
+                    // Get all unique report_ids
+                    const reportIds = Array.from(new Set(combinedData.map(m => m.report_id)));
+                    
+                    // Sort by report_id numerically (assuming report_id reflects chronology)
+                    const sortedReportIds = reportIds.sort((a, b) => Number(b) - Number(a));
+                    
+                    // Select the first one (latest)
+                    if (sortedReportIds.length > 0) {
+                        setSelectedReportId(String(sortedReportIds[0]));
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching measurements:', error);
                 setMeasurements([]);
@@ -278,7 +298,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
     if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = measurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const correctCount = measurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
     return <RadialGauge value={percent} size={120} />;
   })()}
@@ -291,10 +311,10 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    if (!measurements.length) return <RadialGauge value={NaN} label="Animales" color="#38bdf8" size={120} />;
+    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
     const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
     if (!animalMeasurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const correctCount = animalMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
     return <RadialGauge value={percent} size={120} />;
   })()}
@@ -307,10 +327,10 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    if (!measurements.length) return <RadialGauge value={NaN} label="Instalaciones" color="#f59e42" size={120} />;
+    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
     const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
     if (!installationMeasurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const correctCount = installationMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
     return <RadialGauge value={percent} size={120} />;
   })()}
@@ -396,7 +416,7 @@ export default function DashboardPage() {
   // Show up to 5 most recent reports
   return sortedReportIds.slice(0, 5).reverse().map((reportId, index) => {
     const rows = grouped[reportId];
-    const correctCount = rows.filter(m => String(m.correct) === '1' || m.correct === true).length;
+    const correctCount = rows.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percent = rows.length > 0 ? Math.round((correctCount / rows.length) * 100) : 0;
     const rawDate = rows[0]?.measureDate || '';
 const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
@@ -484,26 +504,60 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                                         {/* Pens Tab */}
                                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                                             <h2 className="text-2xl font-semibold mb-4 md:mb-0">Análisis por Corral</h2>
-                                            <div>
-                                                <label htmlFor="pen-select" className="sr-only">Seleccionar corral</label>
-                                                <select
-                                                    id="pen-select"
-                                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-                                                    value={selectedPen}
-                                                    onChange={e => setSelectedPen(e.target.value)}
-                                                >
-                                                    <option value="">Seleccionar corral</option>
-                                                    {Array.from(new Set(measurements.map(m => m.pen))).map(pen => (
-                                                        <option key={pen} value={pen}>{pen}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                            <div className="flex flex-col md:flex-row md:space-x-4">
+                                                {/* Report Date Dropdown */}
+                                                <div className="mb-2 md:mb-0">
+                                                    <label htmlFor="report-select" className="block text-xs font-medium mb-1">Reporte</label>
+                                                    <select
+                                                        id="report-select"
+                                                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 min-w-[150px]"
+                                                        value={selectedReportId}
+                                                        onChange={e => {
+                                                            console.log('Selected report ID:', e.target.value);
+                                                            setSelectedReportId(e.target.value);
+                                                            setSelectedPen(""); // Reset pen selection when report changes
+                                                        }}
+                                                    >
+                                                        <option value="">Todos los reportes</option>
+                                                        {/* Sorting reports from newest to oldest */}
+                                                        {Array.from(new Set(measurements.map((m: Measurement) => m.report_id)))
+                                                            .sort((a, b) => Number(b) - Number(a)) /* Sort by report_id, higher numbers first (newer) */
+                                                            .map((id) => {
+                                                                const date = measurements.find((m: Measurement) => m.report_id === id)?.measureDate;
+                                                                return (
+                                                                    <option key={id} value={id}>
+                                                                        {date ? new Date(date).toLocaleDateString() : id}
+                                                                    </option>
+                                                                );
+                                                            })}
+                                                    </select>
+                                                </div>
+                                                
+                                                {/* Pen Dropdown */}
+                                                <div>
+                                                    <label htmlFor="pen-select" className="block text-xs font-medium mb-1">Corral</label>
+                                                    <select
+                                                        id="pen-select"
+                                                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 min-w-[150px]"
+                                                        value={selectedPen}
+                                                        onChange={e => setSelectedPen(e.target.value)}
+                                                        disabled={measurementsToShow.length === 0}
+                                                        aria-label="Select pen"
+                                                    >
+                                                        <option value="">Seleccionar corral</option>
+                                                        {Array.from(new Set(measurementsToShow.map(m => m.pen))).map(pen => (
+                                                            <option key={pen} value={pen}>{pen}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                        </div>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {Array.from(new Set(measurements.map(m => m.pen))).map(pen => {
-                                                const penMeasurements = measurements.filter(m => m.pen === pen);
+                                            {Array.from(new Set(measurementsToShow.map(m => m.pen))).map(pen => {
+                                                // Use measurementsToShow for filtering to ensure consistency with the selected report
+                                                const penMeasurements = measurementsToShow.filter(m => m.pen === pen);
                                                 const totalCount = penMeasurements.length;
-                                                const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+                                                const correctCount = penMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
                                                 const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
                                                 // Icon logic
                                                 let icon = null;
