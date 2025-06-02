@@ -1,6 +1,29 @@
 "use client";
 
 import useFieldStore from "@/store/fieldStore";
+
+// Register Chart.js elements for all charts in this file
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+import { Bar } from 'react-chartjs-2';
+
 import { useEffect, useState } from "react";
 import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
@@ -425,46 +448,84 @@ export default function DashboardPage() {
                 </div>
                 {/* Correction Rate Chart */}
                 <div className="col-span-3 mt-6">
-                    <div className="bg-gray-50 p-4 rounded-lg h-full">
-                        <h3 className="text-sm font-medium text-gray-500 mb-4">% Corrector por Reporte</h3>
-                        <div className="h-64">
-                            <div className="relative h-full">
-                                <div className="absolute bottom-0 left-0 right-0 h-full flex items-end space-x-4">
-                                    {(() => {
-  if (!measurements.length) return null;
-  // Group by report_id
-  const grouped = measurements.reduce((acc, m) => {
-    const id = m.report_id;
-    if (!acc[id]) acc[id] = [];
-    acc[id].push(m);
-    return acc;
-  }, {} as Record<string | number, Measurement[]>);
-  // Sort by report_id (descending, assuming numeric)
-  const sortedReportIds = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
-  // Show up to 5 most recent reports
-  return sortedReportIds.slice(0, 5).reverse().map((reportId, index) => {
-    const rows = grouped[reportId];
-    const correctCount = rows.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
-    const percent = rows.length > 0 ? Math.round((correctCount / rows.length) * 100) : 0;
-    const rawDate = rows[0]?.measureDate || '';
-const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
-    return (
-      <div key={reportId} className="flex-1 flex flex-col items-center">
-  <div className="w-full flex items-end" style={{ height: 120 }}>
-    <div className="w-full bg-green-400 rounded-t" style={{ height: `${percent}%` }} />
-  </div>
-  <div className="text-xs text-gray-500 mt-1">{percent}%</div>
-  <div className="text-xs text-gray-500">{date}</div>
+    <div className="bg-gray-50 p-4 rounded-lg h-full">
+        <h3 className="text-sm font-medium text-gray-500 mb-4">% Corrector por Reporte</h3>
+        <div className="h-64">
+            {(() => {
+                if (!measurements.length) return null;
+                // Group by report_id
+                const grouped = measurements.reduce((acc, m) => {
+                    const id = m.report_id;
+                    if (!acc[id]) acc[id] = [];
+                    acc[id].push(m);
+                    return acc;
+                }, {} as Record<string | number, Measurement[]>);
+                // Sort by report_id (descending, assuming numeric)
+                const sortedReportIds = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
+                // Show up to 5 most recent reports
+                const recentReports = sortedReportIds.slice(0, 5).reverse();
+                const labels = recentReports.map(reportId => {
+                    const rows = grouped[reportId];
+                    const rawDate = rows[0]?.measureDate || '';
+                    return rawDate ? new Date(rawDate).toLocaleDateString() : `Reporte ${reportId}`;
+                });
+                const data = recentReports.map(reportId => {
+                    const rows = grouped[reportId];
+                    const correctCount = rows.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
+                    return rows.length > 0 ? Math.round((correctCount / rows.length) * 100) : 0;
+                });
+                const chartData = {
+                    labels,
+                    datasets: [
+                        {
+                            label: '% Correcto',
+                            data,
+                            backgroundColor: 'rgba(34,197,94,0.7)',
+                            borderColor: 'rgba(34,197,94,1)',
+                            borderWidth: 1,
+                            maxBarThickness: 40,
+                        },
+                    ],
+                };
+                const options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context: any) => `${context.parsed.y}% correcto`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 10,
+                                callback: function(tickValue: string | number) {
+                                    return tickValue + '%';
+                                },
+                            },
+                            title: {
+                                display: true,
+                                text: '% Correcto',
+                            },
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Reporte',
+                            },
+                        },
+                    },
+                };
+                return <Bar data={chartData} options={options} style={{height: '220px'}} />;
+            })()}
+        </div>
+    </div>
 </div>
-    );
-  });
-})()}
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

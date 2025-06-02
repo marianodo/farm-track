@@ -76,7 +76,7 @@ const RadialGauge: React.FC<RadialGaugeProps> = ({ value, size = 140 }) => {
         fill="#222"
         fontWeight="bold"
       >
-        {isNaN(value) ? "Sin datos" : `${value}`}
+        {isNaN(value) ? "Sin datos" : `%${value}`}
       </text>
     </svg>
   );
