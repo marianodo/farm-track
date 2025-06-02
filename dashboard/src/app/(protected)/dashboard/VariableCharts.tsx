@@ -106,77 +106,298 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
           const absoluteMin = measurementWithRanges?.min;
           const absoluteMax = measurementWithRanges?.max;
           
+          // Determine if categorical: any value is a non-numeric string
+          const isCategorical = latestReportMeasurements.some(m => {
+            return typeof m.value === 'string' && isNaN(Number(m.value));
+          });
+
+          // ----- CATEGORICAL -----
+          if (isCategorical) {
+            // Histogram: count occurrences of each category
+            const valueCounts: { [key: string]: number } = {};
+            latestReportMeasurements.forEach((m: Measurement) => {
+              const value = String(m.value).trim();
+              valueCounts[value] = (valueCounts[value] || 0) + 1;
+            });
+            const labels = Object.keys(valueCounts).sort();
+            const counts = labels.map(label => valueCounts[label]);
+
+            // Color bars by optimal_values
+            const optimalValues = latestReportMeasurements.find(m => Array.isArray(m.optimal_values) && m.optimal_values.length > 0)?.optimal_values || [];
+            const barColors = labels.map(label =>
+              optimalValues.length > 0
+                ? optimalValues.includes(label)
+                  ? 'rgba(75, 192, 75, 0.8)'
+                  : 'rgba(255, 99, 132, 0.8)'
+                : 'rgba(54, 162, 235, 0.8)'
+            );
+            const barBorderColors = labels.map(label =>
+              optimalValues.length > 0
+                ? optimalValues.includes(label)
+                  ? 'rgba(75, 192, 75, 1)'
+                  : 'rgba(255, 99, 132, 1)'
+                : 'rgba(54, 162, 235, 1)'
+            );
+
+            // Histogram chart data
+            const distributionData = {
+              labels,
+              datasets: [{
+                label: 'Cantidad de mediciones',
+                data: counts,
+                backgroundColor: barColors,
+                borderColor: barBorderColors,
+                borderWidth: 1,
+                maxBarThickness: 50
+              }]
+            };
+
+            // Evolution: map categories to numbers for chart, and back for tooltips/axis
+            // Find all categories across all reports for this variable
+            const allCategories = Array.from(new Set(variableMeasurements.map(m => String(m.value).trim()).filter(Boolean))).sort();
+            const categoryToNumber = new Map<string, number>();
+            const numberToCategory = new Map<number, string>();
+            allCategories.forEach((cat, idx) => {
+              categoryToNumber.set(cat, idx + 1);
+              numberToCategory.set(idx + 1, cat);
+            });
+
+            // For each report, get the most frequent category
+            const mostFrequentCategoryByReport = reports.map(reportId => {
+              const measurementsForReport = variableMeasurements.filter((m: Measurement) => String(m.report_id) === String(reportId));
+              if (measurementsForReport.length === 0) return null;
+              const freq: { [cat: string]: number } = {};
+              measurementsForReport.forEach(m => {
+                const val = String(m.value).trim();
+                freq[val] = (freq[val] || 0) + 1;
+              });
+              let max = 0, chosen = '';
+              Object.entries(freq).forEach(([cat, count]) => {
+                if (count > max) {
+                  max = count;
+                  chosen = cat;
+                }
+              });
+              return chosen && categoryToNumber.has(chosen) ? categoryToNumber.get(chosen) : null;
+            });
+
+            // Evolution chart data
+            const evolutionData = {
+              labels: reportDates,
+              datasets: [{
+                label: 'Categoría más frecuente',
+                data: mostFrequentCategoryByReport,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.3,
+                pointRadius: 4,
+                fill: true,
+                pointBackgroundColor: 'rgb(75, 192, 192)',
+                pointBorderColor: '#fff',
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+                pointHoverBorderColor: '#fff',
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+              }],
+            };
+
+            // Histogram options
+            const distributionOptions = {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                title: {
+                  display: true,
+                  text: `Distribución de ${variable}`,
+                },
+                tooltip: {
+                  callbacks: {
+                    label: (context: any) => {
+                      const label = context.label;
+                      const count = context.parsed.y;
+                      let tooltipText = `Categoría: ${label}`;
+                      tooltipText += `\nCantidad: ${count}`;
+                      if (optimalValues.length > 0) {
+                        tooltipText += `\nEstado: ${optimalValues.includes(label) ? '✅ Óptimo' : '❌ No óptimo'}`;
+                      }
+                      return tooltipText;
+                    }
+                  }
+                },
+              },
+              scales: {
+                x: {
+                  title: { display: true, text: 'Categoría' },
+                  type: 'category' as const,
+                  grid: { display: false }
+                },
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: 'Cantidad de mediciones' },
+                  min: 0,
+                  ticks: { stepSize: 1, precision: 0 }
+                },
+              },
+              barPercentage: 0.8,
+              categoryPercentage: 0.9,
+            } as const;
+
+            // Evolution options
+            const evolutionOptions = {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: 'Evolución en el tiempo',
+                  font: { size: 14 }
+                },
+                tooltip: {
+                  callbacks: {
+                    title: (context: any) => `Variable: ${variable}`,
+                    label: (context: any) => {
+                      const idx = context.dataIndex;
+                      const catNum = mostFrequentCategoryByReport[idx];
+                      const cat = catNum != null ? numberToCategory.get(catNum) : 'N/A';
+                      return `Categoría más frecuente: ${cat}`;
+                    },
+                  },
+                  padding: 10,
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  titleFont: { size: 14, weight: 'bold' as const },
+                  bodyFont: { size: 12 },
+                  displayColors: false,
+                }
+              },
+              scales: {
+                x: {
+                  title: { display: true, text: 'Fecha del reporte' },
+                  grid: { display: false }
+                },
+                y: {
+                  title: { display: true, text: 'Categoría' },
+                  beginAtZero: true,
+                  min: 0,
+                  max: allCategories.length + 1,
+                  ticks: {
+                    stepSize: 1,
+                    callback: function(tickValue: string | number) {
+                      // Chart.js may pass tickValue as string or number
+                      const num = typeof tickValue === 'number' ? tickValue : parseInt(tickValue, 10);
+                      return numberToCategory.get(num) || '';
+                    }
+                  },
+                  grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                }
+              },
+              elements: { line: { borderWidth: 2 } }
+            } as const;
+
+            return (
+              <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
+                <h3 className="text-lg font-semibold mb-4">{variable}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
+                    <div style={{ height: '250px' }}>
+                      {latestReportMeasurements.length > 0 ? (
+                        <Bar options={distributionOptions} data={distributionData} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-gray-400">
+                          No hay datos disponibles
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-500 mb-3">Tendencia de Variables</h4>
+                    <div style={{ height: '250px' }}>
+                      {mostFrequentCategoryByReport.some(v => v !== null) ? (
+                        <Line options={evolutionOptions} data={evolutionData} />
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-gray-400">
+                          No hay datos disponibles
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Optional: Add statistics or additional info */}
+                <div className="mt-3 text-sm text-gray-600">
+                  {latestReportMeasurements.length > 0 && (
+                    <div className="flex justify-between">
+                      {optimalValues.length > 0 ? (
+                        <span>Óptimos: {optimalValues.join(', ')}</span>
+                      ) : (
+                        <span>Última categoría: {String(latestReportMeasurements[0].value)}</span>
+                      )}
+                      <span>
+                        Total: {latestReportMeasurements.length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+
+          // ----- NUMERICAL (default) -----
           // Prepare data for histogram - count occurrences of each value
           const valueCounts: {[key: string]: number} = {};
-          
-          // Count occurrences of each value
           latestReportMeasurements.forEach((m: Measurement) => {
             const value = Number(m.value).toFixed(2); // Round to 2 decimal places for grouping
             valueCounts[value] = (valueCounts[value] || 0) + 1;
           });
-          
           // Use absolute min/max if available, otherwise use data range
-          const min = absoluteMin !== undefined ? Math.floor(absoluteMin) : 
+          const min = absoluteMin !== undefined ? Math.floor(absoluteMin) :
                      (latestReportMeasurements.length > 0 ? Math.min(...latestReportMeasurements.map(m => Number(m.value))) : 0);
-          const max = absoluteMax !== undefined ? Math.ceil(absoluteMax) : 
+          const max = absoluteMax !== undefined ? Math.ceil(absoluteMax) :
                      (latestReportMeasurements.length > 0 ? Math.max(...latestReportMeasurements.map(m => Number(m.value))) : 10);
-          
-          // Create labels for the full range
-          const step = Math.max(1, Math.ceil((max - min) / 20)); // Adjust step based on range
+          const step = Math.max(1, Math.ceil((max - min) / 20));
           const labels: string[] = [];
           const counts: number[] = [];
-          
-          // Initialize counts for each value in the range
           for (let i = min; i <= max; i += step) {
             const value = i.toFixed(2);
             labels.push(value);
             counts.push(0);
           }
-          
-          // Fill in the actual counts
           Object.entries(valueCounts).forEach(([value, count]) => {
             const index = Math.round((parseFloat(value) - min) / step);
             if (index >= 0 && index < counts.length) {
               counts[index] += count;
             }
           });
-          
           const values = labels.map(Number);
           const minValue = min;
           const maxValue = max;
-          
-          // Color code based on optimal range
           const barColors = labels.map((value: string) => {
             const numValue = Number(value);
             if (optimalMin !== undefined && optimalMax !== undefined) {
-              return (numValue >= optimalMin && numValue <= optimalMax) 
-                ? 'rgba(75, 192, 75, 0.8)' // Green for values within range
-                : 'rgba(255, 99, 132, 0.8)'; // Red for values outside range
+              return (numValue >= optimalMin && numValue <= optimalMax)
+                ? 'rgba(75, 192, 75, 0.8)'
+                : 'rgba(255, 99, 132, 0.8)';
             }
-            return 'rgba(54, 162, 235, 0.8)'; // Default blue if no optimal range
+            return 'rgba(54, 162, 235, 0.8)';
           });
-          
           const barBorderColors = labels.map((value: string) => {
             const numValue = Number(value);
             if (optimalMin !== undefined && optimalMax !== undefined) {
-              return (numValue >= optimalMin && numValue <= optimalMax) 
-                ? 'rgba(75, 192, 75, 1)' // Green for values within range
-                : 'rgba(255, 99, 132, 1)'; // Red for values outside range
+              return (numValue >= optimalMin && numValue <= optimalMax)
+                ? 'rgba(75, 192, 75, 1)'
+                : 'rgba(255, 99, 132, 1)';
             }
-            return 'rgba(54, 162, 235, 1)'; // Default blue if no optimal range
+            return 'rgba(54, 162, 235, 1)';
           });
-          
           // Get values across reports for evolution chart
           const valuesByReport = reports.map(reportId => {
             const measurementsForReport = variableMeasurements.filter((m: Measurement) => String(m.report_id) === String(reportId));
             if (measurementsForReport.length === 0) return null;
-            
-            // If multiple measurements in same report, use average
             if (measurementsForReport.length > 1) {
               const sum = measurementsForReport.reduce((acc, curr) => acc + Number(curr.value || 0), 0);
               return sum / measurementsForReport.length;
             }
-            
             return Number(measurementsForReport[0].value || 0);
           });
           
