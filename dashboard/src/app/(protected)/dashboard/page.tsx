@@ -634,7 +634,7 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                                         {/* Variable Charts for Selected Pen */}
                                         {selectedPen && (
                                             <VariableCharts 
-                                                measurements={measurementsToShow} 
+                                                measurements={measurements} // Always pass all measurements
                                                 selectedPen={selectedPen} 
                                                 selectedReportId={selectedReportId} 
                                             />

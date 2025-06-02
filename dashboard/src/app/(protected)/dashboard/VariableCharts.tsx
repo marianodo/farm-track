@@ -47,9 +47,14 @@ interface VariableChartsProps {
   selectedReportId: string;
 }
 
-const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedPen, selectedReportId }) => {
-  // Filter measurements for the selected pen
-  const penMeasurements = measurements.filter((m: Measurement) => m.pen === selectedPen);
+const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedPen, selectedReportId }: VariableChartsProps) => {
+  // Get all measurements for the selected pen
+  const penMeasurements = measurements.filter(m => m.pen === selectedPen);
+  
+  // Filter for the selected report if specified
+  const filteredMeasurements = selectedReportId
+    ? penMeasurements.filter(m => String(m.report_id) === String(selectedReportId))
+    : penMeasurements;
   
   // Get unique variables for the selected pen
   const variables = Array.from(new Set(penMeasurements.map(m => m.variable)));
@@ -188,30 +193,76 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
             }]
           };
           
+          // Get all reports with their measurements and calculate averages
+          const reportsMap = new Map();
+          
+          // Always use ALL measurements for this variable and pen for the trend chart
+          // This ensures we show the full history across all reports
+          const variableMeasurementsForAllReports = measurements
+            .filter(m => m.pen === selectedPen)
+            .filter(m => m.variable === variable);
+          
+          // Process ALL reports to show in the trend chart
+          variableMeasurementsForAllReports.forEach(measurement => {
+            const reportId = String(measurement.report_id);
+            const value = Number(measurement.value);
+            
+            if (isNaN(value)) return;
+            
+            if (!reportsMap.has(reportId)) {
+              reportsMap.set(reportId, {
+                reportId,
+                date: measurement.measureDate ? new Date(measurement.measureDate) : new Date(),
+                values: [],
+                count: 0,
+                sum: 0
+              });
+            }
+            
+            const report = reportsMap.get(reportId);
+            if (report) {
+              report.values.push(value);
+              report.count++;
+              report.sum += value;
+            }
+          });
+          
+          // For the distribution chart, we still use filtered measurements based on selected report
+          // But for the trend chart above, we use ALL reports
+          
+          // Convert map to array and calculate averages
+          const allReports = Array.from(reportsMap.values())
+            .map(report => ({
+              reportId: report.reportId,
+              date: report.date,
+              average: report.count > 0 ? report.sum / report.count : 0,
+              count: report.count,
+              min: report.values.length > 0 ? Math.min(...report.values) : 0,
+              max: report.values.length > 0 ? Math.max(...report.values) : 0
+            }))
+            .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+          
           // Chart data for evolution (line chart)
           const evolutionData = {
-            labels: reportDates,
-            datasets: [
-              {
-                label: variable,
-                data: reports.map(reportId => {
-                  const measurementsForReport = variableMeasurements.filter((m: Measurement) => String(m.report_id) === String(reportId));
-                  if (measurementsForReport.length === 0) return null;
-                  
-                  // If multiple measurements in same report, use average
-                  if (measurementsForReport.length > 1) {
-                    const sum = measurementsForReport.reduce((acc, curr) => acc + Number(curr.value || 0), 0);
-                    return sum / measurementsForReport.length;
-                  }
-                  
-                  return Number(measurementsForReport[0].value || 0);
-                }).filter(v => v !== null), // Filter out null values
-                borderColor: 'rgb(255, 99, 132)',
-                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                tension: 0.2,
-                pointRadius: 4,
-              },
-            ],
+            labels: allReports.map(report => 
+              report.date.toLocaleDateString()
+            ),
+            datasets: [{
+              label: 'Promedio por reporte',
+              data: allReports.map(report => report.average),
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.3,
+              pointRadius: 4,
+              fill: true,
+              pointBackgroundColor: 'rgb(75, 192, 192)',
+              pointBorderColor: '#fff',
+              pointHoverRadius: 5,
+              pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+              pointHoverBorderColor: '#fff',
+              pointHitRadius: 10,
+              pointBorderWidth: 2,
+            }],
           };
           
           // Chart options
@@ -298,16 +349,82 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
             maintainAspectRatio: false,
             plugins: {
               legend: {
-                position: 'top' as const,
+                display: false
               },
               title: {
                 display: true,
                 text: 'Evolución en el tiempo',
+                font: {
+                  size: 14
+                }
               },
+              tooltip: {
+                callbacks: {
+                  label: (context: any) => {
+                    const report = allReports[context.dataIndex];
+                    if (!report) return '';
+                    
+                    const avg = report.average.toFixed(2);
+                    const min = report.min.toFixed(2);
+                    const max = report.max.toFixed(2);
+                    const date = report.date.toLocaleDateString();
+                    
+                    return [
+                      `Reporte: #${report.reportId}`,
+                      `Fecha: ${date}`,
+                      `Muestras: ${report.count}`,
+                      `Promedio: ${avg}`,
+                      `Mínimo: ${min}`,
+                      `Máximo: ${max}`
+                    ];
+                  },
+                  title: () => `Variable: ${variable}`,
+                  afterLabel: (context: any) => {
+                    const report = allReports[context.dataIndex];
+                    if (!report || optimalMin === undefined || optimalMax === undefined) return '';
+                    
+                    const isInRange = report.average >= optimalMin && report.average <= optimalMax;
+                    return `Estado: ${isInRange ? '✅ En rango óptimo' : '⚠️ Fuera de rango'}`;
+                  }
+                },
+                padding: 10,
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleFont: {
+                  size: 14,
+                  weight: 'bold' as const
+                },
+                bodyFont: {
+                  size: 12
+                },
+                displayColors: false
+              }
             },
             scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Fecha del reporte'
+                },
+                grid: {
+                  display: false
+                }
+              },
               y: {
-                beginAtZero: true
+                title: {
+                  display: true,
+                  text: 'Valor promedio'
+                },
+                beginAtZero: false,
+                min: absoluteMin !== undefined ? Math.max(0, absoluteMin * 0.9) : undefined,
+                max: absoluteMax !== undefined ? absoluteMax * 1.1 : undefined,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                }
+              }
+            },
+            elements: {
+              line: {
+                borderWidth: 2
               }
             }
           };
@@ -348,7 +465,11 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
               <div className="mt-3 text-sm text-gray-600">
                 {latestReportMeasurements.length > 0 && (
                   <div className="flex justify-between">
-                    <span>Último valor: {latestReportMeasurements[0].value}</span>
+                    {optimalMin !== undefined && optimalMax !== undefined ? (
+                      <span>Rango óptimo: {optimalMin} - {optimalMax}</span>
+                    ) : (
+                      <span>Último valor: {latestReportMeasurements[0].value}</span>
+                    )}
                     {variableMeasurements.length > 1 && (
                       <span>
                         Promedio: {(variableMeasurements.reduce((acc, curr) => acc + Number(curr.value), 0) / variableMeasurements.length).toFixed(2)}
