@@ -4,6 +4,7 @@ import useFieldStore from "@/store/fieldStore";
 import { useEffect, useState } from "react";
 import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
+import VariableCharts from "./VariableCharts";
 
 type TabType = "general" | "pens" | "numerical";
 
@@ -29,6 +30,8 @@ interface Measurement {
     optimal_values?: string[]; // categorical
     optimo_min?: number; // numeric
     optimo_max?: number; // numeric
+    min?: number; // absolute minimum value
+    max?: number; // absolute maximum value
 }
 
 interface HealthStatus {
@@ -111,18 +114,43 @@ export default function DashboardPage() {
                     getCategoricalMeasurementsByFieldId(selected.id),
                     getNumericalMeasurementsByFieldId(selected.id)
                 ]);
-                const normalizeData = (data: any[]) => data.map(m => ({
-    variable: m.variable,
-    value: m.measured_value,
-    measureDate: m.measure_date,
-    pen: m.pen_name,
-    correct: m.correct,
-    type_of_object: m.type_of_object,
-    report_id: m.report_id,
-    optimal_values: m.optimal_values || m.optimal_values === '' ? (Array.isArray(m.optimal_values) ? m.optimal_values : (typeof m.optimal_values === 'string' ? m.optimal_values.split(',').map((s: string) => s.trim()).filter(Boolean) : [])) : undefined,
-    optimo_min: m.optimo_min !== undefined ? Number(m.optimo_min) : undefined,
-    optimo_max: m.optimo_max !== undefined ? Number(m.optimo_max) : undefined,
-}));
+                const normalizeData = (data: any[]) => {
+                  return data.map(m => {
+                    // For numerical data, ensure min/max values are properly handled
+                    const normalized = {
+                      variable: m.variable,
+                      value: m.measured_value,
+                      measureDate: m.measure_date,
+                      pen: m.pen_name,
+                      correct: m.correct,
+                      type_of_object: m.type_of_object,
+                      report_id: m.report_id,
+                      optimal_values: m.optimal_values || m.optimal_values === '' ? 
+                        (Array.isArray(m.optimal_values) ? m.optimal_values : 
+                        (typeof m.optimal_values === 'string' ? m.optimal_values.split(',').map((s: string) => s.trim()).filter(Boolean) : [])) : 
+                        undefined,
+                      optimo_min: m.optimo_min !== undefined ? Number(m.optimo_min) : undefined,
+                      optimo_max: m.optimo_max !== undefined ? Number(m.optimo_max) : undefined,
+                      min: m.min !== undefined && m.min !== null ? Number(m.min) : undefined,
+                      max: m.max !== undefined && m.max !== null ? Number(m.max) : undefined,
+                    };
+                    
+                    // Debug log for numerical variables
+                    if (m.type_of_object === 'numerical') {
+                      console.log('Normalized numerical measurement:', {
+                        variable: normalized.variable,
+                        value: normalized.value,
+                        min: normalized.min,
+                        max: normalized.max,
+                        optimo_min: normalized.optimo_min,
+                        optimo_max: normalized.optimo_max,
+                        rawData: m
+                      });
+                    }
+                    
+                    return normalized;
+                  });
+                };
 
                 const combinedData = [
                     ...normalizeData(categoricalData),
@@ -586,9 +614,10 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                                                     <div
                                                         key={pen}
                                                         className={
-                                                            `bg-white p-6 rounded-lg shadow flex flex-col justify-between min-h-[170px] border transition-all ` +
+                                                            `bg-white p-6 rounded-lg shadow flex flex-col justify-between min-h-[170px] border transition-all cursor-pointer ` +
                                                             (selectedPen === pen ? 'border-green-500 ring-2 ring-green-200' : 'border-transparent')
                                                         }
+                                                        onClick={() => setSelectedPen(pen)}
                                                     >
                                                         <div>
                                                             <h3 className="text-lg font-semibold mb-1">{pen}</h3>
@@ -601,6 +630,15 @@ const date = rawDate ? new Date(rawDate).toISOString().slice(0, 10) : '';
                                                 );
                                             })}
                                         </div>
+                                        
+                                        {/* Variable Charts for Selected Pen */}
+                                        {selectedPen && (
+                                            <VariableCharts 
+                                                measurements={measurementsToShow} 
+                                                selectedPen={selectedPen} 
+                                                selectedReportId={selectedReportId} 
+                                            />
+                                        )}
                                     </Tab.Panel>
 
                                     <Tab.Panel>
