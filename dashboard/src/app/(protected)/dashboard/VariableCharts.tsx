@@ -305,7 +305,10 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
             return (
               <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
                 <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
-                  <span>{variable}</span>
+                  <div>
+                    <span>{variable}</span>
+                    <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
+                  </div>
                   <div className="flex items-center">
                     {correctPercentage >= 80 ? (
                       <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -680,7 +683,10 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
           return (
             <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
               <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
-                <span>{variable}</span>
+                <div>
+                  <span>{variable}</span>
+                  <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
+                </div>
                 <div className="flex items-center">
                   {correctPercentage >= 80 ? (
                     <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
