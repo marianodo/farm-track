@@ -348,10 +348,27 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = measurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
-    const percent = measurements.length > 0 ? Math.round((correctCount / measurements.length) * 100) : 0;
-    return <RadialGauge value={percent} size={120} />;
+    // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
+    if (!measurementsToShow.length) {
+      return (
+        <div className="text-center">
+          <RadialGauge value={NaN} size={120} />
+          <p className="text-sm text-gray-500 mt-2">0/0</p>
+        </div>
+      );
+    }
+    const totalCount = measurementsToShow.length;
+    const correctCount = measurementsToShow.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    return (
+      <div className="text-center">
+        <RadialGauge value={percent} size={120} />
+        <p className="text-lg font-semibold text-gray-700 mt-2">
+          {correctCount}/{totalCount}
+        </p>
+        <p className="text-xs text-gray-500">mediciones correctas</p>
+      </div>
+    );
   })()}
 </div>
                             
@@ -362,12 +379,38 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
-    const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
-    if (!animalMeasurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = animalMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
-    const percent = animalMeasurements.length > 0 ? Math.round((correctCount / animalMeasurements.length) * 100) : 0;
-    return <RadialGauge value={percent} size={120} />;
+    // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
+    if (!measurementsToShow.length) { // Check measurementsToShow first
+      return (
+        <div className="text-center">
+          <RadialGauge value={NaN} size={120} />
+          <p className="text-sm text-gray-500 mt-2">0/0 (animales)</p> 
+        </div>
+      );
+    }
+    // Filter from measurementsToShow
+    const animalMeasurements = measurementsToShow.filter(m => m.type_of_object === 'Animal');
+    if (!animalMeasurements.length) {
+      return (
+        <div className="text-center">
+          <RadialGauge value={NaN} size={120} />
+          <p className="text-sm text-gray-500 mt-2">0/0 (animales)</p>
+        </div>
+      );
+    }
+    const totalCount = animalMeasurements.length;
+    // Ensure correct comparison for number type
+    const correctCount = animalMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length; 
+    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    return (
+      <div className="text-center">
+        <RadialGauge value={percent} size={120} />
+        <p className="text-lg font-semibold text-gray-700 mt-2">
+          {correctCount}/{totalCount}
+        </p>
+        <p className="text-xs text-gray-500">mediciones correctas (animales)</p>
+      </div>
+    );
   })()}
 </div>
                             
@@ -378,12 +421,38 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    if (!measurements.length) return <RadialGauge value={NaN} size={120} />;
-    const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
-    if (!installationMeasurements.length) return <RadialGauge value={NaN} size={120} />;
-    const correctCount = installationMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
-    const percent = installationMeasurements.length > 0 ? Math.round((correctCount / installationMeasurements.length) * 100) : 0;
-    return <RadialGauge value={percent} size={120} />;
+    // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
+    if (!measurementsToShow.length) { // Check measurementsToShow first
+      return (
+        <div className="text-center">
+          <RadialGauge value={NaN} size={120} />
+          <p className="text-sm text-gray-500 mt-2">0/0 (instalaciones)</p> 
+        </div>
+      );
+    }
+    // Filter from measurementsToShow
+    const installationMeasurements = measurementsToShow.filter(m => m.type_of_object === 'Installation');
+    if (!installationMeasurements.length) {
+      return (
+        <div className="text-center">
+          <RadialGauge value={NaN} size={120} />
+          <p className="text-sm text-gray-500 mt-2">0/0 (instalaciones)</p>
+        </div>
+      );
+    }
+    const totalCount = installationMeasurements.length;
+    // Ensure correct comparison for number type
+    const correctCount = installationMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length; 
+    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    return (
+      <div className="text-center">
+        <RadialGauge value={percent} size={120} />
+        <p className="text-lg font-semibold text-gray-700 mt-2">
+          {correctCount}/{totalCount}
+        </p>
+        <p className="text-xs text-gray-500">mediciones correctas (instalaciones)</p>
+      </div>
+    );
   })()}
 </div>
                         </div>
@@ -559,7 +628,7 @@ export default function DashboardPage() {
                     <td className="py-2 px-4 border-b">{m.pen}</td>
                     <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
                     <td className="py-2 px-4 border-b">
-  {String(m.correct) === '1' || m.correct === true ? (
+  {String(m.correct) === '1' || m.correct === 1 ? (
     <span className="flex justify-center">
       <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
