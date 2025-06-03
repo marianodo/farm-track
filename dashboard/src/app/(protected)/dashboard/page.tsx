@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState, useEffect, useMemo } from 'react';
 import useFieldStore from "@/store/fieldStore";
 
 // Register Chart.js elements for all charts in this file
@@ -24,7 +25,6 @@ ChartJS.register(
 
 import { Bar } from 'react-chartjs-2';
 
-import { useEffect, useState } from "react";
 import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
 import VariableCharts from "./VariableCharts";
@@ -88,7 +88,7 @@ function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(" ");
 }
 
-export default function DashboardPage() {
+const DashboardPage: React.FC = () => {
     const [selectedField, setSelectedField] = useState<Field | AllFieldsOption>({
         value: "all",
         label: "Todos los campos",
@@ -98,11 +98,62 @@ export default function DashboardPage() {
     const [selectedTab, setSelectedTab] = useState<TabType>("general");
     const [selectedPen, setSelectedPen] = useState<string>("");
     const [selectedReportId, setSelectedReportId] = useState<string>("");
+    const [selectedReportIdForSummary, setSelectedReportIdForSummary] = useState<string>("");
+
+    const handleReportChangeForSummary = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedReportIdForSummary(event.target.value);
+    };
     
     // Filtered measurements for the selected report date
     const measurementsToShow = selectedReportId
         ? measurements.filter((m: Measurement) => String(m.report_id) === String(selectedReportId))
         : measurements;
+
+    // Assuming reportOptions is defined elsewhere, e.g.:
+    // const reportOptions = useMemo(() => { ... }, [measurements]);
+    // For this change, we'll mock it if not found, or use the real one if present.
+    // THIS IS A CRITICAL DEPENDENCY FOR THE BELOW LOGIC.
+
+    const reportOptions = useMemo(() => {
+        if (!measurements.length) return [];
+        const uniqueReports = measurements.reduce((acc, m) => {
+            if (!acc.find(report => String(report.id) === String(m.report_id))) {
+                acc.push({ id: String(m.report_id), date: m.measureDate });
+            }
+            return acc;
+        }, [] as { id: string; date: string }[]);
+
+        return uniqueReports
+            .map(report => ({
+                value: report.id,
+                label: `${new Date(report.date).toLocaleDateString()} (ID: ${report.id})`
+            }))
+            .sort((a, b) => Number(a.value) - Number(b.value)); // Sort by report_id ascending
+    }, [measurements]);
+
+    const summaryReportMeasurements = useMemo(() => {
+        if (!selectedReportIdForSummary && reportOptions.length > 0) {
+            const actualReportOptions = reportOptions.filter(opt => opt.value !== 'all');
+            if (actualReportOptions.length > 0) {
+                const latestId = String(actualReportOptions[actualReportOptions.length - 1].value);
+                return measurements.filter((m: Measurement) => String(m.report_id) === latestId);
+            }
+            return []; 
+        }
+        if (selectedReportIdForSummary) {
+            return measurements.filter((m: Measurement) => String(m.report_id) === String(selectedReportIdForSummary));
+        }
+        return [];
+    }, [measurements, selectedReportIdForSummary, reportOptions]);
+
+    useEffect(() => {
+        if (reportOptions.length > 0 && !selectedReportIdForSummary) {
+            const actualReportOptions = reportOptions.filter(opt => opt.value !== 'all');
+            if (actualReportOptions.length > 0) {
+                setSelectedReportIdForSummary(String(actualReportOptions[actualReportOptions.length - 1].value));
+            }
+        }
+    }, [reportOptions, selectedReportIdForSummary, setSelectedReportIdForSummary]);
 
     const { getFieldsByUser, fieldsByUserId, getCategoricalMeasurementsByFieldId, getNumericalMeasurementsByFieldId } = useFieldStore();
 
@@ -227,8 +278,8 @@ export default function DashboardPage() {
                         onChange={(e) => handleFieldChange(e.target.value)}
                         className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
                     >
-                        {fields.map((field: any, index) => (
-                            <option key={field.id + index} value={field.value}>
+                        {fields.map((field: Field | AllFieldsOption, index: number) => (
+                            <option key={field.value + '_' + index} value={field.value}>
                                 {field.label}
                             </option>
                         ))}
@@ -275,16 +326,41 @@ export default function DashboardPage() {
     <div className="w-full space-y-6">
         {/* Latest Report Summary */}
         <div className="bg-white rounded-lg shadow p-6">
-            {(() => {
-    if (!measurements.length) return <h2 className="text-xl font-semibold mb-4">Último Reporte: -</h2>;
-    const reportIds = measurements.map(m => m.report_id);
-    const latestReportId = Math.max(...reportIds.map(Number));
-    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-    if (!latestMeasurements.length) return <h2 className="text-xl font-semibold mb-4">Último Reporte: -</h2>;
-    // Use the date of the first measurement in the latest report
-    const latestDate = new Date(latestMeasurements[0].measureDate).toLocaleDateString();
-    return <h2 className="text-xl font-semibold mb-4">Último Reporte: {latestDate}</h2>;
-})()}
+            <div className="flex items-center justify-between mb-4">
+                {(() => {
+                    let titleDate = "-";
+                    if (selectedReportIdForSummary && summaryReportMeasurements.length > 0 && summaryReportMeasurements[0]?.measureDate) {
+                        titleDate = new Date(summaryReportMeasurements[0].measureDate).toLocaleDateString();
+                    } else if (selectedReportIdForSummary) {
+                        const selectedOption = reportOptions.find(opt => String(opt.value) === String(selectedReportIdForSummary));
+                        if (selectedOption && selectedOption.label.includes(' (ID:')) {
+                            titleDate = selectedOption.label.split(' (ID:')[0];
+                        } else if (selectedOption) {
+                            titleDate = selectedOption.label; 
+                        } else {
+                            titleDate = `ID: ${selectedReportIdForSummary}`;
+                        }
+                    }
+                    return <h2 className="text-xl font-semibold">Resumen del Reporte: {titleDate}</h2>;
+                })()}
+                {reportOptions.length > 0 && (
+                    <select
+                        value={selectedReportIdForSummary}
+                        onChange={handleReportChangeForSummary}
+                        className="ml-4 p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                    >
+                        {reportOptions
+                            .filter(option => option.value !== 'all') 
+                            .slice() 
+                            .sort((a, b) => Number(b.value) - Number(a.value)) 
+                            .map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                        ))}
+                    </select>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Summary Stats */}
@@ -293,13 +369,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Cantidad Mediciones</span>
                             <div className="flex items-center">
-                                {(() => {
-    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const reportIds = measurements.map(m => m.report_id);
-    const latestReportId = Math.max(...reportIds.map(Number));
-    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-    return <span className="text-2xl font-bold">{latestMeasurements.length}</span>;
-})()}
+                                <span className="text-2xl font-bold">{summaryReportMeasurements.length}</span>
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                                     <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
@@ -309,14 +379,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Corrales</span>
                             <div className="flex items-center">
-                                {(() => {
-    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const reportIds = measurements.map(m => m.report_id);
-    const latestReportId = Math.max(...reportIds.map(Number));
-    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-    const uniquePens = new Set(latestMeasurements.map(m => m.pen)).size;
-    return <span className="text-2xl font-bold">{uniquePens}</span>;
-})()}
+                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.pen)).size}</span>
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
                                 </svg>
@@ -325,14 +388,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Variables Medidas</span>
                             <div className="flex items-center">
-                                {(() => {
-    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
-    const reportIds = measurements.map(m => m.report_id);
-    const latestReportId = Math.max(...reportIds.map(Number));
-    const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-    const uniqueVariables = new Set(latestMeasurements.map(m => m.variable)).size;
-    return <span className="text-2xl font-bold">{uniqueVariables}</span>;
-})()}
+                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.variable)).size}</span>
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
                                 </svg>
@@ -349,7 +405,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
     // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
-    if (!measurementsToShow.length && !selectedReportId) { // If no report selected and no measurements at all
+    if (!summaryReportMeasurements.length && !selectedReportIdForSummary) { // If no summary report selected and no summary measurements
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -358,15 +414,15 @@ export default function DashboardPage() {
       );
     }
 
-    const totalCountCurrent = measurementsToShow.length;
-    const correctCountCurrent = measurementsToShow.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const totalCountCurrent = summaryReportMeasurements.length;
+    const correctCountCurrent = summaryReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
     const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
 
     let comparisonDisplay = null;
 
-    if (selectedReportId && measurements.length > 0) {
-      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a); // Descending
-      const currentReportNumericId = Number(selectedReportId);
+    if (selectedReportIdForSummary && measurements.length > 0) {
+      const allReportIdsNumeric = reportOptions.map(opt => Number(opt.value)).filter(id => !isNaN(id)).sort((a, b) => b - a); // Descending, from summary options
+      const currentReportNumericId = Number(selectedReportIdForSummary);
       const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
 
       if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) { // Check if not the oldest report
@@ -393,7 +449,7 @@ export default function DashboardPage() {
     }
     
     // If measurementsToShow is empty (e.g. selected report has no general field data), but we want to show something generic
-    if (measurementsToShow.length === 0 && selectedReportId) {
+    if (summaryReportMeasurements.length === 0 && selectedReportIdForSummary) {
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -402,7 +458,7 @@ export default function DashboardPage() {
             </div>
         );
     }
-    if (measurementsToShow.length === 0 && !selectedReportId) { // Should be caught by the first check, but as a fallback
+    if (summaryReportMeasurements.length === 0 && !selectedReportIdForSummary) { // Should be caught by the first check, but as a fallback
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -431,9 +487,9 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    const animalMeasurementsCurrent = measurementsToShow.filter(m => m.type_of_object === 'Animal');
+    const animalMeasurementsCurrent = summaryReportMeasurements.filter(m => m.type_of_object === 'Animal');
 
-    if (animalMeasurementsCurrent.length === 0 && !selectedReportId) {
+    if (animalMeasurementsCurrent.length === 0 && !selectedReportIdForSummary) {
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -448,9 +504,9 @@ export default function DashboardPage() {
 
     let comparisonDisplay = null;
 
-    if (selectedReportId && measurements.length > 0) {
-      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a);
-      const currentReportNumericId = Number(selectedReportId);
+    if (selectedReportIdForSummary && measurements.length > 0) {
+      const allReportIdsNumeric = reportOptions.map(opt => Number(opt.value)).filter(id => !isNaN(id)).sort((a, b) => b - a);
+      const currentReportNumericId = Number(selectedReportIdForSummary);
       const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
 
       if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) {
@@ -477,7 +533,7 @@ export default function DashboardPage() {
       }
     }
 
-    if (animalMeasurementsCurrent.length === 0 && selectedReportId) {
+    if (animalMeasurementsCurrent.length === 0 && selectedReportIdForSummary) {
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -486,7 +542,7 @@ export default function DashboardPage() {
             </div>
         );
     }
-     if (animalMeasurementsCurrent.length === 0 && !selectedReportId) { // Fallback, should be caught by first check
+     if (animalMeasurementsCurrent.length === 0 && !selectedReportIdForSummary) { // Fallback, should be caught by first check
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -515,9 +571,9 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    const installationMeasurementsCurrent = measurementsToShow.filter(m => m.type_of_object === 'Installation');
+    const installationMeasurementsCurrent = summaryReportMeasurements.filter(m => m.type_of_object === 'Installation');
 
-    if (installationMeasurementsCurrent.length === 0 && !selectedReportId) {
+    if (installationMeasurementsCurrent.length === 0 && !selectedReportIdForSummary) {
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -532,9 +588,9 @@ export default function DashboardPage() {
 
     let comparisonDisplay = null;
 
-    if (selectedReportId && measurements.length > 0) {
-      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a);
-      const currentReportNumericId = Number(selectedReportId);
+    if (selectedReportIdForSummary && measurements.length > 0) {
+      const allReportIdsNumeric = reportOptions.map(opt => Number(opt.value)).filter(id => !isNaN(id)).sort((a, b) => b - a);
+      const currentReportNumericId = Number(selectedReportIdForSummary);
       const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
 
       if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) {
@@ -561,7 +617,7 @@ export default function DashboardPage() {
       }
     }
 
-    if (installationMeasurementsCurrent.length === 0 && selectedReportId) {
+    if (installationMeasurementsCurrent.length === 0 && selectedReportIdForSummary) {
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -570,7 +626,7 @@ export default function DashboardPage() {
             </div>
         );
     }
-    if (installationMeasurementsCurrent.length === 0 && !selectedReportId) { // Fallback, should be caught by first check
+    if (installationMeasurementsCurrent.length === 0 && !selectedReportIdForSummary) { // Fallback, should be caught by first check
         return (
             <div className="text-center">
                 <RadialGauge value={NaN} size={120} />
@@ -613,7 +669,7 @@ export default function DashboardPage() {
     return <span className="text-2xl font-bold">{uniqueReportIds}</span>;
 })()}
                                 <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" clipRule="evenodd" />
                                 </svg>
                             </div>
                         </div>
@@ -668,27 +724,66 @@ export default function DashboardPage() {
                 // Sort by report_id (descending, assuming numeric)
                 const sortedReportIds = Object.keys(grouped).sort((a, b) => Number(b) - Number(a));
                 // Show up to 5 most recent reports
-                const recentReports = sortedReportIds.slice(0, 5).reverse();
-                const labels = recentReports.map(reportId => {
-                    const rows = grouped[reportId];
-                    const rawDate = rows[0]?.measureDate || '';
-                    return rawDate ? new Date(rawDate).toLocaleDateString() : `Reporte ${reportId}`;
+                if (!measurements.length) return null;
+
+                const reportIdStrings = [...new Set(measurements.map(m => String(m.report_id)))].sort((a, b) => Number(a) - Number(b));
+
+                const chartLabels: string[] = [];
+                const animalCorrectPercentages: (number | null)[] = []; // Allow null for missing data
+                const installationCorrectPercentages: (number | null)[] = []; // Allow null for missing data
+
+                reportIdStrings.forEach(reportId => {
+                    const reportMeasurements = measurements.filter(m => String(m.report_id) === reportId);
+                    
+                    // Determine label (report date)
+                    const firstMeasurementOfReport = reportMeasurements[0];
+                    if (firstMeasurementOfReport && firstMeasurementOfReport.measureDate) {
+                        chartLabels.push(new Date(firstMeasurementOfReport.measureDate).toLocaleDateString());
+                    } else {
+                        chartLabels.push(`Reporte ${reportId}`); // Fallback
+                    }
+
+                    // Animal Correctness
+                    const animalMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Animal');
+                    const totalAnimal = animalMeasurements.length;
+                    if (totalAnimal > 0) {
+                        const correctAnimal = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === 1).length;
+                        animalCorrectPercentages.push(Math.round((correctAnimal / totalAnimal) * 100));
+                    } else {
+                        animalCorrectPercentages.push(null); // Use null for no data
+                    }
+
+                    // Installation Correctness
+                    const installationMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Installation');
+                    const totalInstallation = installationMeasurements.length;
+                    if (totalInstallation > 0) {
+                        const correctInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === 1).length;
+                        installationCorrectPercentages.push(Math.round((correctInstallation / totalInstallation) * 100));
+                    } else {
+                        installationCorrectPercentages.push(null); // Use null for no data
+                    }
                 });
-                const data = recentReports.map(reportId => {
-                    const rows = grouped[reportId];
-                    const correctCount = rows.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
-                    return rows.length > 0 ? Math.round((correctCount / rows.length) * 100) : 0;
-                });
+
                 const chartData = {
-                    labels,
+                    labels: chartLabels,
                     datasets: [
                         {
-                            label: '% Correcto',
-                            data,
-                            backgroundColor: 'rgba(34,197,94,0.7)',
-                            borderColor: 'rgba(34,197,94,1)',
+                            label: '% Correcto Animales',
+                            data: animalCorrectPercentages,
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
+                            borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
-                            maxBarThickness: 40,
+                            maxBarThickness: 30,
+                            skipNull: true, // Ensure nulls are skipped and create gaps
+                        },
+                        {
+                            label: '% Correcto Instalaciones',
+                            data: installationCorrectPercentages,
+                            backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green-Cyan
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            maxBarThickness: 30,
+                            skipNull: true, // Ensure nulls are skipped and create gaps
                         },
                     ],
                 };
@@ -696,10 +791,21 @@ export default function DashboardPage() {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: { display: true },
                         tooltip: {
                             callbacks: {
-                                label: (context: any) => `${context.parsed.y}% correcto`
+                                label: function(context: any) { // Keep any for Chart.js context
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null && !isNaN(context.parsed.y)) {
+                                        label += `${context.parsed.y}% correcto`;
+                                    } else {
+                                        label += 'N/A'; // Or 'Sin datos'
+                                    }
+                                    return label;
+                                }
                             }
                         }
                     },
@@ -1011,4 +1117,6 @@ export default function DashboardPage() {
             </div>
         </div>
     );
-}
+};
+
+export default DashboardPage;
