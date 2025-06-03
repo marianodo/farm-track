@@ -84,6 +84,13 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
             return null;
           }
           
+          // Calculate percentage of correct values
+          const totalCount = latestReportMeasurements.length;
+          const correctCount = latestReportMeasurements.filter(m => 
+            String(m.correct) === '1' || String(m.correct) === 'true'
+          ).length;
+          const correctPercentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+          
           // Get all unique report IDs for the evolution chart
           const reports = Array.from(new Set(variableMeasurements.map((m: Measurement) => m.report_id)))
             .sort((a, b) => Number(a) - Number(b)) // Sort report IDs numerically
@@ -297,7 +304,14 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
 
             return (
               <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <h3 className="text-lg font-semibold mb-4">{variable}</h3>
+                <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                  <span>{variable}</span>
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                      {correctPercentage}% correcto ({correctCount}/{totalCount})
+                    </span>
+                  </div>
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
                     <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
@@ -652,7 +666,14 @@ const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedP
           
           return (
             <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-              <h3 className="text-lg font-semibold mb-4">{variable}</h3>
+              <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                <span>{variable}</span>
+                <div className="flex items-center">
+                  <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                    {correctPercentage}% correcto ({correctCount}/{totalCount})
+                  </span>
+                </div>
+              </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 p-3 rounded-lg">
