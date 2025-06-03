@@ -349,7 +349,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
     // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
-    if (!measurementsToShow.length) {
+    if (!measurementsToShow.length && !selectedReportId) { // If no report selected and no measurements at all
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -357,14 +357,66 @@ export default function DashboardPage() {
         </div>
       );
     }
-    const totalCount = measurementsToShow.length;
-    const correctCount = measurementsToShow.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
-    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    const totalCountCurrent = measurementsToShow.length;
+    const correctCountCurrent = measurementsToShow.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
+
+    let comparisonDisplay = null;
+
+    if (selectedReportId && measurements.length > 0) {
+      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a); // Descending
+      const currentReportNumericId = Number(selectedReportId);
+      const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
+
+      if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) { // Check if not the oldest report
+        const previousReportId = allReportIdsNumeric[currentIndex + 1];
+        const previousReportMeasurements = measurements.filter(m => Number(m.report_id) === previousReportId);
+
+        if (previousReportMeasurements.length > 0) {
+          const totalCountPrevious = previousReportMeasurements.length;
+          const correctCountPrevious = previousReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
+          const diff = percentCurrent - percentPrevious;
+
+          const arrow = diff > 0 ? '↑' : '↓';
+          const color = diff > 0 ? 'text-green-500' : diff < 0 ? 'text-red-500' : 'text-gray-500';
+          const sign = diff > 0 ? '+' : '';
+
+          comparisonDisplay = (
+            <span className={`ml-1 text-xs font-semibold ${color}`}>
+              ({arrow} {sign}{diff.toFixed(0)}%)
+            </span>
+          );
+        }
+      }
+    }
+    
+    // If measurementsToShow is empty (e.g. selected report has no general field data), but we want to show something generic
+    if (measurementsToShow.length === 0 && selectedReportId) {
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">Sin datos para este reporte</p>
+                {comparisonDisplay && <p className="text-xs text-gray-500">vs ant.</p>} 
+            </div>
+        );
+    }
+    if (measurementsToShow.length === 0 && !selectedReportId) { // Should be caught by the first check, but as a fallback
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">0/0</p>
+            </div>
+        );
+    }
+
     return (
       <div className="text-center">
-        <RadialGauge value={percent} size={120} />
+        <RadialGauge value={percentCurrent} size={120} />
         <p className="text-lg font-semibold text-gray-700 mt-2">
-          {correctCount}/{totalCount}
+          {correctCountCurrent}/{totalCountCurrent}
+          {comparisonDisplay}
         </p>
         <p className="text-xs text-gray-500">mediciones correctas</p>
       </div>
@@ -379,18 +431,9 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
-    if (!measurementsToShow.length) { // Check measurementsToShow first
-      return (
-        <div className="text-center">
-          <RadialGauge value={NaN} size={120} />
-          <p className="text-sm text-gray-500 mt-2">0/0 (animales)</p> 
-        </div>
-      );
-    }
-    // Filter from measurementsToShow
-    const animalMeasurements = measurementsToShow.filter(m => m.type_of_object === 'Animal');
-    if (!animalMeasurements.length) {
+    const animalMeasurementsCurrent = measurementsToShow.filter(m => m.type_of_object === 'Animal');
+
+    if (animalMeasurementsCurrent.length === 0 && !selectedReportId) {
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -398,15 +441,66 @@ export default function DashboardPage() {
         </div>
       );
     }
-    const totalCount = animalMeasurements.length;
-    // Ensure correct comparison for number type
-    const correctCount = animalMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length; 
-    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    const totalCountCurrent = animalMeasurementsCurrent.length;
+    const correctCountCurrent = animalMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
+
+    let comparisonDisplay = null;
+
+    if (selectedReportId && measurements.length > 0) {
+      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a);
+      const currentReportNumericId = Number(selectedReportId);
+      const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
+
+      if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) {
+        const previousReportId = allReportIdsNumeric[currentIndex + 1];
+        const previousReportAllMeasurements = measurements.filter(m => Number(m.report_id) === previousReportId);
+        const animalMeasurementsPrevious = previousReportAllMeasurements.filter(m => m.type_of_object === 'Animal');
+
+        if (animalMeasurementsPrevious.length > 0) {
+          const totalCountPrevious = animalMeasurementsPrevious.length;
+          const correctCountPrevious = animalMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
+          const diff = percentCurrent - percentPrevious;
+
+          const arrow = diff > 0 ? '↑' : '↓';
+          const color = diff > 0 ? 'text-green-500' : diff < 0 ? 'text-red-500' : 'text-gray-500';
+          const sign = diff > 0 ? '+' : '';
+
+          comparisonDisplay = (
+            <span className={`ml-1 text-xs font-semibold ${color}`}>
+              ({arrow} {sign}{diff.toFixed(0)}%)
+            </span>
+          );
+        }
+      }
+    }
+
+    if (animalMeasurementsCurrent.length === 0 && selectedReportId) {
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">Sin datos de animales para este reporte</p>
+                {comparisonDisplay && <p className="text-xs text-gray-500">vs ant.</p>} 
+            </div>
+        );
+    }
+     if (animalMeasurementsCurrent.length === 0 && !selectedReportId) { // Fallback, should be caught by first check
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">0/0 (animales)</p>
+            </div>
+        );
+    }
+
     return (
       <div className="text-center">
-        <RadialGauge value={percent} size={120} />
+        <RadialGauge value={percentCurrent} size={120} />
         <p className="text-lg font-semibold text-gray-700 mt-2">
-          {correctCount}/{totalCount}
+          {correctCountCurrent}/{totalCountCurrent}
+          {comparisonDisplay}
         </p>
         <p className="text-xs text-gray-500">mediciones correctas (animales)</p>
       </div>
@@ -421,18 +515,9 @@ export default function DashboardPage() {
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
-    // Use measurementsToShow which is filtered by selectedReportId or defaults to all measurements
-    if (!measurementsToShow.length) { // Check measurementsToShow first
-      return (
-        <div className="text-center">
-          <RadialGauge value={NaN} size={120} />
-          <p className="text-sm text-gray-500 mt-2">0/0 (instalaciones)</p> 
-        </div>
-      );
-    }
-    // Filter from measurementsToShow
-    const installationMeasurements = measurementsToShow.filter(m => m.type_of_object === 'Installation');
-    if (!installationMeasurements.length) {
+    const installationMeasurementsCurrent = measurementsToShow.filter(m => m.type_of_object === 'Installation');
+
+    if (installationMeasurementsCurrent.length === 0 && !selectedReportId) {
       return (
         <div className="text-center">
           <RadialGauge value={NaN} size={120} />
@@ -440,15 +525,66 @@ export default function DashboardPage() {
         </div>
       );
     }
-    const totalCount = installationMeasurements.length;
-    // Ensure correct comparison for number type
-    const correctCount = installationMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length; 
-    const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    const totalCountCurrent = installationMeasurementsCurrent.length;
+    const correctCountCurrent = installationMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
+
+    let comparisonDisplay = null;
+
+    if (selectedReportId && measurements.length > 0) {
+      const allReportIdsNumeric = [...new Set(measurements.map(m => Number(m.report_id)))].sort((a, b) => b - a);
+      const currentReportNumericId = Number(selectedReportId);
+      const currentIndex = allReportIdsNumeric.indexOf(currentReportNumericId);
+
+      if (currentIndex !== -1 && currentIndex < allReportIdsNumeric.length - 1) {
+        const previousReportId = allReportIdsNumeric[currentIndex + 1];
+        const previousReportAllMeasurements = measurements.filter(m => Number(m.report_id) === previousReportId);
+        const installationMeasurementsPrevious = previousReportAllMeasurements.filter(m => m.type_of_object === 'Installation');
+
+        if (installationMeasurementsPrevious.length > 0) {
+          const totalCountPrevious = installationMeasurementsPrevious.length;
+          const correctCountPrevious = installationMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
+          const diff = percentCurrent - percentPrevious;
+
+          const arrow = diff > 0 ? '↑' : '↓';
+          const color = diff > 0 ? 'text-green-500' : diff < 0 ? 'text-red-500' : 'text-gray-500';
+          const sign = diff > 0 ? '+' : '';
+
+          comparisonDisplay = (
+            <span className={`ml-1 text-xs font-semibold ${color}`}>
+              ({arrow} {sign}{diff.toFixed(0)}%)
+            </span>
+          );
+        }
+      }
+    }
+
+    if (installationMeasurementsCurrent.length === 0 && selectedReportId) {
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">Sin datos de instalaciones para este reporte</p>
+                {comparisonDisplay && <p className="text-xs text-gray-500">vs ant.</p>} 
+            </div>
+        );
+    }
+    if (installationMeasurementsCurrent.length === 0 && !selectedReportId) { // Fallback, should be caught by first check
+        return (
+            <div className="text-center">
+                <RadialGauge value={NaN} size={120} />
+                <p className="text-sm text-gray-500 mt-2">0/0 (instalaciones)</p>
+            </div>
+        );
+    }
+
     return (
       <div className="text-center">
-        <RadialGauge value={percent} size={120} />
+        <RadialGauge value={percentCurrent} size={120} />
         <p className="text-lg font-semibold text-gray-700 mt-2">
-          {correctCount}/{totalCount}
+          {correctCountCurrent}/{totalCountCurrent}
+          {comparisonDisplay}
         </p>
         <p className="text-xs text-gray-500">mediciones correctas (instalaciones)</p>
       </div>
