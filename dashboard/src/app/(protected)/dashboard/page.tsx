@@ -518,7 +518,7 @@ export default function DashboardPage() {
                 {/* Correction Rate Chart */}
                 <div className="col-span-3 mt-6">
     <div className="bg-gray-50 p-4 rounded-lg h-full">
-        <h3 className="text-sm font-medium text-gray-500 mb-4">% Corrector por Reporte</h3>
+        <h3 className="text-sm font-medium text-gray-500 mb-4">% Correctos por Reporte</h3>
         <div className="h-64">
             {(() => {
                 if (!measurements.length) return null;
@@ -605,10 +605,82 @@ export default function DashboardPage() {
         const reportIds = measurements.map(m => m.report_id);
         const latestReportId = Math.max(...reportIds.map(Number));
         const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-        if (!latestMeasurements.length) return null;
+
+        const handleDownloadAllMeasurements = () => {
+          // Placeholder for CSV generation and download logic
+          // It will use the 'measurements' state variable from DashboardPage, 
+          // which holds all measurements for the selected field.
+          console.log("Downloading all measurements...", measurements);
+          const dataToDownload = measurements; // Use the 'measurements' state variable
+          if (dataToDownload.length === 0) {
+            alert("No hay mediciones para descargar.");
+            return;
+          }
+
+          const headers = [
+            "Report ID", "Variable", "Valor", "Corral", "Fecha", 
+            "Correcto", "Tipo de Objeto", "Valores Óptimos", 
+            "Óptimo Mínimo", "Óptimo Máximo", "Mínimo", "Máximo"
+          ];
+          const csvRows = [
+            headers.join(',')
+          ];
+
+          dataToDownload.forEach((m: Measurement) => {
+            const row = [
+              `"${m.report_id || ''}"`, 
+              `"${m.variable || ''}"`, 
+              `"${m.value !== undefined ? String(m.value) : ''}"`, 
+              `"${m.pen || ''}"`, 
+              `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
+              `"${(String(m.correct) === '1' || m.correct === 1) ? 'Sí' : 'No'}"`, 
+              `"${m.type_of_object || ''}"`, 
+              `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
+              `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
+              `"${m.optimo_max !== undefined ? m.optimo_max : ''}"`, 
+              `"${m.min !== undefined ? m.min : ''}"`, 
+              `"${m.max !== undefined ? m.max : ''}"`
+            ];
+            csvRows.push(row.join(','));
+          });
+
+          const csvString = csvRows.join('\n');
+          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+          const link = document.createElement("a");
+          const url = URL.createObjectURL(blob);
+
+          // Generate filename
+          const now = new Date();
+          const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+          let fieldNameForFile = "todos_los_campos"; // Default for 'all' fields
+          if (selectedField && selectedField.value !== 'all') {
+            fieldNameForFile = selectedField.label.toLowerCase().replace(/\s+/g, '_');
+          }
+          const filename = `${fieldNameForFile}_${timestamp}.csv`;
+
+          link.setAttribute("href", url);
+          link.setAttribute("download", filename);
+          link.style.visibility = 'hidden';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        };
+
+        if (!latestMeasurements.length && !measurements.length) return null; // Hide if no data at all
+
         return (
           <div className="overflow-x-auto">
-            <h3 className="text-lg font-semibold mb-2">Mediciones del Último Reporte</h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold">Mediciones del Último Reporte</h3>
+              {measurements.length > 0 && (
+                <button 
+                  onClick={handleDownloadAllMeasurements}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
+                >
+                  Download (CSV)
+                </button>
+              )}
+            </div>
             <table className="min-w-full bg-white border border-gray-200 rounded-lg">
               <thead>
                 <tr>
