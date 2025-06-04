@@ -155,6 +155,25 @@ const DashboardPage: React.FC = () => {
         }
     }, [reportOptions, selectedReportIdForSummary, setSelectedReportIdForSummary]);
 
+    // Reset summary report selection if the selected report is invalid after field/report changes
+    useEffect(() => {
+        if (!reportOptions.length) {
+            if (selectedReportIdForSummary) setSelectedReportIdForSummary("");
+            return;
+        }
+        const actualReportOptions = reportOptions.filter(opt => opt.value !== 'all');
+        const validReportIds = actualReportOptions.map(opt => String(opt.value));
+        // If the current selectedReportIdForSummary is not in the valid list, reset it
+        if (!validReportIds.includes(String(selectedReportIdForSummary))) {
+            // Pick the latest (last, assuming sorted ascending by report_id)
+            if (validReportIds.length > 0) {
+                setSelectedReportIdForSummary(validReportIds[validReportIds.length - 1]);
+            } else {
+                setSelectedReportIdForSummary("");
+            }
+        }
+    }, [reportOptions, measurements, selectedReportIdForSummary, setSelectedReportIdForSummary]);
+
     const { getFieldsByUser, fieldsByUserId, getCategoricalMeasurementsByFieldId, getNumericalMeasurementsByFieldId } = useFieldStore();
 
     useEffect(() => {
