@@ -12,6 +12,8 @@ import {
 import { CreateSubjectDto } from '../dto/create-subject.dto';
 import { UpdateSubjectDto } from '../dto/update-subject.dto';
 import { SubjectService } from '../service/subject.service';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { OwnedResource } from 'src/auth/decorator/owned-resource.decorator';
 
 @Controller('subjects')
 export class SubjectController {
@@ -19,6 +21,7 @@ export class SubjectController {
 
   @Post('/byField/:field_id')
   @HttpCode(HttpStatus.CREATED)
+  @OwnedResource('subject', 'field_id', 'field', true)
   async create(
     @Param('field_id') field_id: string,
     @Body() createSubjectDto: CreateSubjectDto,
@@ -32,6 +35,7 @@ export class SubjectController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   async findAll() {
     try {
       return await this.subjectService.findAll();
@@ -42,6 +46,7 @@ export class SubjectController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('subject', 'id', null, true)
   async findOne(@Param('id') id: string) {
     try {
       return await this.subjectService.findOne(+id);
@@ -52,12 +57,13 @@ export class SubjectController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('subject', 'id', null, true)
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateSubjectDto: UpdateSubjectDto,
   ) {
     try {
-      return await this.subjectService.update(id, updateSubjectDto);
+      return await this.subjectService.update(+id, updateSubjectDto);
     } catch (error) {
       throw error;
     }
@@ -65,6 +71,7 @@ export class SubjectController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @OwnedResource('subject', 'id', null, true)
   async remove(@Param('id') id: string) {
     try {
       return await this.subjectService.remove(+id);

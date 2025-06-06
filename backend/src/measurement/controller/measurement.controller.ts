@@ -16,6 +16,9 @@ import { UpdateMeasurementDto } from '../dto/update-measurement.dto';
 import { CreateBulkMeasurementDto } from '../dto/createBulkBody.dto';
 import { UpdateBulkMeasurementDto } from '../dto/updateBulkBody.dto';
 import { SubjectService } from 'src/subject/service/subject.service';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { UserResource } from 'src/auth/decorator/user-resource.decorator';
+import { OwnedResource } from 'src/auth/decorator/owned-resource.decorator';
 
 @Controller('measurements')
 export class MeasurementController {
@@ -26,6 +29,7 @@ export class MeasurementController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   async findAll() {
     try {
       return await this.measurementService.findAll();
@@ -36,6 +40,7 @@ export class MeasurementController {
 
   @Get('stats')
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   async getMeasurementStats(
     @Query()
     options?: {
@@ -55,6 +60,7 @@ export class MeasurementController {
 
   @Get('stats/ByUserId/:userId')
   @HttpCode(HttpStatus.OK)
+  @UserResource('userId')
   async getMeasurementStatsByUser(
     @Param('userId') userId: string,
     @Query()
@@ -78,6 +84,7 @@ export class MeasurementController {
 
   @Get('stats/byFieldId/:fieldId')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'fieldId', 'field', true)
   async getMeasurementStatsByField(
     @Param('fieldId') fieldId: string,
     @Query()
@@ -101,6 +108,7 @@ export class MeasurementController {
 
   @Get('stats/byReportId/:reportId')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'reportId', 'report', true)
   async getMeasurementStatsByReport(
     @Param('reportId') reportId: string,
     @Query()
@@ -134,6 +142,7 @@ export class MeasurementController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @OwnedResource('measurement', 'field_id', 'field', false)
   async bulkCreate(
     @Body() createBullkMeasurementDto: CreateBulkMeasurementDto,
   ) {
@@ -149,6 +158,7 @@ export class MeasurementController {
 
   @Patch('/bulkUpdate')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'subject_id', 'subject', false)
   async bulkUpdate(@Body() updateBulkMeasurementDto: UpdateBulkMeasurementDto) {
     try {
       const { name, subject_id } = updateBulkMeasurementDto;
@@ -164,6 +174,7 @@ export class MeasurementController {
 
   @Get(':report_id/:subject_id')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'report_id', 'report', true)
   async findByReportAndSubjectId(
     @Param('report_id') report_id: string,
     @Param('subject_id') subject_id: string,
@@ -180,6 +191,7 @@ export class MeasurementController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'id', null, true)
   async findOne(@Param('id') id: string) {
     try {
       return await this.measurementService.findOne(+id);
@@ -190,6 +202,7 @@ export class MeasurementController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('measurement', 'id', null, true)
   async update(
     @Param('id') id: string,
     @Body() updateMeasurementDto: UpdateMeasurementDto,
@@ -203,6 +216,7 @@ export class MeasurementController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @OwnedResource('measurement', 'id', null, true)
   async remove(@Param('id') id: string) {
     try {
       return await this.measurementService.remove(+id);

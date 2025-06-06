@@ -15,12 +15,16 @@ import { FieldService } from '../service/field.service';
 // import { CreateFieldDto } from '../dto/create-field.dto';
 import { UpdateFieldDto } from '../dto/update-field.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { UserResource } from 'src/auth/decorator/user-resource.decorator';
+import { OwnedResource } from 'src/auth/decorator/owned-resource.decorator';
 
 @Controller('fields')
 export class FieldController {
   constructor(private readonly fieldService: FieldService) {}
 
   @HttpCode(HttpStatus.CREATED)
+  @UserResource('userId')
   @Post()
   async create(@Body() body: any) {
     const { ...createFieldDto } = body;
@@ -33,6 +37,7 @@ export class FieldController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   @Get()
   async findAll() {
     try {
@@ -43,6 +48,7 @@ export class FieldController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @UserResource('id')
   @Get('byUserId/:id')
   async findFieldByUserId(@Param('id') userId: string) {
     try {
@@ -82,6 +88,7 @@ export class FieldController {
     }
   }
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('field', 'id')
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
@@ -93,6 +100,7 @@ export class FieldController {
 
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
+  @OwnedResource('field', 'id')
   async update(
     @Param('id') id: string,
     @Body() updateFieldDto: UpdateFieldDto,
@@ -105,6 +113,7 @@ export class FieldController {
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
+  @OwnedResource('field', 'id')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
