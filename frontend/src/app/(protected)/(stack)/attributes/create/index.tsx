@@ -118,7 +118,6 @@ const CreateAttribute: React.FC = () => {
   });
 
   const validateForm = () => {
-    console.log("validateForm", formData)
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
       type: formData.type ? null : t('validation.required'),
@@ -141,7 +140,6 @@ const CreateAttribute: React.FC = () => {
         t
       ),
     };
-    console.log("newError", newError)
     setError(newError);
     return (
       newError.name ||
@@ -362,11 +360,8 @@ const CreateAttribute: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    console.log("entre")
-    console.log("antes del if formdata", formData)
     if (!validateForm()) {
       try {
-        console.log("formdata", formData)
         await createVariable(formData);
         setFormData({
           name: null,
