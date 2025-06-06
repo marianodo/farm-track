@@ -118,6 +118,7 @@ const CreateAttribute: React.FC = () => {
   });
 
   const validateForm = () => {
+    console.log("validateForm", formData)
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
       type: formData.type ? null : t('validation.required'),
@@ -127,20 +128,20 @@ const CreateAttribute: React.FC = () => {
             formData.defaultValue?.value as NumericValue,
             t
           )
-          : validateCategoricalValue(
+          : formData.type === 'CATEGORICAL' ? validateCategoricalValue(
             formData.defaultValue?.value?.categories as CategoricalValue,
             t
-          ),
-      optimal_values: validateOptimalCategoricalValue(
+          ) : null,
+      optimal_values: formData.type === 'CATEGORICAL' ? validateOptimalCategoricalValue(
         formData.defaultValue?.value?.optimal_values as string[],
         t
-      ),
+      ) : null,
       type_of_object_ids: validateTypeObjectValue(
         formData.type_of_object_ids,
         t
       ),
     };
-
+    console.log("newError", newError)
     setError(newError);
     return (
       newError.name ||
@@ -361,8 +362,11 @@ const CreateAttribute: React.FC = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("entre")
+    console.log("antes del if formdata", formData)
     if (!validateForm()) {
       try {
+        console.log("formdata", formData)
         await createVariable(formData);
         setFormData({
           name: null,
@@ -396,6 +400,7 @@ const CreateAttribute: React.FC = () => {
           }, 2000);
         }
       } catch (error) {
+        console.log(error, 'error')
         setMessageModalText(t('attributeView.attributeCreatedError'));
         setSuccess(false);
         setShowMessageModal(true);
