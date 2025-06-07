@@ -453,8 +453,49 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
     return <div className="text-center text-gray-500">No hay datos disponibles para este corral.</div>;
   }
   
-  // Use the same distribution chart rendering logic but with pen-specific data
-  return renderSingleVariableDistribution(filteredMeasurements, variableName);
+  // Get optimal range information
+  const measurementWithRanges = filteredMeasurements.find((m: Measurement) => 
+    m.optimo_min !== undefined || m.optimo_max !== undefined || 
+    m.min !== undefined || m.max !== undefined
+  );
+  
+  // Extract optimization ranges
+  const optimalMin = measurementWithRanges?.optimo_min;
+  const optimalMax = measurementWithRanges?.optimo_max;
+  const absoluteMin = measurementWithRanges?.min;
+  const absoluteMax = measurementWithRanges?.max;
+  
+  // Add optimal range info banner if available
+  const hasOptimalRange = optimalMin !== undefined && optimalMax !== undefined;
+  const hasAbsoluteRange = absoluteMin !== undefined || absoluteMax !== undefined;
+  
+  return (
+    <div className="w-full h-full flex flex-col">
+      {/* Optimal range information */}
+      {(hasOptimalRange || hasAbsoluteRange) && (
+        <div className="mb-2 text-xs text-center">
+          {hasOptimalRange && (
+            <span className="px-2 py-1 bg-green-50 text-green-700 rounded mr-2">
+              Rango óptimo: <strong>{optimalMin} - {optimalMax}</strong>
+            </span>
+          )}
+          {hasAbsoluteRange && (
+            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+              Rango válido: <strong>
+                {absoluteMin !== undefined ? absoluteMin : 'Min'} - 
+                {absoluteMax !== undefined ? absoluteMax : 'Max'}
+              </strong>
+            </span>
+          )}
+        </div>
+      )}
+      
+      {/* Chart */}
+      <div className="flex-1">
+        {renderSingleVariableDistribution(filteredMeasurements, variableName)}
+      </div>
+    </div>
+  );
 };
 
 // Helper function to render trend chart with all pens for a variable
@@ -490,29 +531,32 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
   uniquePens.forEach(pen => {
     const penMeasurements = sortedMeasurements.filter(m => m.pen === pen);
     
+    // Define types for report data
+    interface ReportData {
+      reportId: string;
+      date: Date | null;
+      avgValue: number;
+    }
+    
     // Group by report_id
-    const reportGroups = new Map();
+    const reportGroups: ReportData[] = [];
     penMeasurements.forEach(measurement => {
       const reportId = String(measurement.report_id);
       const value = Number(measurement.value);
       
       if (isNaN(value)) return; // Skip non-numeric values
       
-      if (!reportGroups.has(reportId)) {
-        reportGroups.set(reportId, {
+      if (!reportGroups.find(r => r.reportId === reportId)) {
+        reportGroups.push({
           reportId,
           date: measurement.measureDate ? new Date(measurement.measureDate) : null,
-          values: [],
-          count: 0,
-          sum: 0
+          avgValue: value
         });
-      }
-      
-      const report = reportGroups.get(reportId);
-      if (report) {
-        report.values.push(value);
-        report.count++;
-        report.sum += value;
+      } else {
+        const existingReport = reportGroups.find(r => r.reportId === reportId);
+        if (existingReport) {
+          existingReport.avgValue = (existingReport.avgValue + value) / 2;
+        }
       }
     });
     
@@ -532,8 +576,8 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
   
   // Get all unique report dates across all pens
   const allReportDates = new Set<string>();
-  penReportData.forEach((reports: any[]) => {
-    reports.forEach((report: { date: Date | null; reportId: string }) => {
+  penReportData.forEach((reports) => {
+    reports.forEach((report) => {
       if (report.date) {
         allReportDates.add(report.date.toISOString().split('T')[0]);
       } else {
