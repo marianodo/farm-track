@@ -43,8 +43,8 @@ interface Measurement {
 
 interface VariableChartsProps {
   measurements: Measurement[];
-  selectedPen: string;
-  selectedReportId: string;
+  selectedPen?: string;
+  selectedReportId?: string;
   singleVariableMode?: boolean;
   variableToShow?: string;
   showOnlyDistribution?: boolean;
@@ -334,15 +334,21 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
   });
   
   // Convert map to array and calculate averages
-  const allReports = Array.from(reportsMap.values())
-    .map(report => ({
-      reportId: report.reportId,
-      date: report.date,
-      average: report.count > 0 ? report.sum / report.count : 0,
-      count: report.count,
-      min: report.values.length > 0 ? Math.min(...report.values) : 0,
-      max: report.values.length > 0 ? Math.max(...report.values) : 0
-    }))
+  interface ExtendedReportData extends ReportData {
+    values?: number[];
+    count?: number;
+    sum?: number;
+  }
+
+  const sortedReportData = Array.from(reportsMap.values()) as ExtendedReportData[];
+  const allReports = sortedReportData.map(report => ({
+    reportId: report.reportId,
+    date: report.date,
+    average: report.count && report.count > 0 ? report.sum! / report.count : 0,
+    count: report.count,
+    min: report.values.length > 0 ? Math.min(...report.values) : 0,
+    max: report.values.length > 0 ? Math.max(...report.values) : 0
+  }))
     .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
     
   // Get optimal range from measurements
@@ -453,45 +459,87 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
     return <div className="text-center text-gray-500">No hay datos disponibles para este corral.</div>;
   }
   
-  // Get optimal range information
+  // Determine if this is a categorical variable
+  const isCategorical = filteredMeasurements.some(m => {
+    const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+    return typeof value === 'string' && isNaN(Number(value));
+  });
+  
+  // Get optimal range/value information
   const measurementWithRanges = filteredMeasurements.find((m: Measurement) => 
     m.optimo_min !== undefined || m.optimo_max !== undefined || 
-    m.min !== undefined || m.max !== undefined
+    m.min !== undefined || m.max !== undefined || 
+    (m as any).optimal_value !== undefined || m.optimal_values !== undefined
   );
   
-  // Extract optimization ranges
+  // Extract optimization ranges or values
   const optimalMin = measurementWithRanges?.optimo_min;
   const optimalMax = measurementWithRanges?.optimo_max;
   const absoluteMin = measurementWithRanges?.min;
   const absoluteMax = measurementWithRanges?.max;
   
-  // Count correct measurements (within optimal range)
+  // Handle categorical optimal values (might be stored in different properties)
+  const optimalValue = (measurementWithRanges as any)?.optimal_value || 
+                       (measurementWithRanges as any)?.optimo_valor;
+  
+  // Some variables might have multiple optimal values as an array or comma-separated string
+  let optimalValues: string[] = [];
+  if ((measurementWithRanges as any)?.optimal_values) {
+    const values = (measurementWithRanges as any).optimal_values;
+    optimalValues = Array.isArray(values) ? values : typeof values === 'string' ? values.split(',') : [];
+  }
+  
+  // Count correct measurements (within optimal range or matching optimal value)
   const totalMeasurements = filteredMeasurements.length;
   let correctMeasurements = 0;
   
-  if (optimalMin !== undefined && optimalMax !== undefined) {
+  if (isCategorical) {
+    // For categorical, check if value matches optimal values
     correctMeasurements = filteredMeasurements.filter(m => {
-      // Handle both 'valor' and 'value' properties since we're seeing inconsistent naming
       const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
-      return value >= optimalMin && value <= optimalMax;
+      if (optimalValues.length > 0) {
+        return optimalValues.includes(value);
+      } else if (optimalValue) {
+        return value === optimalValue;
+      }
+      return false; // No optimal value defined
     }).length;
+  } else {
+    // For numerical, check if value is within range
+    if (optimalMin !== undefined && optimalMax !== undefined) {
+      correctMeasurements = filteredMeasurements.filter(m => {
+        const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+        const numValue = Number(value);
+        return !isNaN(numValue) && numValue >= optimalMin && numValue <= optimalMax;
+      }).length;
+    }
   }
   
   // Calculate correctness percentage
   const correctnessPercentage = totalMeasurements > 0 ? 
     Math.round((correctMeasurements / totalMeasurements) * 100) : 0;
   
-  // Add optimal range info banner if available
-  const hasOptimalRange = optimalMin !== undefined && optimalMax !== undefined;
+  // Determine what kind of optimal information to display
+  const hasNumericalRange = optimalMin !== undefined && optimalMax !== undefined;
+  const hasCategoricalOptimal = optimalValues.length > 0 || optimalValue !== undefined;
   const hasAbsoluteRange = absoluteMin !== undefined || absoluteMax !== undefined;
   
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Optimal range information */}
+      {/* Optimal range/value information */}
       <div className="mb-2 text-xs text-center flex justify-center flex-wrap gap-2">
-        {hasOptimalRange && (
+        {hasNumericalRange && (
           <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
             Rango óptimo: <strong>{optimalMin} - {optimalMax}</strong>
+          </span>
+        )}
+        {hasCategoricalOptimal && (
+          <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+            {optimalValues.length > 0 ? (
+              <>Valores óptimos: <strong>{optimalValues.join(', ')}</strong></>
+            ) : (
+              <>Valor óptimo: <strong>{optimalValue}</strong></>
+            )}
           </span>
         )}
         {hasAbsoluteRange && (
