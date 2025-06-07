@@ -45,10 +45,646 @@ interface VariableChartsProps {
   measurements: Measurement[];
   selectedPen: string;
   selectedReportId: string;
+  singleVariableMode?: boolean;
+  variableToShow?: string;
+  showOnlyDistribution?: boolean;
+  showOnlyTrend?: boolean;
+  comparePensMode?: boolean;
+  showTrendByPen?: boolean;
 }
 
-const VariableCharts: React.FC<VariableChartsProps> = ({ measurements, selectedPen, selectedReportId }: VariableChartsProps) => {
-  // Get all measurements for the selected pen
+// Helper function to render a single variable distribution chart
+const renderSingleVariableDistribution = (measurements: Measurement[], variableName: string) => {
+  if (!measurements || measurements.length === 0) {
+    return <div className="text-center text-gray-500">No hay datos disponibles para esta variable.</div>;
+  }
+  
+  // Determine if variable is categorical based on values
+  const isCategorical = measurements.some(m => {
+    return typeof m.value === 'string' && isNaN(Number(m.value));
+  });
+  
+  // Get info for chart title and stats
+  const totalCount = measurements.length;
+  const correctCount = measurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+  const correctPercentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+  
+  if (isCategorical) {
+    // Categorical variable - create histogram of categories
+    const valueCounts: { [key: string]: number } = {};
+    measurements.forEach((m: Measurement) => {
+      const value = String(m.value).trim();
+      valueCounts[value] = (valueCounts[value] || 0) + 1;
+    });
+    const labels = Object.keys(valueCounts).sort();
+    const counts = labels.map(label => valueCounts[label]);
+    
+    // Get optimal values if available
+    const optimalValues = measurements.find(m => Array.isArray(m.optimal_values) && m.optimal_values.length > 0)?.optimal_values || [];
+    
+    // Color bars by optimal_values
+    const barColors = labels.map(label =>
+      optimalValues.length > 0
+        ? optimalValues.includes(label)
+          ? 'rgba(75, 192, 75, 0.8)'
+          : 'rgba(255, 99, 132, 0.8)'
+        : 'rgba(54, 162, 235, 0.8)'
+    );
+    const barBorderColors = labels.map(label =>
+      optimalValues.length > 0
+        ? optimalValues.includes(label)
+          ? 'rgba(75, 192, 75, 1)'
+          : 'rgba(255, 99, 132, 1)'
+        : 'rgba(54, 162, 235, 1)'
+    );
+    
+    // Chart data
+    const distributionData = {
+      labels,
+      datasets: [{
+        label: 'Cantidad de mediciones',
+        data: counts,
+        backgroundColor: barColors,
+        borderColor: barBorderColors,
+        borderWidth: 1,
+        maxBarThickness: 50
+      }]
+    };
+    
+    // Chart options
+    const distributionOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Distribución de ${variableName}`,
+          font: {
+            size: 16,
+            weight: 'bold' as const
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) => {
+              const label = context.label;
+              const count = context.parsed.y;
+              let tooltipText = `Categoría: ${label}`;
+              tooltipText += `\nCantidad: ${count}`;
+              if (optimalValues.length > 0) {
+                tooltipText += `\nEstado: ${optimalValues.includes(label) ? '✅ Óptimo' : '❌ No óptimo'}`;
+              }
+              return tooltipText;
+            }
+          }
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Categoría' },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Cantidad de mediciones' },
+          min: 0,
+          ticks: { stepSize: 1, precision: 0 }
+        },
+      },
+    } as const;
+    
+    return (
+      <div className="w-full h-full">
+        <Bar options={distributionOptions} data={distributionData} />
+      </div>
+    );
+  } else {
+    // Numerical variable - create histogram of values
+    const valueCounts: {[key: string]: number} = {};
+    measurements.forEach((m: Measurement) => {
+      const value = Number(m.value).toFixed(2); // Round to 2 decimal places for grouping
+      valueCounts[value] = (valueCounts[value] || 0) + 1;
+    });
+    
+    // Get optimal range and absolute min/max from measurements
+    const measurementWithRanges = measurements.find((m: Measurement) => 
+      m.optimo_min !== undefined || m.optimo_max !== undefined || m.min !== undefined || m.max !== undefined
+    );
+    const optimalMin = measurementWithRanges?.optimo_min;
+    const optimalMax = measurementWithRanges?.optimo_max;
+    const absoluteMin = measurementWithRanges?.min;
+    const absoluteMax = measurementWithRanges?.max;
+    
+    // Use absolute min/max if available, otherwise use data range
+    const min = absoluteMin !== undefined ? Math.floor(absoluteMin) :
+              (measurements.length > 0 ? Math.min(...measurements.map(m => Number(m.value))) : 0);
+    const max = absoluteMax !== undefined ? Math.ceil(absoluteMax) :
+              (measurements.length > 0 ? Math.max(...measurements.map(m => Number(m.value))) : 10);
+    const step = Math.max(1, Math.ceil((max - min) / 20));
+    
+    // Create buckets for the histogram
+    const labels: string[] = [];
+    const counts: number[] = [];
+    for (let i = min; i <= max; i += step) {
+      const value = i.toFixed(2);
+      labels.push(value);
+      counts.push(0);
+    }
+    
+    // Fill the buckets
+    Object.entries(valueCounts).forEach(([value, count]) => {
+      const index = Math.round((parseFloat(value) - min) / step);
+      if (index >= 0 && index < counts.length) {
+        counts[index] += count;
+      }
+    });
+    
+    // Color bars based on optimal range
+    const barColors = labels.map((value: string) => {
+      const numValue = Number(value);
+      if (optimalMin !== undefined && optimalMax !== undefined) {
+        return (numValue >= optimalMin && numValue <= optimalMax)
+          ? 'rgba(75, 192, 75, 0.8)'
+          : 'rgba(255, 99, 132, 0.8)';
+      }
+      return 'rgba(54, 162, 235, 0.8)';
+    });
+    const barBorderColors = labels.map((value: string) => {
+      const numValue = Number(value);
+      if (optimalMin !== undefined && optimalMax !== undefined) {
+        return (numValue >= optimalMin && numValue <= optimalMax)
+          ? 'rgba(75, 192, 75, 1)'
+          : 'rgba(255, 99, 132, 1)';
+      }
+      return 'rgba(54, 162, 235, 1)';
+    });
+    
+    // Chart data
+    const distributionData = {
+      labels: labels,
+      datasets: [{
+        label: 'Cantidad de mediciones',
+        data: counts,
+        backgroundColor: barColors,
+        borderColor: barBorderColors,
+        borderWidth: 1,
+        maxBarThickness: 50
+      }]
+    };
+    
+    // Chart options
+    const distributionOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: `Distribución de ${variableName}`,
+          font: {
+            size: 16,
+            weight: 'bold' as const
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: (context: any) => {
+              const value = parseFloat(context.label);
+              const count = context.parsed.y;
+              let tooltipText = `Valor: ${context.label}`;
+              tooltipText += `\nCantidad: ${count}`;
+              
+              if (optimalMin !== undefined && optimalMax !== undefined) {
+                const isInRange = value >= optimalMin && value <= optimalMax;
+                tooltipText += `\n\nRango óptimo: ${optimalMin} - ${optimalMax}`;
+                tooltipText += `\nEstado: ${isInRange ? '✅ En rango' : '❌ Fuera de rango'}`;
+              }
+              
+              return tooltipText;
+            }
+          }
+        },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Valor de la medición' },
+          type: 'linear' as const,
+          min: min,
+          max: max,
+          ticks: {
+            stepSize: Math.ceil((max - min) / 10) || 1
+          },
+          grid: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Cantidad de mediciones' },
+          min: 0,
+          ticks: { stepSize: 1, precision: 0 }
+        },
+      },
+    } as const;
+    
+    return (
+      <div className="w-full h-full">
+        <Bar options={distributionOptions} data={distributionData} />
+      </div>
+    );
+  }
+};
+
+// Helper function to render a single variable trend chart
+const renderSingleVariableTrend = (measurements: Measurement[], variableName: string) => {
+  if (!measurements || measurements.length === 0) {
+    return <div className="text-center text-gray-500">No hay datos históricos disponibles para esta variable.</div>;
+  }
+  
+  // Sort measurements by report date/ID
+  const sortedMeasurements = [...measurements].sort((a, b) => {
+    // Sort by date if available, otherwise by report ID
+    if (a.measureDate && b.measureDate) {
+      return new Date(a.measureDate).getTime() - new Date(b.measureDate).getTime();
+    }
+    return Number(a.report_id) - Number(b.report_id);
+  });
+  
+  // Get unique report IDs and corresponding dates
+  const reportsMap = new Map();
+  sortedMeasurements.forEach(measurement => {
+    const reportId = String(measurement.report_id);
+    const value = Number(measurement.value);
+    
+    if (isNaN(value)) return; // Skip non-numeric values
+    
+    if (!reportsMap.has(reportId)) {
+      reportsMap.set(reportId, {
+        reportId,
+        date: measurement.measureDate ? new Date(measurement.measureDate) : new Date(),
+        values: [],
+        count: 0,
+        sum: 0
+      });
+    }
+    
+    const report = reportsMap.get(reportId);
+    if (report) {
+      report.values.push(value);
+      report.count++;
+      report.sum += value;
+    }
+  });
+  
+  // Convert map to array and calculate averages
+  const allReports = Array.from(reportsMap.values())
+    .map(report => ({
+      reportId: report.reportId,
+      date: report.date,
+      average: report.count > 0 ? report.sum / report.count : 0,
+      count: report.count,
+      min: report.values.length > 0 ? Math.min(...report.values) : 0,
+      max: report.values.length > 0 ? Math.max(...report.values) : 0
+    }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+    
+  // Get optimal range from measurements
+  const measurementWithRanges = sortedMeasurements.find(m => 
+    m.optimo_min !== undefined || m.optimo_max !== undefined
+  );
+  const optimalMin = measurementWithRanges?.optimo_min;
+  const optimalMax = measurementWithRanges?.optimo_max;
+  
+  // Chart data
+  const evolutionData = {
+    labels: allReports.map(report => report.date.toLocaleDateString()),
+    datasets: [{
+      label: 'Promedio por reporte',
+      data: allReports.map(report => report.average),
+      borderColor: 'rgb(75, 192, 192)',
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      tension: 0.3,
+      pointRadius: 4,
+      fill: true,
+      pointBackgroundColor: 'rgb(75, 192, 192)',
+      pointBorderColor: '#fff',
+      pointHoverRadius: 5,
+      pointHoverBackgroundColor: 'rgb(75, 192, 192)',
+      pointHoverBorderColor: '#fff',
+      pointHitRadius: 10,
+      pointBorderWidth: 2,
+    }],
+  };
+  
+  // Chart options
+  const evolutionOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: `Evolución de ${variableName}`,
+        font: {
+          size: 16,
+          weight: 'bold' as const
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const report = allReports[context.dataIndex];
+            if (!report) return '';
+            
+            const avg = report.average.toFixed(2);
+            const min = report.min.toFixed(2);
+            const max = report.max.toFixed(2);
+            const date = report.date.toLocaleDateString();
+            
+            return [
+              `Reporte: #${report.reportId}`,
+              `Fecha: ${date}`,
+              `Muestras: ${report.count}`,
+              `Promedio: ${avg}`,
+              `Mínimo: ${min}`,
+              `Máximo: ${max}`
+            ];
+          },
+          title: () => `Variable: ${variableName}`,
+          afterLabel: (context: any) => {
+            const report = allReports[context.dataIndex];
+            if (!report || optimalMin === undefined || optimalMax === undefined) return '';
+            
+            const isInRange = report.average >= optimalMin && report.average <= optimalMax;
+            return `Estado: ${isInRange ? '✅ En rango óptimo' : '⚠️ Fuera de rango'}`;
+          }
+        },
+        padding: 10,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleFont: { size: 14, weight: 'bold' as const },
+        bodyFont: { size: 12 },
+        displayColors: false
+      }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Fecha del reporte' },
+        grid: { display: false }
+      },
+      y: {
+        title: { display: true, text: 'Valor promedio' },
+        beginAtZero: false,
+        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      }
+    },
+    elements: { line: { borderWidth: 2 } }
+  };
+  
+  return (
+    <div className="w-full h-full">
+      <Line options={evolutionOptions} data={evolutionData} />
+    </div>
+  );
+};
+
+// Helper function to render distribution chart for a specific pen and variable
+const renderPenVariableDistribution = (measurements: Measurement[], pen: string, variableName: string) => {
+  // Filter measurements for the specific pen and variable
+  const filteredMeasurements = measurements.filter(m => m.pen === pen && m.variable === variableName);
+  
+  if (!filteredMeasurements || filteredMeasurements.length === 0) {
+    return <div className="text-center text-gray-500">No hay datos disponibles para este corral.</div>;
+  }
+  
+  // Use the same distribution chart rendering logic but with pen-specific data
+  return renderSingleVariableDistribution(filteredMeasurements, variableName);
+};
+
+// Helper function to render trend chart with all pens for a variable
+const renderVariableTrendByPen = (measurements: Measurement[], variableName: string) => {
+  if (!measurements || measurements.length === 0) {
+    return <div className="text-center text-gray-500">No hay datos históricos disponibles para esta variable.</div>;
+  }
+  
+  // Filter measurements for the specific variable
+  const variableMeasurements = measurements.filter(m => m.variable === variableName);
+  
+  // Get unique pens
+  const uniquePens = Array.from(new Set(variableMeasurements.map(m => m.pen)))
+    .filter(pen => pen); // Filter out empty pen values
+  
+  if (uniquePens.length === 0) {
+    return <div className="text-center text-gray-500">No hay datos de corrales disponibles para esta variable.</div>;
+  }
+  
+  // Sort measurements by report date/ID
+  const sortedMeasurements = [...variableMeasurements].sort((a, b) => {
+    // Sort by date if available, otherwise by report ID
+    if (a.measureDate && b.measureDate) {
+      return new Date(a.measureDate).getTime() - new Date(b.measureDate).getTime();
+    }
+    return Number(a.report_id) - Number(b.report_id);
+  });
+  
+  // Create a map of pen -> reportId -> average value
+  const penReportData = new Map();
+  
+  // Process measurements to get average values per pen and report
+  uniquePens.forEach(pen => {
+    const penMeasurements = sortedMeasurements.filter(m => m.pen === pen);
+    
+    // Group by report_id
+    const reportGroups = new Map();
+    penMeasurements.forEach(measurement => {
+      const reportId = String(measurement.report_id);
+      const value = Number(measurement.value);
+      
+      if (isNaN(value)) return; // Skip non-numeric values
+      
+      if (!reportGroups.has(reportId)) {
+        reportGroups.set(reportId, {
+          reportId,
+          date: measurement.measureDate ? new Date(measurement.measureDate) : null,
+          values: [],
+          count: 0,
+          sum: 0
+        });
+      }
+      
+      const report = reportGroups.get(reportId);
+      if (report) {
+        report.values.push(value);
+        report.count++;
+        report.sum += value;
+      }
+    });
+    
+    // Calculate averages
+    penReportData.set(pen, Array.from(reportGroups.values())
+      .map(report => ({
+        reportId: report.reportId,
+        date: report.date,
+        average: report.count > 0 ? report.sum / report.count : 0
+      }))
+      .sort((a, b) => {
+        if (a.date && b.date) return a.date.getTime() - b.date.getTime();
+        return a.reportId.localeCompare(b.reportId);
+      })
+    );
+  });
+  
+  // Get all unique report dates across all pens
+  const allReportDates = new Set<string>();
+  penReportData.forEach((reports: any[]) => {
+    reports.forEach((report: { date: Date | null; reportId: string }) => {
+      if (report.date) {
+        allReportDates.add(report.date.toISOString().split('T')[0]);
+      } else {
+        allReportDates.add(report.reportId);
+      }
+    });
+  });
+  
+  // Convert to sorted array
+  const sortedDates = Array.from(allReportDates).sort();
+  
+  // Create datasets for each pen
+  const datasets = Array.from(penReportData.entries()).map(([pen, reports], index) => {
+    // Generate a color based on the index
+    const hue = (index * 137.5) % 360; // Use golden angle approximation for good distribution
+    
+    return {
+      label: `Corral ${pen}`,
+      data: reports.map(report => ({
+        x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
+        y: report.average
+      })),
+      borderColor: `hsla(${hue}, 70%, 50%, 1)`,
+      backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
+      tension: 0.3,
+      pointRadius: 4,
+      pointBackgroundColor: `hsla(${hue}, 70%, 50%, 1)`,
+      pointBorderColor: '#fff',
+      pointHoverRadius: 5
+    };
+  });
+  
+  // Get optimal range from measurements (assuming it's the same for all pens)
+  const measurementWithRanges = sortedMeasurements.find(m => 
+    m.optimo_min !== undefined || m.optimo_max !== undefined
+  );
+  const optimalMin = measurementWithRanges?.optimo_min;
+  const optimalMax = measurementWithRanges?.optimo_max;
+  
+  // Chart data
+  const trendData = {
+    datasets
+  };
+  
+  // Chart options
+  const trendOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: `Tendencia de ${variableName} por Corral`,
+        font: {
+          size: 16,
+          weight: 'bold' as const
+        }
+      },
+      tooltip: {
+        callbacks: {
+          title: function(items) {
+            if (!items.length) return '';
+            const item = items[0];
+            const xValue = item.parsed.x;
+            // Try to parse as date if it looks like a date
+            try {
+              if (typeof xValue === 'string' && xValue.includes('-')) {
+                return `Fecha: ${new Date(xValue).toLocaleDateString()}`;
+              }
+            } catch (e) {}
+            return `Reporte: #${xValue}`;
+          },
+          label: function(context) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y?.toFixed(2) || '0';
+            return `${label}: ${value}`;
+          },
+          afterLabel: function(context) {
+            const value = context.parsed.y;
+            if (optimalMin !== undefined && optimalMax !== undefined) {
+              const isInRange = value >= optimalMin && optimalMax >= value;
+              return `Estado: ${isInRange ? '✅ En rango óptimo' : '⚠️ Fuera de rango'}`;
+            }
+            return '';
+          }
+        },
+        padding: 10,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        bodyFont: { size: 12 },
+        multiKeyBackground: '#fff',
+        usePointStyle: true
+      },
+      // Omit annotation plugin to fix TypeScript errors
+      // We can implement this later with proper type definitions if needed
+    },
+    scales: {
+      x: {
+        type: 'category' as const,
+        title: { display: true, text: 'Fecha/Reporte' },
+        grid: { display: false }
+      },
+      y: {
+        title: { display: true, text: 'Valor promedio' },
+        beginAtZero: false,
+        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      }
+    },
+    elements: { line: { borderWidth: 2 } }
+  } as any; // Type assertion to bypass TypeScript errors
+  
+  return (
+    <div className="w-full h-full">
+      <Line options={trendOptions} data={trendData} />
+    </div>
+  );
+};
+
+const VariableCharts: React.FC<VariableChartsProps> = ({ 
+  measurements, 
+  selectedPen, 
+  selectedReportId,
+  singleVariableMode,
+  variableToShow,
+  showOnlyDistribution,
+  showOnlyTrend,
+  comparePensMode,
+  showTrendByPen
+}: VariableChartsProps) => {
+  // Handle single variable mode
+  if (singleVariableMode && variableToShow) {
+    // Filter measurements for the specific variable
+    const variableMeasurements = measurements.filter(m => m.variable === variableToShow);
+    
+    // If comparePensMode is true, render distribution for specific pen and variable
+    if (comparePensMode && selectedPen) {
+      return renderPenVariableDistribution(measurements, selectedPen, variableToShow);
+    }
+    
+    // If showTrendByPen is true, show trend lines for all pens
+    if (showTrendByPen) {
+      return renderVariableTrendByPen(measurements, variableToShow);
+    }
+    
+    // Handle original single variable modes
+    if (showOnlyDistribution) {
+      return renderSingleVariableDistribution(variableMeasurements, variableToShow);
+    } else if (showOnlyTrend) {
+      return renderSingleVariableTrend(variableMeasurements, variableToShow);
+    }
+  }
+  
+  // Regular mode - Get all measurements for the selected pen
   const penMeasurements = measurements.filter(m => m.pen === selectedPen);
   
   // Filter for the selected report if specified

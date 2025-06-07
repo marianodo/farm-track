@@ -99,6 +99,7 @@ const DashboardPage: React.FC = () => {
     const [selectedPen, setSelectedPen] = useState<string>("");
     const [selectedReportId, setSelectedReportId] = useState<string>("");
     const [selectedReportIdForSummary, setSelectedReportIdForSummary] = useState<string>("");
+    const [selectedVariable, setSelectedVariable] = useState<string>("");
 
     const handleReportChangeForSummary = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedReportIdForSummary(event.target.value);
@@ -1129,43 +1130,120 @@ const DashboardPage: React.FC = () => {
                                             </select>
                                         </div>
                                         {selectedReportIdForSummary && summaryReportMeasurements.length > 0 ? (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                                {Array.from(new Set(summaryReportMeasurements.map(m => m.variable))).map(variable => {
-                                                    const variableMeasurements = summaryReportMeasurements.filter(m => m.variable === variable);
-                                                    const totalCount = variableMeasurements.length;
-                                                    const correctCount = variableMeasurements.filter(m => m.correct === 1).length;
-                                                    const correctPercentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-                                                    const latestMeasurement = variableMeasurements[variableMeasurements.length - 1];
-                                                    return (
-                                                        <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6" style={{ maxWidth: 700, margin: '0 auto', width: '100%' }}>
-                                                            <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
-                                                                <div>
-                                                                    <span>{variable}</span>
-                                                                    <span className="text-xs text-gray-500 block">{latestMeasurement.type_of_object || 'N/A'}</span>
+                                            <>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                                    {Array.from(new Set(summaryReportMeasurements.map(m => m.variable))).map(variable => {
+                                                        const variableMeasurements = summaryReportMeasurements.filter(m => m.variable === variable);
+                                                        const totalCount = variableMeasurements.length;
+                                                        const correctCount = variableMeasurements.filter(m => m.correct === 1).length;
+                                                        const correctPercentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                                                        const latestMeasurement = variableMeasurements[variableMeasurements.length - 1];
+                                                        return (
+                                                            <div 
+                                                                key={variable} 
+                                                                className={
+                                                                    `bg-white p-4 rounded-lg shadow-md mb-6 cursor-pointer border transition-all ` +
+                                                                    (selectedVariable === variable ? 'border-green-500 ring-2 ring-green-200' : 'border-transparent')
+                                                                }
+                                                                style={{ width: '100%' }}
+                                                                onClick={() => setSelectedVariable(variable)}
+                                                            >
+                                                                <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                                                                    <div>
+                                                                        <span>{variable}</span>
+                                                                        <span className="text-xs text-gray-500 block">{latestMeasurement.type_of_object || 'N/A'}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center">
+                                                                        {correctPercentage >= 80 ? (
+                                                                            <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                                                                            </svg>
+                                                                        ) : correctPercentage >= 50 ? (
+                                                                            <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                                                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                                                                            </svg>
+                                                                        ) : (
+                                                                            <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                                            </svg>
+                                                                        )}
+                                                                        <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                                                                            {correctPercentage}% correcto ({correctCount}/{totalCount})
+                                                                        </span>
+                                                                    </div>
+                                                                </h3>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                
+                                                {/* Selected Variable Detail View */}
+                                                {selectedVariable && (
+                                                    <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+                                                        <h3 className="text-xl font-semibold mb-4">Rendimiento de la Variable: {selectedVariable} por Corral</h3>
+                                                        <p className="text-sm text-gray-600 mb-4">Comparativa de valores entre los diferentes corrales para el reporte seleccionado</p>
+                                                        
+                                                        {/* Get unique pens that have measurements for this variable */}
+                                                        {(() => {
+                                                            // Filter measurements for selected variable and report
+                                                            const variableMeasurements = summaryReportMeasurements
+                                                                .filter(m => m.variable === selectedVariable);
+                                                            
+                                                            // Get unique pens with this variable
+                                                            const uniquePens = Array.from(new Set(variableMeasurements.map(m => m.pen)))
+                                                                .filter(pen => pen); // Filter out empty pen values
+                                                            
+                                                            if (uniquePens.length === 0) {
+                                                                return (
+                                                                    <div className="text-center text-gray-500 py-10">
+                                                                        No hay datos de corrales disponibles para esta variable en el reporte seleccionado.
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            
+                                                            return (
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                    {uniquePens.map(pen => (
+                                                                        <div key={pen} className="bg-gray-50 p-4 rounded-lg">
+                                                                            <h4 className="text-lg font-medium mb-2">Corral: {pen}</h4>
+                                                                            
+                                                                            <div style={{ height: '300px' }}>
+                                                                                <VariableCharts 
+                                                                                    measurements={summaryReportMeasurements}
+                                                                                    selectedPen={pen}
+                                                                                    selectedReportId={selectedReportIdForSummary || ""}
+                                                                                    singleVariableMode={true}
+                                                                                    variableToShow={selectedVariable}
+                                                                                    comparePensMode={true}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                                <div className="flex items-center">
-                                                                    {correctPercentage >= 80 ? (
-                                                                        <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                                                                        </svg>
-                                                                    ) : correctPercentage >= 50 ? (
-                                                                        <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                                                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                                                                        </svg>
-                                                                    ) : (
-                                                                        <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                        </svg>
-                                                                    )}
-                                                                    <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
-                                                                        {correctPercentage}% correcto ({correctCount}/{totalCount})
-                                                                    </span>
+                                                            );
+                                                        })()} 
+                                                        
+                                                        {/* Add trend over time section if needed */}
+                                                        <div className="mt-8">
+                                                            <h3 className="text-xl font-semibold mb-4">Tendencia Histórica de {selectedVariable}</h3>
+                                                            <p className="text-sm text-gray-600 mb-4">Evolución del valor promedio a través del tiempo por corral</p>
+                                                            
+                                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                                <div style={{ height: '400px' }}>
+                                                                    <VariableCharts 
+                                                                        measurements={measurements}
+                                                                        selectedPen=""
+                                                                        selectedReportId=""
+                                                                        singleVariableMode={true}
+                                                                        variableToShow={selectedVariable}
+                                                                        showTrendByPen={true}
+                                                                    />
                                                                 </div>
-                                                            </h3>
+                                                            </div>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                    </div>
+                                                )}
+                                            </>
                                         ) : (
                                             <div className="text-center text-gray-500 py-10">
                                                 {selectedReportIdForSummary ? "No hay datos disponibles para este reporte." : "Seleccione un reporte para ver las variables numéricas."}
