@@ -593,16 +593,16 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
   // Create a map of pen -> reportId -> average value
   const penReportData = new Map();
   
+  // Define types for report data
+  interface ReportData {
+    reportId: string;
+    date: Date | null;
+    avgValue: number;
+  }
+
   // Process measurements to get average values per pen and report
   uniquePens.forEach(pen => {
     const penMeasurements = sortedMeasurements.filter(m => m.pen === pen);
-    
-    // Define types for report data
-    interface ReportData {
-      reportId: string;
-      date: Date | null;
-      avgValue: number;
-    }
     
     // Group by report_id
     const reportGroups: ReportData[] = [];
@@ -626,18 +626,11 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
       }
     });
     
-    // Calculate averages
-    penReportData.set(pen, Array.from(reportGroups.values())
-      .map(report => ({
-        reportId: report.reportId,
-        date: report.date,
-        average: report.count > 0 ? report.sum / report.count : 0
-      }))
-      .sort((a, b) => {
-        if (a.date && b.date) return a.date.getTime() - b.date.getTime();
-        return a.reportId.localeCompare(b.reportId);
-      })
-    );
+    // Sort by date and set the data for this pen
+    penReportData.set(pen, reportGroups.sort((a, b) => {
+      if (a.date && b.date) return a.date.getTime() - b.date.getTime();
+      return a.reportId.localeCompare(b.reportId);
+    }));
   });
   
   // Get all unique report dates across all pens
@@ -662,9 +655,9 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
     
     return {
       label: `Corral ${pen}`,
-      data: reports.map(report => ({
+      data: reports.map((report: ReportData) => ({
         x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
-        y: report.average
+        y: report.avgValue
       })),
       borderColor: `hsla(${hue}, 70%, 50%, 1)`,
       backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
@@ -703,7 +696,7 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
       },
       tooltip: {
         callbacks: {
-          title: function(items) {
+          title: function(items: any[]) {
             if (!items.length) return '';
             const item = items[0];
             const xValue = item.parsed.x;
@@ -715,12 +708,12 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
             } catch (e) {}
             return `Reporte: #${xValue}`;
           },
-          label: function(context) {
+          label: function(context: any) {
             const label = context.dataset.label || '';
             const value = context.parsed.y?.toFixed(2) || '0';
             return `${label}: ${value}`;
           },
-          afterLabel: function(context) {
+          afterLabel: function(context: any) {
             const value = context.parsed.y;
             if (optimalMin !== undefined && optimalMax !== undefined) {
               const isInRange = value >= optimalMin && optimalMax >= value;

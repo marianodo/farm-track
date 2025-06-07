@@ -82,7 +82,7 @@ interface DashboardStats {
 const tabs = [
     { key: "general" as TabType, label: "General" },
     { key: "pens" as TabType, label: "Corrales" },
-    { key: "numerical" as TabType, label: "Variables Numéricas" },
+    { key: "numerical" as TabType, label: "Variables" },
 ];
 
 function classNames(...classes: string[]) {
