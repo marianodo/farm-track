@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import useFieldStore from "@/store/fieldStore";
 
 // Register Chart.js elements for all charts in this file
@@ -1183,6 +1184,122 @@ const DashboardPage: React.FC = () => {
                                                         <h3 className="text-xl font-semibold mb-4">Rendimiento de la Variable: {selectedVariable} por Corral</h3>
                                                         <p className="text-sm text-gray-600 mb-4">Comparativa de valores entre los diferentes corrales para el reporte seleccionado</p>
                                                         
+                                                        {/* Summary Table of Pens */}
+                                                        <div className="mb-6 overflow-x-auto">
+                                                          <h3 className="text-lg font-semibold mb-4">Resumen por Corral</h3>
+                                                          <div className="border rounded-lg overflow-hidden">
+                                                            <table className="w-full text-sm bg-white shadow-md rounded-lg overflow-hidden">
+                                                              <thead className="bg-gray-50">
+                                                                <tr>
+                                                                  <th className="px-4 py-2 text-left">Corral</th>
+                                                                  <th className="px-4 py-2 text-center">Mediciones Correctas</th>
+                                                                  <th className="px-4 py-2 text-center">Total</th>
+                                                                  <th className="px-4 py-2 text-center">Porcentaje</th>
+                                                                  <th className="px-4 py-2 text-center">Estado</th>
+                                                                </tr>
+                                                              </thead>
+                                                              <tbody>
+                                                                {Array.from(new Set(measurements.filter(m => m.variable === selectedVariable).map(m => m.pen)))
+                                                                  .map(pen => {
+                                                                    const penMeasurements = measurements.filter(m => 
+                                                                      m.pen === pen && 
+                                                                      m.variable === selectedVariable && 
+                                                                      (selectedReportId ? String(m.report_id) === selectedReportId : true)
+                                                                    );
+                                                                    
+                                                                    // Count correct measurements
+                                                                    const total = penMeasurements.length;
+                                                                    let correct = 0;
+                                                                    
+                                                                    // Get optimal ranges or values
+                                                                    const measurementWithRanges = penMeasurements.find(m => 
+                                                                      m.optimo_min !== undefined || m.optimo_max !== undefined || 
+                                                                      (m as any).optimal_value !== undefined || (m as any).optimal_values !== undefined
+                                                                    );
+                                                                    
+                                                                    // Extract optimization values
+                                                                    const optimalMin = measurementWithRanges?.optimo_min;
+                                                                    const optimalMax = measurementWithRanges?.optimo_max;
+                                                                    const optimalValue = (measurementWithRanges as any)?.optimal_value || 
+                                                                                       (measurementWithRanges as any)?.optimo_valor;
+                                                                    
+                                                                    // Get optimal values array if available
+                                                                    let optimalValues: string[] = [];
+                                                                    if ((measurementWithRanges as any)?.optimal_values) {
+                                                                      const values = (measurementWithRanges as any).optimal_values;
+                                                                      optimalValues = Array.isArray(values) ? values : 
+                                                                        typeof values === 'string' ? values.split(',') : [];
+                                                                    }
+                                                                    
+                                                                    // Determine if this is a categorical variable
+                                                                    const isCategorical = penMeasurements.some(m => {
+                                                                      const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+                                                                      return typeof value === 'string' && isNaN(Number(value));
+                                                                    });
+                                                                    
+                                                                    // Count correct measurements
+                                                                    if (isCategorical) {
+                                                                      correct = penMeasurements.filter(m => {
+                                                                        const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+                                                                        if (optimalValues.length > 0) {
+                                                                          return optimalValues.includes(value);
+                                                                        } else if (optimalValue) {
+                                                                          return value === optimalValue;
+                                                                        }
+                                                                        return false;
+                                                                      }).length;
+                                                                    } else if (optimalMin !== undefined && optimalMax !== undefined) {
+                                                                      correct = penMeasurements.filter(m => {
+                                                                        const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+                                                                        const numValue = Number(value);
+                                                                        return !isNaN(numValue) && numValue >= optimalMin && numValue <= optimalMax;
+                                                                      }).length;
+                                                                    }
+                                                                    
+                                                                    // Calculate percentage
+                                                                    const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
+                                                                    
+                                                                    // Determine status
+                                                                    let status = "";
+                                                                    let statusColor = "";
+                                                                    let statusIcon = "";
+                                                                    
+                                                                    if (percentage >= 75) {
+                                                                      status = "Alto";
+                                                                      statusColor = "text-green-600";
+                                                                      statusIcon = "✅";
+                                                                    } else if (percentage >= 50) {
+                                                                      status = "Medio";
+                                                                      statusColor = "text-yellow-600";
+                                                                      statusIcon = "⚠️";
+                                                                    } else {
+                                                                      status = "Bajo";
+                                                                      statusColor = "text-red-600";
+                                                                      statusIcon = "❌";
+                                                                    }
+                                                                    
+                                                                    return (
+                                                                      <tr key={pen} className="border-t hover:bg-gray-50">
+                                                                        <td className="px-4 py-2">{pen}</td>
+                                                                        <td className="px-4 py-2 text-center">{correct}</td>
+                                                                        <td className="px-4 py-2 text-center">{total}</td>
+                                                                        <td className="px-4 py-2 text-center font-medium">
+                                                                          <span className={`${statusColor}`}>{percentage}%</span>
+                                                                        </td>
+                                                                        <td className="px-4 py-2 text-center">
+                                                                          <span className={`inline-flex items-center ${statusColor}`}>
+                                                                            <span className="mr-1">{statusIcon}</span>
+                                                                            {status}
+                                                                          </span>
+                                                                        </td>
+                                                                      </tr>
+                                                                    );
+                                                                  })}
+                                                              </tbody>
+                                                            </table>
+                                                          </div>
+                                                        </div>
+                                                        
                                                         {/* Get unique pens that have measurements for this variable */}
                                                         {(() => {
                                                             // Filter measurements for selected variable and report
@@ -1241,10 +1358,10 @@ const DashboardPage: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                )}
-                                            </>
-                                        ) : (
+                                                     </div>
+                                                 )}
+                                             </>
+                                         ) : (
                                             <div className="text-center text-gray-500 py-10">
                                                 {selectedReportIdForSummary ? "No hay datos disponibles para este reporte." : "Seleccione un reporte para ver las variables numéricas."}
                                             </div>
