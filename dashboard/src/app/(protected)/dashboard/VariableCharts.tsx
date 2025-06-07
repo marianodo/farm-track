@@ -465,6 +465,22 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
   const absoluteMin = measurementWithRanges?.min;
   const absoluteMax = measurementWithRanges?.max;
   
+  // Count correct measurements (within optimal range)
+  const totalMeasurements = filteredMeasurements.length;
+  let correctMeasurements = 0;
+  
+  if (optimalMin !== undefined && optimalMax !== undefined) {
+    correctMeasurements = filteredMeasurements.filter(m => {
+      // Handle both 'valor' and 'value' properties since we're seeing inconsistent naming
+      const value = (m as any).valor !== undefined ? (m as any).valor : m.value;
+      return value >= optimalMin && value <= optimalMax;
+    }).length;
+  }
+  
+  // Calculate correctness percentage
+  const correctnessPercentage = totalMeasurements > 0 ? 
+    Math.round((correctMeasurements / totalMeasurements) * 100) : 0;
+  
   // Add optimal range info banner if available
   const hasOptimalRange = optimalMin !== undefined && optimalMax !== undefined;
   const hasAbsoluteRange = absoluteMin !== undefined || absoluteMax !== undefined;
@@ -472,23 +488,25 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
   return (
     <div className="w-full h-full flex flex-col">
       {/* Optimal range information */}
-      {(hasOptimalRange || hasAbsoluteRange) && (
-        <div className="mb-2 text-xs text-center">
-          {hasOptimalRange && (
-            <span className="px-2 py-1 bg-green-50 text-green-700 rounded mr-2">
-              Rango óptimo: <strong>{optimalMin} - {optimalMax}</strong>
-            </span>
-          )}
-          {hasAbsoluteRange && (
-            <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
-              Rango válido: <strong>
-                {absoluteMin !== undefined ? absoluteMin : 'Min'} - 
-                {absoluteMax !== undefined ? absoluteMax : 'Max'}
-              </strong>
-            </span>
-          )}
-        </div>
-      )}
+      <div className="mb-2 text-xs text-center flex justify-center flex-wrap gap-2">
+        {hasOptimalRange && (
+          <span className="px-2 py-1 bg-green-50 text-green-700 rounded">
+            Rango óptimo: <strong>{optimalMin} - {optimalMax}</strong>
+          </span>
+        )}
+        {hasAbsoluteRange && (
+          <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+            Rango válido: <strong>
+              {absoluteMin !== undefined ? absoluteMin : 'Min'} - 
+              {absoluteMax !== undefined ? absoluteMax : 'Max'}
+            </strong>
+          </span>
+        )}
+        <span className={`px-2 py-1 rounded ${correctnessPercentage >= 75 ? 'bg-green-50 text-green-700' : 
+          correctnessPercentage >= 50 ? 'bg-yellow-50 text-yellow-700' : 'bg-red-50 text-red-700'}`}>
+          Correctas: <strong>{correctMeasurements}/{totalMeasurements}</strong> ({correctnessPercentage}%)
+        </span>
+      </div>
       
       {/* Chart */}
       <div className="flex-1">
