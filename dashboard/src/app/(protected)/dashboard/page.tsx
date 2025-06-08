@@ -750,8 +750,7 @@ const DashboardPage: React.FC = () => {
                 const reportIdStrings = [...new Set(measurements.map(m => String(m.report_id)))].sort((a, b) => Number(a) - Number(b));
 
                 const chartLabels: string[] = [];
-                const animalCorrectPercentages: (number | null)[] = []; // Allow null for missing data
-                const installationCorrectPercentages: (number | null)[] = []; // Allow null for missing data
+                const healthPercentages: number[] = [];
 
                 reportIdStrings.forEach(reportId => {
                     const reportMeasurements = measurements.filter(m => String(m.report_id) === reportId);
@@ -764,47 +763,29 @@ const DashboardPage: React.FC = () => {
                         chartLabels.push(`Reporte ${reportId}`); // Fallback
                     }
 
-                    // Animal Correctness
-                    const animalMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Animal');
-                    const totalAnimal = animalMeasurements.length;
-                    if (totalAnimal > 0) {
-                        const correctAnimal = animalMeasurements.filter(m => String(m.correct) === '1' || m.correct === 1).length;
-                        animalCorrectPercentages.push(Math.round((correctAnimal / totalAnimal) * 100));
-                    } else {
-                        animalCorrectPercentages.push(null); // Use null for no data
-                    }
-
-                    // Installation Correctness
-                    const installationMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Installation');
-                    const totalInstallation = installationMeasurements.length;
-                    if (totalInstallation > 0) {
-                        const correctInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || m.correct === 1).length;
-                        installationCorrectPercentages.push(Math.round((correctInstallation / totalInstallation) * 100));
-                    } else {
-                        installationCorrectPercentages.push(null); // Use null for no data
-                    }
+                    // Calculate overall health percentage
+                    const totalMeasurements = reportMeasurements.length;
+                    const correctMeasurements = reportMeasurements.filter(
+                        m => String(m.correct) === '1' || m.correct === 1
+                    ).length;
+                    
+                    const healthPercentage = totalMeasurements > 0
+                        ? Math.round((correctMeasurements / totalMeasurements) * 100)
+                        : 0;
+                    
+                    healthPercentages.push(healthPercentage);
                 });
 
                 const chartData = {
                     labels: chartLabels,
                     datasets: [
                         {
-                            label: '% Correcto Animales',
-                            data: animalCorrectPercentages,
+                            label: '% Salud General',
+                            data: healthPercentages,
                             backgroundColor: 'rgba(54, 162, 235, 0.7)', // Blue
                             borderColor: 'rgba(54, 162, 235, 1)',
                             borderWidth: 1,
-                            maxBarThickness: 30,
-                            skipNull: true, // Ensure nulls are skipped and create gaps
-                        },
-                        {
-                            label: '% Correcto Instalaciones',
-                            data: installationCorrectPercentages,
-                            backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green-Cyan
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                            maxBarThickness: 30,
-                            skipNull: true, // Ensure nulls are skipped and create gaps
+                            maxBarThickness: 50,
                         },
                     ],
                 };
@@ -816,16 +797,41 @@ const DashboardPage: React.FC = () => {
                         tooltip: {
                             callbacks: {
                                 label: function(context: any) { // Keep any for Chart.js context
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null && !isNaN(context.parsed.y)) {
-                                        label += `${context.parsed.y}% correcto`;
-                                    } else {
-                                        label += 'N/A'; // Or 'Sin datos'
-                                    }
-                                    return label;
+                                    return `Salud General: ${context.parsed.y}% correcto`;
+                                },
+                                afterLabel: function(context: any) {
+                                    const reportId = reportIdStrings[context.dataIndex];
+                                    const reportData = measurements.filter(m => String(m.report_id) === reportId);
+                                    const totalMeasurements = reportData.length;
+                                    const correctMeasurements = reportData.filter(
+                                        m => String(m.correct) === '1' || m.correct === 1
+                                    ).length;
+                                    
+                                    // Calculate animal percentage
+                                    const animalData = reportData.filter(m => m.type_of_object === 'Animal');
+                                    const animalTotal = animalData.length;
+                                    const animalCorrect = animalData.filter(
+                                        m => String(m.correct) === '1' || m.correct === 1
+                                    ).length;
+                                    const animalPercentage = animalTotal > 0 
+                                        ? Math.round((animalCorrect / animalTotal) * 100) 
+                                        : 'N/A';
+                                    
+                                    // Calculate installation percentage
+                                    const installationData = reportData.filter(m => m.type_of_object === 'Installation');
+                                    const installationTotal = installationData.length;
+                                    const installationCorrect = installationData.filter(
+                                        m => String(m.correct) === '1' || m.correct === 1
+                                    ).length;
+                                    const installationPercentage = installationTotal > 0 
+                                        ? Math.round((installationCorrect / installationTotal) * 100) 
+                                        : 'N/A';
+                                    
+                                    return [
+                                        `${correctMeasurements} de ${totalMeasurements} mediciones correctas`,
+                                        `🐄 Animales: ${animalPercentage === 'N/A' ? animalPercentage : animalPercentage + '%'} correcto`,
+                                        `🏠 Instalaciones: ${installationPercentage === 'N/A' ? installationPercentage : installationPercentage + '%'} correcto`
+                                    ];
                                 }
                             }
                         }
