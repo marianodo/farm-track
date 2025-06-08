@@ -96,6 +96,7 @@ const DashboardPage: React.FC = () => {
     });
     const [measurements, setMeasurements] = useState<Measurement[]>([]);
     const [loading, setLoading] = useState(false);
+    const [loadingFields, setLoadingFields] = useState(false);
     const [selectedTab, setSelectedTab] = useState<TabType>("general");
     const [selectedPen, setSelectedPen] = useState<string>("");
     const [selectedReportId, setSelectedReportId] = useState<string>("");
@@ -177,13 +178,23 @@ const DashboardPage: React.FC = () => {
     }, [reportOptions, measurements, selectedReportIdForSummary, setSelectedReportIdForSummary]);
 
     const { getFieldsByUser, fieldsByUserId, getCategoricalMeasurementsByFieldId, getNumericalMeasurementsByFieldId } = useFieldStore();
+    
+    // Track when dropdown is opened
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     useEffect(() => {
         const fetch = async () => {
-            return await getFieldsByUser()
-        }
-        fetch()
-    }, [getFieldsByUser])
+            if (!fieldsByUserId?.length && isDropdownOpen) {
+                setLoadingFields(true);
+                try {
+                    await getFieldsByUser();
+                } finally {
+                    setLoadingFields(false);
+                }
+            }
+        };
+        fetch();
+    }, [getFieldsByUser, fieldsByUserId, isDropdownOpen])
 
     const allFieldsOption: AllFieldsOption = { value: "all", label: "Todos los campos" };
     
@@ -293,13 +304,19 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
+                    <label htmlFor="field-select" className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
                     <select
+                        id="field-select"
                         value={selectedField.value}
                         onChange={(e) => handleFieldChange(e.target.value)}
+                        onClick={() => setIsDropdownOpen(true)}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        onBlur={() => setIsDropdownOpen(false)}
                         className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
                     >
-                        {fields.map((field: Field | AllFieldsOption, index: number) => (
+                        {loadingFields ? (
+                            <option disabled>Cargando campos...</option>
+                        ) : fields.map((field: Field | AllFieldsOption, index: number) => (
                             <option key={field.value + '_' + index} value={field.value}>
                                 {field.label}
                             </option>
