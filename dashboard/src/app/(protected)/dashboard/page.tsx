@@ -1058,6 +1058,19 @@ const DashboardPage: React.FC = () => {
                                                 const totalCount = penMeasurements.length;
                                                 const correctCount = penMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
                                                 const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+                                                
+                                                // Get animal measurements
+                                                const animalMeasurements = penMeasurements.filter(m => m.type_of_object === 'Animal');
+                                                const animalTotalCount = animalMeasurements.length;
+                                                const animalCorrectCount = animalMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
+                                                const animalPercent = animalTotalCount > 0 ? Math.round((animalCorrectCount / animalTotalCount) * 100) : null;
+                                                
+                                                // Get installation measurements
+                                                const installMeasurements = penMeasurements.filter(m => m.type_of_object === 'Installation');
+                                                const installTotalCount = installMeasurements.length;
+                                                const installCorrectCount = installMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
+                                                const installPercent = installTotalCount > 0 ? Math.round((installCorrectCount / installTotalCount) * 100) : null;
+                                                
                                                 // Icon logic
                                                 let icon = null;
                                                 if (percent >= 85) {
@@ -1095,6 +1108,48 @@ const DashboardPage: React.FC = () => {
                                                             <span className="text-sm text-gray-500">Score de salud</span>
                                                             <div className="text-3xl font-bold mt-2">{percent}%</div>
                                                             <div className="text-sm text-gray-500">{correctCount}/{totalCount} mediciones</div>
+                                                            <div className="mt-3 space-y-1">
+                                                                {animalPercent !== null && (
+                                                                    <div>
+                                                                        <div className="flex items-center mb-1">
+                                                                            <span className="text-xs bg-blue-50 px-2 py-1 rounded mr-2">🐄</span>
+                                                                            <div className="flex-1">
+                                                                                <div className="text-sm font-medium flex justify-between">
+                                                                                    <span>Animales</span>
+                                                                                    <span>{animalPercent}%</span>
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-500">{animalCorrectCount}/{animalTotalCount}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                                                            <div 
+                                                                                className={`h-2 rounded-full ${animalPercent >= 85 ? 'bg-green-500' : animalPercent >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                                style={{ width: `${animalPercent}%` }}
+                                                                            ></div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {installPercent !== null && (
+                                                                    <div className="mt-2">
+                                                                        <div className="flex items-center mb-1">
+                                                                            <span className="text-xs bg-green-50 px-2 py-1 rounded mr-2">🏠</span>
+                                                                            <div className="flex-1">
+                                                                                <div className="text-sm font-medium flex justify-between">
+                                                                                    <span>Instalaciones</span>
+                                                                                    <span>{installPercent}%</span>
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-500">{installCorrectCount}/{installTotalCount}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                                                            <div 
+                                                                                className={`h-2 rounded-full ${installPercent >= 85 ? 'bg-green-500' : installPercent >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                                                style={{ width: `${installPercent}%` }}
+                                                                            ></div>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <div className="mt-2 flex justify-end">{icon}</div>
                                                     </div>
