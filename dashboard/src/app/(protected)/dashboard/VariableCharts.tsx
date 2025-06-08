@@ -10,8 +10,16 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { ChartData, ChartOptions, Plugin } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { Bar, Line } from 'react-chartjs-2';
+
+// Define ReportData interface at the top level so it can be used throughout the file
+interface ReportData {
+  reportId: string;
+  date: Date | null;
+  avgValue: number;
+}
 
 // Register Chart.js components
 ChartJS.register(
@@ -648,26 +656,28 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
   // Convert to sorted array
   const sortedDates = Array.from(allReportDates).sort();
   
-  // Create datasets for each pen
-  const datasets = Array.from(penReportData.entries()).map(([pen, reports], index) => {
-    // Generate a color based on the index
-    const hue = (index * 137.5) % 360; // Use golden angle approximation for good distribution
-    
-    return {
-      label: `Corral ${pen}`,
-      data: reports.map((report: ReportData) => ({
-        x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
-        y: report.avgValue
-      })),
-      borderColor: `hsla(${hue}, 70%, 50%, 1)`,
-      backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
-      tension: 0.3,
-      pointRadius: 4,
-      pointBackgroundColor: `hsla(${hue}, 70%, 50%, 1)`,
-      pointBorderColor: '#fff',
-      pointHoverRadius: 5
-    };
-  });
+  // Create datasets for each pen - filter out pens with no data
+  const datasets = Array.from(penReportData.entries())
+    .filter(([_, reports]) => reports && reports.length > 0) // Filter out pens with no reports
+    .map(([pen, reports], index) => {
+      // Generate a color based on the index
+      const hue = (index * 137.5) % 360; // Use golden angle approximation for good distribution
+      
+      return {
+        label: `Corral ${pen}`,
+        data: reports.map((report: ReportData) => ({
+          x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
+          y: report.avgValue
+        })),
+        borderColor: `hsla(${hue}, 70%, 50%, 1)`,
+        backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
+        tension: 0.3,
+        pointRadius: 4,
+        pointBackgroundColor: `hsla(${hue}, 70%, 50%, 1)`,
+        pointBorderColor: '#fff',
+        pointHoverRadius: 5
+      };
+    });
   
   // Get optimal range from measurements (assuming it's the same for all pens)
   const measurementWithRanges = sortedMeasurements.find(m => 

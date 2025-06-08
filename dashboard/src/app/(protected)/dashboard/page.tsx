@@ -1201,6 +1201,9 @@ const DashboardPage: React.FC = () => {
                                                               <tbody>
                                                                 {Array.from(new Set(measurements.filter(m => m.variable === selectedVariable).map(m => m.pen)))
                                                                   .map(pen => {
+                                                                    // Skip empty pen names
+                                                                    if (!pen) return null;
+                                                                    
                                                                     const penMeasurements = measurements.filter(m => 
                                                                       m.pen === pen && 
                                                                       m.variable === selectedVariable && 
@@ -1209,6 +1212,10 @@ const DashboardPage: React.FC = () => {
                                                                     
                                                                     // Count correct measurements
                                                                     const total = penMeasurements.length;
+                                                                    
+                                                                    // Skip rendering if there's no data for this pen
+                                                                    if (total === 0) return null;
+                                                                    
                                                                     let correct = 0;
                                                                     
                                                                     // Get optimal ranges or values
