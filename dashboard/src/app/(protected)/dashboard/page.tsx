@@ -1106,7 +1106,10 @@ const DashboardPage: React.FC = () => {
                                                         <div>
                                                             <h3 className="text-lg font-semibold mb-1">{pen}</h3>
                                                             <span className="text-sm text-gray-500">Score de salud</span>
-                                                            <div className="text-3xl font-bold mt-2">{percent}%</div>
+                                                            <div className="flex items-center gap-2 mt-2">
+                                                                <div className="text-3xl font-bold">{percent}%</div>
+                                                                {icon}
+                                                            </div>
                                                             <div className="text-sm text-gray-500">{correctCount}/{totalCount} mediciones</div>
                                                             <div className="mt-3 space-y-1">
                                                                 {animalPercent !== null && (
@@ -1151,7 +1154,6 @@ const DashboardPage: React.FC = () => {
                                                                 )}
                                                             </div>
                                                         </div>
-                                                        <div className="mt-2 flex justify-end">{icon}</div>
                                                     </div>
                                                 );
                                             })}
