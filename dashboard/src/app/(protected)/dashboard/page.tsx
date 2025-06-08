@@ -1003,9 +1003,9 @@ const DashboardPage: React.FC = () => {
                                         {/* Pens Tab */}
                                         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                                             <h2 className="text-2xl font-semibold mb-4 md:mb-0">Análisis por Corral</h2>
-                                            <div className="flex flex-col md:flex-row md:space-x-4">
+                                            <div>
                                                 {/* Report Date Dropdown */}
-                                                <div className="mb-2 md:mb-0">
+                                                <div>
                                                     <label htmlFor="report-select" className="block text-xs font-medium mb-1">Reporte</label>
                                                     <select
                                                         id="report-select"
@@ -1031,25 +1031,7 @@ const DashboardPage: React.FC = () => {
                                                             })}
                                                     </select>
                                                 </div>
-                                                
-                                                {/* Pen Dropdown */}
-                                                <div>
-                                                    <label htmlFor="pen-select" className="block text-xs font-medium mb-1">Corral</label>
-                                                    <select
-                                                        id="pen-select"
-                                                        className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 min-w-[150px]"
-                                                        value={selectedPen}
-                                                        onChange={e => setSelectedPen(e.target.value)}
-                                                        disabled={measurementsToShow.length === 0}
-                                                        aria-label="Select pen"
-                                                    >
-                                                        <option value="">Seleccionar corral</option>
-                                                        {Array.from(new Set(measurementsToShow.map(m => m.pen))).map(pen => (
-                                                            <option key={pen} value={pen}>{pen}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                        </div>
+                                            </div>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {Array.from(new Set(measurementsToShow.map(m => m.pen))).map(pen => {
@@ -1171,27 +1153,31 @@ const DashboardPage: React.FC = () => {
 
                                     <Tab.Panel>
                                         {/* Numerical Variables Tab */}
-                                        <div className="mb-6 flex flex-col md:flex-row md:items-center gap-4">
-                                            <span className="font-medium">Seleccionar Reporte:</span>
-                                            <select
-                                                value={selectedReportIdForSummary}
-                                                onChange={e => setSelectedReportIdForSummary(e.target.value)}
-                                                className="w-full md:w-64 p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                                            >
-                                                {reportOptions.length > 0 ? (
-                                                    reportOptions
-                                                        .filter(option => option.value !== 'all') 
-                                                        .slice() 
-                                                        .sort((a, b) => Number(b.value) - Number(a.value)) 
-                                                        .map(option => (
-                                                            <option key={option.value} value={option.value}>
-                                                                {option.label}
-                                                            </option>
-                                                    ))
-                                                ) : (
-                                                    <option value="">No hay reportes disponibles</option>
-                                                )}
-                                            </select>
+                                        <div className="mb-6 flex justify-between items-center">
+                                            <h2 className="text-xl font-semibold">Variables</h2>
+                                            <div>
+                                                <label htmlFor="variable-report-select" className="block text-xs font-medium mb-1">Reporte</label>
+                                                <select
+                                                    id="variable-report-select"
+                                                    value={selectedReportIdForSummary}
+                                                    onChange={e => setSelectedReportIdForSummary(e.target.value)}
+                                                    className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 min-w-[150px]"
+                                                >
+                                                    {reportOptions.length > 0 ? (
+                                                        reportOptions
+                                                            .filter(option => option.value !== 'all') 
+                                                            .slice() 
+                                                            .sort((a, b) => Number(b.value) - Number(a.value)) 
+                                                            .map(option => (
+                                                                <option key={option.value} value={option.value}>
+                                                                    {option.label}
+                                                                </option>
+                                                        ))
+                                                    ) : (
+                                                        <option value="">No hay reportes disponibles</option>
+                                                    )}
+                                                </select>
+                                            </div>
                                         </div>
                                         {selectedReportIdForSummary && summaryReportMeasurements.length > 0 ? (
                                             <>

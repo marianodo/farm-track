@@ -815,7 +815,7 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
   return (
     <div className="mt-8">
       <h2 className="text-xl font-semibold mb-4">Variables en el Corral: {selectedPen}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="flex flex-col space-y-8">
         {variables.map(variable => {
           // Get all measurements for this variable in this pen
           const variableMeasurements = penMeasurements.filter(m => m.variable === variable);
@@ -1456,10 +1456,10 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                 </div>
               </h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 p-3 rounded-lg">
+              <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
+                <div className="bg-gray-50 p-4 rounded-lg flex-1">
                   <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
-                  <div style={{ height: '250px' }}>
+                  <div style={{ height: '350px' }}>
                     {latestReportMeasurements.length > 0 ? (
                       <Bar options={distributionOptions} data={distributionData} />
                     ) : (
@@ -1470,9 +1470,9 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 p-3 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg flex-1">
                   <h4 className="text-sm font-medium text-gray-500 mb-3">Tendencia de Variables</h4>
-                  <div style={{ height: '250px' }}>
+                  <div style={{ height: '350px' }}>
                     {variableMeasurements.length > 0 && valuesByReport.some(v => v !== null) ? (
                       <Line options={evolutionOptions} data={evolutionData} />
                     ) : (
