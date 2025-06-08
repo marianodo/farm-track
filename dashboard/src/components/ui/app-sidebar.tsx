@@ -26,27 +26,27 @@ export function AppSidebar() {
     const navItems = [
         {
             name: 'Campos',
-            path: '/dashboard/general',
+            path: '/general',
             icon: <Home className="h-5 w-5" />
         },
         {
             name: 'Corrales',
-            path: '/dashboard/pens',
+            path: '/pens',
             icon: <Layers className="h-5 w-5" />
         },
         {
             name: 'Variables',
-            path: '/dashboard/variables',
+            path: '/variables',
             icon: <BarChart2 className="h-5 w-5" />
         },
         {
             name: 'Reportes',
-            path: '/dashboard/reports',
+            path: '/reports',
             icon: <Calendar className="h-5 w-5" />
         },
         {
             name: 'Análisis',
-            path: '/dashboard',
+            path: '/',
             icon: <FileBarChart className="h-5 w-5" />
         }
     ];
