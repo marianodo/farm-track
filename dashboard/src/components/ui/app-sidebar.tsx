@@ -1,66 +1,119 @@
 "use client"
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarMenuButton } from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
-import { ListIcon, CheckCheck, LayoutDashboard, LogOut } from "lucide-react"; // Importa los íconos de lucide-react
+import { 
+  Home, 
+  Layers, 
+  BarChart2, 
+  Calendar, 
+  FileBarChart,
+  RefreshCw, 
+  Settings, 
+  LogOut, 
+  ChevronDown 
+} from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
+import Image from "next/image";
 
 export function AppSidebar() {
     const { logout, authLoading } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
+    
+    // Navigation items matching the provided design
     const navItems = [
         {
-            name: 'General',
+            name: 'Campos',
             path: '/dashboard/general',
-            icon: <ListIcon className="h-5 w-5" />
+            icon: <Home className="h-5 w-5" />
         },
         {
-            name: 'Evaluaciones',
-            path: '/dashboard/evaluations',
-            icon: <CheckCheck className="h-5 w-5" />
+            name: 'Corrales',
+            path: '/dashboard/pens',
+            icon: <Layers className="h-5 w-5" />
         },
         {
-            name: 'Dashboard',
+            name: 'Variables',
+            path: '/dashboard/variables',
+            icon: <BarChart2 className="h-5 w-5" />
+        },
+        {
+            name: 'Reportes',
+            path: '/dashboard/reports',
+            icon: <Calendar className="h-5 w-5" />
+        },
+        {
+            name: 'Análisis',
             path: '/dashboard',
-            icon: <LayoutDashboard className="h-5 w-5" />
+            icon: <FileBarChart className="h-5 w-5" />
         }
     ];
-    const onClick = () => {
+    
+    const handleLogout = () => {
         logout();
         router.replace('/login');
     }
+    
     return (
-        <Sidebar className="w-72">
+        <Sidebar className="w-72 border-r border-gray-200" style={{ backgroundColor: '#f1f1f1' }}>
             <SidebarContent>
-                {/* Title */}
-                <h1 className="p-4 w-full flex items-center justify-center text-green-dark font-bold text-2xl">Measure Me</h1>
-                {/* Links */}
-                <SidebarGroup className="flex flex-col p-4">
-                    {navItems.map((item) => (
-                        <Link key={item.name} href={item.path} className={`flex font-semibold items-center text-green-dark p-3 ${pathname === item.path ? 'bg-green-dark text-white' : 'hover:bg-[#f8fdf0fe]'} rounded-md gap-4 mb-3`}>
-                            <div className="mr-2">
-                                {item.icon}
-                            </div>
-                            <div>
-                                {item.name}
-                            </div>
-                        </Link>
-                    ))}
-                </SidebarGroup>
+                {/* Logo/Title */}
+                <div className="p-4 flex items-center gap-2">
+                    <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
+                        <span className="font-bold text-xl">M</span>
+                    </div>
+                    <h1 className="text-gray-700 font-bold text-xl">MeasureMe</h1>
+                </div>
+                
+                {/* Removed dropdown menus as requested */}
+                
+                {/* Navigation Section */}
+                <div className="px-4 pt-6">
+                    <h2 className="text-gray-500 text-sm font-medium mb-2">Navegación</h2>
+                    <SidebarGroup className="flex flex-col">
+                        {navItems.map((item) => (
+                            <Link 
+                                key={item.name} 
+                                href={item.path} 
+                                className={`flex items-center py-3 px-2 rounded-md ${pathname.includes(item.path) ? 'text-green-700 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
+                            >
+                                <div className="mr-3">
+                                    {item.icon}
+                                </div>
+                                <div>
+                                    {item.name}
+                                </div>
+                            </Link>
+                        ))}
+                    </SidebarGroup>
+                </div>
+                
+                {/* Action Buttons removed */}
+                
+                {/* Configuration Link */}
+                <div className="px-4 pt-4">
+                    <Link 
+                        href="/dashboard/configuration" 
+                        className="flex items-center py-3 px-2 text-gray-600 hover:text-gray-800"
+                    >
+                        <Settings className="h-5 w-5 mr-3" />
+                        <span>Configuración</span>
+                    </Link>
+                </div>
             </SidebarContent>
+            
+            {/* User Profile and Logout */}
             <SidebarFooter>
                 <SidebarGroupContent>
-                    <div className="flex flex-col gap-2">
-                        <div className=" ml-4 text-green-dark text-md">
-                            <h1>Jhon Doe</h1>
-                        </div>
-                        <button className="p-4 gap-2 w-full cursor-pointer flex flex-row items-center text-green-dark font-bold text-1xl"
-                            onClick={onClick}
+                    <div className="px-4 pb-4 border-t border-gray-200 pt-4">
+                        <button 
+                            onClick={handleLogout}
+                            className="w-full flex items-center py-2 px-2 text-gray-600 hover:text-red-600"
                         >
-                            <LogOut className="h-5 w-5" />
-                            <h1>Cerrar Sesión</h1>
+                            <LogOut className="h-5 w-5 mr-3" />
+                            <span>Cerrar Sesión</span>
                         </button>
                     </div>
                 </SidebarGroupContent>
