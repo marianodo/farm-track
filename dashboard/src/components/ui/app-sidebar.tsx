@@ -18,7 +18,7 @@ import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
 
 export function AppSidebar() {
-    const { logout, authLoading } = useAuthStore();
+    const { logout, authLoading, user } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
     
@@ -108,6 +108,15 @@ export function AppSidebar() {
             <SidebarFooter>
                 <SidebarGroupContent>
                     <div className="px-4 pb-4 border-t border-gray-200 pt-4">
+                        {/* User name display */}
+                        {user && (
+                            <div className="mb-3 py-2 px-2 flex items-center">
+                                <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-3">
+                                    <span className="font-medium text-sm">{(user.username || user.name)?.[0]?.toUpperCase() || 'U'}</span>
+                                </div>
+                                <span className="text-gray-800 font-medium">{user.username || user.name || 'Usuario'}</span>
+                            </div>
+                        )}
                         <button 
                             onClick={handleLogout}
                             className="w-full flex items-center py-2 px-2 text-gray-600 hover:text-red-600"
