@@ -12,7 +12,9 @@ import {
   RefreshCw, 
   Settings, 
   LogOut, 
-  ChevronDown 
+  ChevronDown,
+  Grid,
+  Map
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
@@ -32,7 +34,7 @@ export function AppSidebar() {
         {
             name: 'Campos',
             path: '/dashboard/fields',
-            icon: <Layers className="h-5 w-5" />
+            icon: <Map className="h-5 w-5" />
         },
         {
             name: 'Corrales',
