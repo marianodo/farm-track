@@ -1,24 +1,32 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Edit, Trash2, Plus, RefreshCw, Variable as VariableIcon } from 'lucide-react';
-import variableStore, { Variable, VariableType } from '@/store/variableStore';
+import { Edit, Trash2, Plus, RefreshCw } from 'lucide-react';
+import variableStore, { Variable } from '@/store/variableStore';
 import { useAuthStore } from '@/store/authStore';
+import AddVariableModal from './add-variable-modal';
 
 export default function VariablesPage() {
-  const { getVariablesByUser, variablesByUser, variableLoading, variableError, deleteVariable } = variableStore();
+  const { getVariablesByUser, variablesByUser, variableLoading, variableError } = variableStore();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    console.log('Current auth state:', { 
+      user, 
+      userId: user?.id, 
+      isAuthenticated: !!user 
+    });
+    
+    const fetchVariables = async () => {
       setLoading(true);
+      console.log('Fetching variables regardless of auth state...');
       await getVariablesByUser();
       setLoading(false);
     };
 
-    fetchData();
+    fetchVariables();
   }, [getVariablesByUser]);
 
   const handleRefresh = async () => {
@@ -27,145 +35,209 @@ export default function VariablesPage() {
     setLoading(false);
   };
 
-  const handleDelete = async (id: string) => {
-    if (deleteConfirmId === id) {
-      setLoading(true);
-      try {
-        await deleteVariable(id);
-        setDeleteConfirmId(null);
-        await getVariablesByUser(); // Refresh the list after deletion
-      } catch (error) {
-        console.error('Error deleting variable:', error);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      // First click sets the ID for confirmation
-      setDeleteConfirmId(id);
-      // Reset confirmation after 3 seconds
-      setTimeout(() => {
-        setDeleteConfirmId(null);
-      }, 3000);
-    }
-  };
-
-  // Helper function to show variable type in a more readable format
-  const formatVariableType = (type: VariableType) => {
-    return type === 'NUMBER' ? 'Numérico' : 'Categórico';
-  };
-
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Variables</h1>
-        <div className="flex space-x-2">
-          <button 
-            className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center hover:bg-green-700 transition-colors"
-            onClick={() => { window.location.href = '/dashboard/variables/new'; }}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Variable
-          </button>
-          <button 
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md flex items-center hover:bg-gray-200 transition-colors"
+        <div className="space-x-2">
+          <button
             onClick={handleRefresh}
+            className="px-3 py-2 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             disabled={loading}
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Actualizar
+            <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button
+            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+            disabled={loading}
+            onClick={() => setShowAddModal(true)}
+          >
+            <Plus className="h-5 w-5 mr-1" />
+            Nueva Variable
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Rango & Valores</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Valores Óptimos</th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {loading || variableLoading ? (
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Predeterminado</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Creación</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading || variableLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center">
-                    <div className="flex justify-center items-center space-x-2">
-                      <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
-                      <span>Cargando variables...</span>
+            ) : variableError ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-center p-6 bg-red-100 rounded-md text-red-700">
+                    <p>{variableError}</p>
+                  </div>
+                </td>
+              </tr>
+            ) : variablesByUser.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-center p-10 bg-gray-50 rounded-lg">
+                    <div className="mb-4">
+                      <p className="text-gray-700 font-bold">No hay variables para mostrar.</p>
+                      <p className="text-gray-500 mt-2">El usuario actual no tiene variables configuradas.</p>
                     </div>
-                  </td>
-                </tr>
-              ) : variableError ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center">
-                    <div className="text-red-500">
-                      <p>Error: {variableError}</p>
-                      <button onClick={handleRefresh} className="mt-2 text-blue-500 hover:underline">
-                        Reintentar
-                      </button>
+                    
+                    <div className="p-4 border rounded-md bg-blue-50 mt-4 max-w-lg mx-auto text-left">
+                      <h3 className="font-bold text-blue-800 mb-2">Información de diagnóstico:</h3>
+                      <p className="text-sm mb-2">• Usuario ID: <strong>{user?.id || 'Sin identificar'}</strong></p>
+                      <p className="text-sm mb-2">• Email: <strong>{user?.email || 'No disponible'}</strong></p>
+                      <p className="text-sm mb-2">• Autenticado: <strong>{user && user.id ? 'Sí' : 'No'}</strong></p>
+                      <p className="text-sm mb-2">• API endpoint: <strong>/variables/byUser/{user?.id}</strong></p>
+                      <p className="text-sm mb-2">• Token presente: <strong>{useAuthStore.getState().token ? 'Sí' : 'No'}</strong></p>
+                      <p className="text-sm">• Estado: <strong>{user?.id ? 'Autenticado sin variables' : 'Autenticación incompleta'}</strong></p>
                     </div>
-                  </td>
-                </tr>
-              ) : variablesByUser && variablesByUser.length > 0 ? (
-                variablesByUser.map((variable) => (
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              variablesByUser.map((variable: Variable) => {
+                // Process variable data based on type
+                const isNumeric = variable.type === 'NUMBER';
+                const value = variable.defaultValue || {};
+                
+                // Format ranges and optimal values based on variable type
+                let rangeDisplay: React.ReactNode = null;
+                let optimalDisplay: React.ReactNode = null;
+                
+                if (isNumeric && typeof value === 'object') {
+                  // Log the exact structure of numerical data
+                  console.log(`Numerical variable ${variable.name} value:`, value);
+                  
+                  const minMax = value.value || {};
+                  console.log(`After extraction, minMax for ${variable.name}:`, minMax);
+                  
+                  // Show the fields we're checking for
+                  console.log(`Fields for ${variable.name}:`, {
+                    min: minMax.min,
+                    max: minMax.max,
+                    granularity: minMax.granularity,
+                    optimal_min: minMax.optimal_min,
+                    optimal_max: minMax.optimal_max,
+                  });
+                  
+                  rangeDisplay = (
+                    <span>
+                      Min: <strong>{minMax.min !== undefined ? minMax.min : 'N/A'}</strong>, 
+                      Max: <strong>{minMax.max !== undefined ? minMax.max : 'N/A'}</strong>
+                      {minMax.granularity !== undefined && <span>, Granularidad: <strong>{minMax.granularity}</strong></span>}
+                    </span>
+                  );
+                  
+                  optimalDisplay = (
+                    <span>
+                      Min óptimo: <strong>{minMax.optimal_min !== undefined ? minMax.optimal_min : 'N/A'}</strong>, 
+                      Max óptimo: <strong>{minMax.optimal_max !== undefined ? minMax.optimal_max : 'N/A'}</strong>
+                    </span>
+                  );
+                } else if (!isNumeric && typeof value === 'object') {
+                  // Categorical variable
+                  console.log('Categorical variable values:', value);
+                  
+                  // Handle the actual structure as seen in the logs
+                  let categories: string[] = [];
+                  let optimalValues: string[] = [];
+                  
+                  // Check for the correct structure based on the logs
+                  if (value.value && typeof value.value === 'object') {
+                    // Structure from the logs: value.categories and value.optimal_values
+                    if (Array.isArray(value.value.categories)) {
+                      categories = value.value.categories;
+                    }
+                    
+                    if (Array.isArray(value.value.optimal_values)) {
+                      optimalValues = value.value.optimal_values;
+                    }
+                  }
+                  
+                  // Fallbacks for other possible structures
+                  if (categories.length === 0) {
+                    if (Array.isArray(value.categories)) {
+                      categories = value.categories;
+                    } else if (Array.isArray(value.values)) {
+                      categories = value.values;
+                    }
+                  }
+                  
+                  if (optimalValues.length === 0) {
+                    if (Array.isArray(value.optimal_values)) {
+                      optimalValues = value.optimal_values;
+                    } else if (Array.isArray(value.optimalValues)) {
+                      optimalValues = value.optimalValues;
+                    }
+                  }
+                  
+                  rangeDisplay = (
+                    <div className="max-w-xs overflow-hidden">
+                      <span className="block truncate">{categories.length > 0 ? categories.join(', ') : 'No hay valores'}</span>
+                    </div>
+                  );
+                  
+                  optimalDisplay = (
+                    <div className="max-w-xs overflow-hidden">
+                      <span className="block truncate">{optimalValues.length > 0 ? optimalValues.join(', ') : 'No hay valores óptimos'}</span>
+                    </div>
+                  );
+                } else {
+                  // Fallback for unexpected formats
+                  rangeDisplay = <span className="text-gray-400 italic">Formato no reconocido</span>;
+                  optimalDisplay = <span className="text-gray-400 italic">No definido</span>;
+                }
+                
+                return (
                   <tr key={variable.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      <div className="flex items-center">
-                        <VariableIcon className="h-4 w-4 mr-2 text-gray-400" />
-                        {variable.name}
-                      </div>
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{variable.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{variable.type}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{rangeDisplay}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{optimalDisplay}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        variable.type === 'NUMBER' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                      }`}>
-                        {formatVariableType(variable.type)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeof variable.defaultValue === 'object' 
-                        ? JSON.stringify(variable.defaultValue) 
-                        : variable.defaultValue !== undefined && variable.defaultValue !== null 
-                          ? String(variable.defaultValue) 
-                          : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {variable.createdAt ? new Date(variable.createdAt).toLocaleDateString() : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
-                        <button 
-                          className="text-indigo-600 hover:text-indigo-900"
-                          onClick={() => { window.location.href = `/dashboard/variables/edit/${variable.id}`; }}
-                        >
-                          <Edit className="w-4 h-4" />
+                        <button className="text-blue-600 hover:text-blue-800">
+                          <Edit className="h-5 w-5" />
                         </button>
-                        <button 
-                          className={`${deleteConfirmId === variable.id ? 'text-red-800 bg-red-100 p-1 rounded' : 'text-red-600 hover:text-red-900'}`}
-                          onClick={() => handleDelete(variable.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          {deleteConfirmId === variable.id && <span className="ml-1 text-xs">Confirmar</span>}
+                        <button className="text-red-600 hover:text-red-800">
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center">
-                    <p className="text-gray-500">No hay variables disponibles. Crea una nueva variable para comenzar.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
+      
+      {variableError && (
+        <div className="mt-4 p-4 bg-red-50 text-red-800 rounded-md">
+          <p>Error: {variableError}</p>
+        </div>
+      )}
+      
+      <AddVariableModal 
+        isOpen={showAddModal} 
+        onClose={() => setShowAddModal(false)} 
+        onSuccess={() => {
+          handleRefresh();
+        }}
+      />
     </div>
   );
 }
