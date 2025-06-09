@@ -25,7 +25,7 @@ export function AppSidebar() {
     // Navigation items matching the provided design
     const navItems = [
         {
-            name: 'Campos',
+            name: 'General',
             path: '/general',
             icon: <Home className="h-5 w-5" />
         },
