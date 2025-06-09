@@ -39,61 +39,61 @@ const useReportStore = create<ReportState>((set, get) => ({
       const { token, user } = useAuthStore.getState();
       
       if (!token) {
-        console.warn('No authentication token available');
+        console.warn('No hay token de autenticación disponible');
         set({ reportLoading: false, reportsByUser: [] });
         return [];
       }
       
-      const userId = user?.id;
+      const userId = user?.userId;
       
       try {
         if (userId) {
-          // First fetch all fields for the user
+          // Primero obtenemos todos los campos del usuario
+          console.log('Obteniendo campos del usuario');
           const fieldsResponse = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/fields/byUserId/${userId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           
           const fields = fieldsResponse.data || [];
-          console.log(`Found ${fields.length} fields for user ${userId}`);
+          console.log(`Encontrados ${fields.length} campos para el usuario ${userId}`);
           
           if (fields.length === 0) {
             set({ reportsByUser: [], reportLoading: false });
             return [];
           }
           
-          // Fetch reports for each field
+          // Obtenemos reportes para cada campo
           const allReports: Report[] = [];
           for (const field of fields) {
             try {
-              console.log(`Fetching reports for field ${field.id} (${field.name})`);
+              console.log(`Obteniendo reportes para el campo ${field.id} (${field.name})`);
               const reportResponse = await axios.get(
                 `${process.env.NEXT_PUBLIC_API_URL}/reports/byField/${field.id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
               
               const fieldReports = reportResponse.data || [];
+              console.log(`- ${fieldReports.length} reportes encontrados para ${field.name}`);
               
-              // Log data to help debug date issues
+              // Log de información de muestra para depuración
               if (fieldReports.length > 0) {
-                console.log('Sample report data structure:', fieldReports[0]);
-                console.log('Sample date from API:', fieldReports[0]?.created_at);
+                console.log('- Muestra de reporte:', fieldReports[0]);
               }
               
-              // Add the field name to each report and validate dates
+              // Añadir nombre del campo y validar fechas
               const reportsWithFieldName = fieldReports.map((report: Report) => {
-                // Ensure created_at is a properly formatted ISO date string if it exists
+                // Aseguramos que created_at tenga formato ISO correcto
                 let fixedCreatedAt = report.created_at;
                 
                 if (report.created_at && typeof report.created_at === 'string') {
                   try {
-                    // Try to parse and re-stringify to ensure proper format
                     const date = new Date(report.created_at);
                     if (!isNaN(date.getTime())) {
                       fixedCreatedAt = date.toISOString();
                     }
                   } catch (e) {
-                    console.error('Error parsing date:', e);
+                    console.error('Error al procesar fecha:', e);
                   }
                 }
                 
@@ -107,32 +107,32 @@ const useReportStore = create<ReportState>((set, get) => ({
               
               allReports.push(...reportsWithFieldName);
             } catch (fieldError) {
-              console.error(`Error fetching reports for field ${field.id}:`, fieldError);
-              // Continue with other fields even if one fails
+              console.error(`Error al obtener reportes para el campo ${field.id}:`, fieldError);
+              // Continuamos con otros campos incluso si uno falla
             }
           }
           
-          // Sort all reports by date (newest first)
+          // Ordenar reportes por fecha (más recientes primero)
           allReports.sort((a, b) => {
             return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
           });
           
-          console.log(`Successfully fetched ${allReports.length} reports across all fields`);
+          console.log(`Total: ${allReports.length} reportes obtenidos de todos los campos`);
           set({ reportsByUser: allReports, reportLoading: false });
           return allReports;
         } else {
-          console.warn('No user ID available to fetch reports');
+          console.warn('No hay ID de usuario disponible para obtener reportes');
           set({ reportLoading: false, reportsByUser: [] });
           return [];
         }
       } catch (error) {
-        console.error('Error fetching reports:', error);
-        set({ reportLoading: false, reportError: 'Failed to load reports' });
+        console.error('Error al obtener reportes:', error);
+        set({ reportLoading: false, reportError: 'Error al cargar los reportes' });
         return [];
       }
     } catch (error) {
-      console.error('Error in getReportsByUser:', error);
-      set({ reportLoading: false, reportError: 'An unexpected error occurred' });
+      console.error('Error en getReportsByUser:', error);
+      set({ reportLoading: false, reportError: 'Ocurrió un error inesperado' });
       return [];
     }
   },

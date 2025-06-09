@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import useFieldStore from '@/store/fieldStore';
 import penStore from '@/store/penStore';
 import variableStore from '@/store/variableStore';
+import useReportStore from '@/store/reportStore';
 import Link from 'next/link';
 
 export default function GeneralPage() {
@@ -13,30 +14,49 @@ export default function GeneralPage() {
   const { getFieldsByUser, fieldsByUserId, fieldLoading } = useFieldStore();
   const { getPensByUser, pensByUser, penLoading } = penStore();
   const { getVariablesByUser, variablesByUser, variableLoading } = variableStore();
+  const { getReportsByUser, reportsByUser, reportLoading } = useReportStore();
   const [fieldsLoading, setFieldsLoading] = useState(true);
   const [pensLoading, setPensLoading] = useState(true);
   const [variablesLoading, setVariablesLoading] = useState(true);
+  const [reportsLoading, setReportsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('Iniciando carga de datos del dashboard');
+      
       // Fetch fields
       setFieldsLoading(true);
       await getFieldsByUser();
       setFieldsLoading(false);
+      console.log('Campos cargados:', fieldsByUserId);
       
       // Fetch pens
       setPensLoading(true);
       await getPensByUser();
       setPensLoading(false);
+      console.log('Corrales cargados:', pensByUser);
       
       // Fetch variables
       setVariablesLoading(true);
       await getVariablesByUser();
       setVariablesLoading(false);
+      console.log('Variables cargadas:', variablesByUser);
+      
+      // Fetch reports
+      setReportsLoading(true);
+      console.log('Intentando cargar reportes...');
+      try {
+        const reports = await getReportsByUser();
+        console.log('Reportes obtenidos:', reports);
+      } catch (error) {
+        console.error('Error al cargar reportes:', error);
+      }
+      setReportsLoading(false);
+      console.log('Estado final de reportes:', reportsByUser);
     };
 
     fetchData();
-  }, [getFieldsByUser, getPensByUser, getVariablesByUser]);
+  }, [getFieldsByUser, getPensByUser, getVariablesByUser, getReportsByUser]);
 
   const handleRefreshFields = async () => {
     setFieldsLoading(true);
@@ -54,6 +74,12 @@ export default function GeneralPage() {
     setVariablesLoading(true);
     await getVariablesByUser();
     setVariablesLoading(false);
+  };
+  
+  const handleRefreshReports = async () => {
+    setReportsLoading(true);
+    await getReportsByUser();
+    setReportsLoading(false);
   };
   
   // Prepare fields section with real data
@@ -107,7 +133,7 @@ export default function GeneralPage() {
     loading: variablesLoading
   };
 
-  // Sample data for reports section only
+  // Prepare reports section with real data
   const reportsSection = {
     title: 'Reportes',
     colorClass: {
@@ -119,12 +145,9 @@ export default function GeneralPage() {
       borderColor: 'border-amber-300'
     },
     path: '/dashboard/reports',
-    count: 3,
-    items: [
-      { id: 1, name: 'Reporte Mensual', description: 'Mayo 2025' },
-      { id: 2, name: 'Reporte Trimestral', description: '1er Trimestre 2025' },
-      { id: 3, name: 'Análisis Anual', description: '2024' },
-    ]
+    count: reportsByUser?.length || 0,
+    items: reportsByUser || [],
+    loading: reportsLoading
   };
 
   return (
@@ -372,35 +395,70 @@ export default function GeneralPage() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-semibold text-gray-800">{reportsSection.title}</h2>
-                <p className="text-sm text-gray-500">Total: {reportsSection.count}</p>
+                <div className="flex items-center">
+                  <p className="text-sm text-gray-500 mr-2">Total: {reportsSection.count}</p>
+                  {reportsSection.loading && (
+                    <RefreshCw className="h-3 w-3 animate-spin text-gray-500" />
+                  )}
+                </div>
               </div>
-              <Link href={reportsSection.path} className={`${reportsSection.colorClass.text} ${reportsSection.colorClass.hoverText} flex items-center text-sm font-medium`}>
-                Ver Todos
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Link>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={handleRefreshReports}
+                  className={`p-1 ${reportsSection.colorClass.text} rounded-full ${reportsSection.colorClass.hoverBg}`}
+                  disabled={reportsSection.loading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${reportsSection.loading ? 'animate-spin' : ''}`} />
+                </button>
+                <Link href={reportsSection.path} className={`${reportsSection.colorClass.text} ${reportsSection.colorClass.hoverText} flex items-center text-sm font-medium`}>
+                  Ver Todos
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
           
           <div className="divide-y divide-gray-200">
             <div className="max-h-64 overflow-y-auto">
-              {reportsSection.items.map((item) => (
-                <div key={item.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
-                    {item.description && (
-                      <p className="text-xs text-gray-500">{item.description}</p>
-                    )}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Link 
-                      href={`${reportsSection.path}/${item.id}`} 
-                      className={`p-1 ${reportsSection.colorClass.text} ${reportsSection.colorClass.hoverText} rounded-full ${reportsSection.colorClass.hoverBg}`}
-                    >
-                      <Edit size={14} />
-                    </Link>
-                  </div>
+              {reportsSection.loading ? (
+                <div className="px-6 py-8 text-center">
+                  <RefreshCw className="h-5 w-5 animate-spin text-gray-400 mx-auto" />
+                  <p className="mt-2 text-sm text-gray-500">Cargando reportes...</p>
                 </div>
-              ))}
+              ) : reportsSection.items.length === 0 ? (
+                <div className="px-6 py-8 text-center">
+                  <p className="text-sm text-gray-500">No hay reportes disponibles</p>
+                </div>
+              ) : (
+                reportsSection.items.map((item) => (
+                  <div key={item.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-800">{item.name}</h3>
+                      {item.comment && (
+                        <p className="text-xs text-gray-500">{item.comment}</p>
+                      )}
+                      {item.fieldName && (
+                        <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full mt-1 inline-block">
+                          Campo: {item.fieldName}
+                        </span>
+                      )}
+                      {item.created_at && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(item.created_at).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex space-x-2">
+                      <Link 
+                        href={`${reportsSection.path}/${item.id}`} 
+                        className={`p-1 ${reportsSection.colorClass.text} ${reportsSection.colorClass.hoverText} rounded-full ${reportsSection.colorClass.hoverBg}`}
+                      >
+                        <Edit size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
             
             <div className="px-6 py-4">
