@@ -23,9 +23,9 @@ const Login = () => {
 
         try {
             await login(email, password);
-            router.replace('/dashboard');
-        } catch (error) {
-            alert(error?.message);
+            router.replace('/dashboard/general');
+        } catch (error: any) {
+            alert(error?.message || 'Error al iniciar sesión');
         }
     };
 

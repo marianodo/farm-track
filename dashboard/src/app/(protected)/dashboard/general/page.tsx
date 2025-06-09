@@ -257,7 +257,7 @@ export default function GeneralPage() {
     <div className="p-6">
       {/* Sección de bienvenida */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Bienvenido, {user?.name || 'Usuario'}</h1>
+        <h1 className="text-3xl font-bold text-gray-800">Bienvenido, {user?.name || user?.username || user?.email.split('@')[0] || 'Usuario'}</h1>
         <p className="text-gray-600 mt-2">Resumen de administración agrícola</p>
       </div>
 
