@@ -13,21 +13,16 @@ export default function VariablesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    console.log('Current auth state:', { 
-      user, 
-      userId: user?.id, 
-      isAuthenticated: !!user 
-    });
-    
-    const fetchVariables = async () => {
+    const fetchData = async () => {
       setLoading(true);
-      console.log('Fetching variables regardless of auth state...');
       await getVariablesByUser();
       setLoading(false);
     };
 
-    fetchVariables();
+    fetchData();
   }, [getVariablesByUser]);
+  
+
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -88,27 +83,30 @@ export default function VariablesPage() {
               </tr>
             ) : variablesByUser.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-center p-10 bg-gray-50 rounded-lg">
-                    <div className="mb-4">
-                      <p className="text-gray-700 font-bold">No hay variables para mostrar.</p>
-                      <p className="text-gray-500 mt-2">El usuario actual no tiene variables configuradas.</p>
-                    </div>
-                    
-                    <div className="p-4 border rounded-md bg-blue-50 mt-4 max-w-lg mx-auto text-left">
-                      <h3 className="font-bold text-blue-800 mb-2">Información de diagnóstico:</h3>
-                      <p className="text-sm mb-2">• Usuario ID: <strong>{user?.id || 'Sin identificar'}</strong></p>
-                      <p className="text-sm mb-2">• Email: <strong>{user?.email || 'No disponible'}</strong></p>
-                      <p className="text-sm mb-2">• Autenticado: <strong>{user && user.id ? 'Sí' : 'No'}</strong></p>
-                      <p className="text-sm mb-2">• API endpoint: <strong>/variables/byUser/{user?.id}</strong></p>
-                      <p className="text-sm mb-2">• Token presente: <strong>{useAuthStore.getState().token ? 'Sí' : 'No'}</strong></p>
-                      <p className="text-sm">• Estado: <strong>{user?.id ? 'Autenticado sin variables' : 'Autenticación incompleta'}</strong></p>
-                    </div>
+                <td colSpan={5} className="px-6 py-10 text-center">
+                  <div className="text-gray-500 mb-4">No hay variables para mostrar.</div>
+                  <div className="text-sm text-gray-400">El usuario actual no tiene variables configuradas.</div>
+                  
+                  {/* Diagnostic information box */}
+                  <div className="mt-4 bg-blue-50 p-4 rounded-md text-left mx-auto max-w-lg">
+                    <h3 className="text-blue-800 font-medium mb-2">Información de diagnóstico:</h3>
+                    <ul className="text-sm text-blue-700 space-y-1">
+                      <li>• Usuario ID: {user?.id || 'Sin identificar'}</li>
+                      <li>• Email: {user?.email || 'N/A'}</li>
+                      <li>• Autenticado: {user ? (user.id ? 'Sí (completo)' : 'Parcial') : 'No'}</li>
+                      <li>• API endpoint: /variables/byUser/{user?.id || ''}</li>
+                      <li>• Token presente: {useAuthStore.getState().token ? 'Sí' : 'No'}</li>
+                      <li>• Estado: {variableError || 'Sin errores'}</li>
+                      <li>• Objeto usuario: {JSON.stringify(user || {}).substring(0, 100)}</li>
+                    </ul>
                   </div>
                 </td>
               </tr>
             ) : (
-              variablesByUser.map((variable: Variable) => {
+              // Add stable unique keys using index as fallback only if ID is missing
+              variablesByUser.map((variable: Variable, index: number) => {
+                // Generate a reliable key for the React component
+                const key = variable.id || `variable-${index}`;
                 // Process variable data based on type
                 const isNumeric = variable.type === 'NUMBER';
                 const value = variable.defaultValue || {};
@@ -202,7 +200,7 @@ export default function VariablesPage() {
                 }
                 
                 return (
-                  <tr key={variable.id} className="hover:bg-gray-50">
+                  <tr key={key} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{variable.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{variable.type}</td>
                     <td className="px-6 py-4 text-sm text-gray-500">{rangeDisplay}</td>
