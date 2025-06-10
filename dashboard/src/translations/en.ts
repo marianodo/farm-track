@@ -91,5 +91,16 @@ export const en = {
   // Language selector
   'language': 'Language',
   'language.en': 'English',
-  'language.es': 'Español'
+  'language.es': 'Español',
+
+  // Login Page
+  'login.title': 'Log In',
+  'login.subtitle': 'Enter your credentials to access your account',
+  'login.email': 'Email',
+  'login.password': 'Password',
+  'login.button': 'Log in',
+  'login.loading': 'Logging in...',
+  'login.noAccount': 'Don\'t have an account?',
+  'login.register': 'Sign up',
+  'login.error': 'Please fill in all fields'
 };

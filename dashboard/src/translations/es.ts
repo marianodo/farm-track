@@ -88,5 +88,16 @@ export const es = {
   // Language selector
   'language': 'Idioma',
   'language.en': 'English',
-  'language.es': 'Español'
+  'language.es': 'Español',
+
+  // Login Page
+  'login.title': 'Iniciar Sesión',
+  'login.subtitle': 'Ingrese sus credenciales para acceder a su cuenta',
+  'login.email': 'Correo electrónico',
+  'login.password': 'Contraseña',
+  'login.button': 'Iniciar sesión',
+  'login.loading': 'Iniciando sesión...',
+  'login.noAccount': '¿No tienes una cuenta?',
+  'login.register': 'Regístrate',
+  'login.error': 'Por favor complete todos los campos'
 };
