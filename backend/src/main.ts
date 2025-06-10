@@ -6,6 +6,10 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { config as dotenvConfig } from 'dotenv';
 import { JwtAuthGuard } from './auth/guard/jwt-auth.guard';
+import { UserResourceGuard } from './auth/guard/user-resource.guard';
+import { RolesGuard } from './auth/guard/roles.guard';
+import { OwnedResourceGuard } from './auth/guard/owned-resource.guard';
+import { PrismaService } from './prisma/prisma.service';
 dotenvConfig();
 
 console.log(typeof process.env.TOKEN_EXPIRES);
@@ -18,7 +22,12 @@ async function bootstrap() {
   });
   app.use(morgan('dev'));
   app.useGlobalFilters(new HttpExceptionFilter());
-  app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
+  app.useGlobalGuards(
+    new JwtAuthGuard(new Reflector()),
+    new UserResourceGuard(new Reflector()),
+    new OwnedResourceGuard(new Reflector(), app.get(PrismaService)),
+    new RolesGuard(new Reflector()),
+  );
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
