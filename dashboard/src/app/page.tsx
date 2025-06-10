@@ -5,7 +5,8 @@ import Image from 'next/image';
 import { useAuthStore } from '@/store/authStore';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { BarChart, Check, Leaf, PieChart, Tractor, TrendingUp } from 'lucide-react';
+import { BarChart, Check, Leaf, PieChart, Tractor, TrendingUp, Globe } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { BarChart as RechartBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, Cell } from 'recharts';
 
 // Datos de ejemplo para los gráficos
@@ -91,6 +92,7 @@ const deteccionTempranaData = [
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
+  const { language, setLanguage, t } = useLanguage();
 
   useEffect(() => {
     // Si el usuario está autenticado, redirigir al dashboard
@@ -111,17 +113,31 @@ export default function LandingPage() {
             <h1 className="text-gray-800 font-bold text-2xl">MeasureMe</h1>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-emerald-600 font-medium">Características</a>
-            <a href="#benefits" className="text-gray-600 hover:text-emerald-600 font-medium">Beneficios</a>
-            <a href="#testimonials" className="text-gray-600 hover:text-emerald-600 font-medium">Testimonios</a>
+            <a href="#features" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.features')}</a>
+            <a href="#analytics" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.analytics')}</a>
+            <a href="#pricing" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.pricing')}</a>
           </nav>
           <div className="flex items-center space-x-4">
-            <Link href="/login" className="text-emerald-600 hover:text-emerald-800 font-semibold">Iniciar Sesión</Link>
+            <div className="flex items-center border rounded-md overflow-hidden">
+              <button 
+                onClick={() => setLanguage('es')} 
+                className={`px-2 py-1 text-xs font-medium ${language === 'es' ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-gray-500'}`}
+              >
+                ES
+              </button>
+              <button 
+                onClick={() => setLanguage('en')} 
+                className={`px-2 py-1 text-xs font-medium ${language === 'en' ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-gray-500'}`}
+              >
+                EN
+              </button>
+            </div>
+            <Link href="/login" className="text-emerald-600 hover:text-emerald-800 font-semibold">{t('nav.login')}</Link>
             <Link 
               href="/register" 
               className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
             >
-              Registrarse
+              {t('nav.register')}
             </Link>
           </div>
         </div>
@@ -132,24 +148,23 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
           <div className="md:w-1/2 mb-10 md:mb-0">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
-              Gestión agrícola <span className="text-emerald-600">inteligente</span> y eficiente
+              {t('hero.title')}
             </h1>
             <p className="text-lg md:text-xl text-gray-700 mb-8">
-              Monitoriza tus campos, corrales y variables agrícolas con precisión. 
-              Optimiza tus operaciones y toma decisiones basadas en datos reales.
+              {t('hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link 
                 href="/register" 
                 className="bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold px-6 py-3 rounded-md shadow-md"
               >
-                Comenzar ahora
+                {t('hero.cta.start')}
               </Link>
               <a 
                 href="#features" 
                 className="bg-white hover:bg-gray-50 text-emerald-600 text-center font-semibold px-6 py-3 rounded-md border border-emerald-500 shadow-sm"
               >
-                Conocer más
+                {t('hero.cta.learn')}
               </a>
             </div>
           </div>
@@ -212,9 +227,9 @@ export default function LandingPage() {
       <section id="features" className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Características principales</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('features.title')}</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Todo lo que necesitas para gestionar eficientemente tus campos agrícolas en una sola plataforma.
+              {t('features.subtitle')}
             </p>
           </div>
 
@@ -223,9 +238,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <BarChart className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestión de campos</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.fields.title')}</h3>
               <p className="text-gray-600">
-                Organiza y monitorea tus campos con ubicación geográfica y características detalladas.
+                {t('features.fields.desc')}
               </p>
             </div>
 
@@ -233,9 +248,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <BarChart className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Variables personalizadas</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.variables.title')}</h3>
               <p className="text-gray-600">
-                Define y realiza seguimiento de variables específicas para tus cultivos y ganado.
+                {t('features.variables.desc')}
               </p>
             </div>
 
@@ -243,9 +258,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <PieChart className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Reportes detallados</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.reports.title')}</h3>
               <p className="text-gray-600">
-                Genera informes completos con métricas clave para tomar decisiones informadas.
+                {t('features.reports.desc')}
               </p>
             </div>
 
@@ -253,9 +268,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Análisis de tendencias</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.trends.title')}</h3>
               <p className="text-gray-600">
-                Visualiza tendencias y patrones para optimizar tu producción agrícola.
+                {t('features.trends.desc')}
               </p>
             </div>
 
@@ -263,9 +278,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <Check className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Gestión de corrales</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.pens.title')}</h3>
               <p className="text-gray-600">
-                Administra tus corrales y asocia variables específicas para un seguimiento efectivo.
+                {t('features.pens.desc')}
               </p>
             </div>
 
@@ -273,9 +288,9 @@ export default function LandingPage() {
               <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
                 <BarChart className="h-6 w-6 text-emerald-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Dashboard intuitivo</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.alerts.title')}</h3>
               <p className="text-gray-600">
-                Panel de control claro y fácil de usar con toda la información relevante a simple vista.
+                {t('features.alerts.desc')}
               </p>
             </div>
           </div>
@@ -286,16 +301,16 @@ export default function LandingPage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Monitoreo de Salud en Tiempo Real</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('health.title')}</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Estado actual de los indicadores clave de salud en tu operación
+              {t('health.subtitle')}
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Campo */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">Salud Actual del Campo</h3>
+              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.field.title')}</h3>
               <div className="flex justify-center">
                 <div className="w-48 h-48 relative">
                   <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -327,7 +342,7 @@ export default function LandingPage() {
               <div className="mt-6 text-center">
                 <div className="text-2xl font-semibold">132/155</div>
                 <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>mediciones correctas</span>
+                  <span>{t('health.field.metrics')}</span>
                   <span className="ml-2 text-green-500 font-medium">(↑ +52%)</span>
                 </div>
               </div>
@@ -335,7 +350,7 @@ export default function LandingPage() {
             
             {/* Animales */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">Salud Actual de Animales</h3>
+              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.animals.title')}</h3>
               <div className="flex justify-center">
                 <div className="w-48 h-48 relative">
                   <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -367,7 +382,7 @@ export default function LandingPage() {
               <div className="mt-6 text-center">
                 <div className="text-2xl font-semibold">109/113</div>
                 <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>mediciones correctas (animales)</span>
+                  <span>{t('health.animals.metrics')}</span>
                   <span className="ml-2 text-green-500 font-medium">(↑ +63%)</span>
                 </div>
               </div>
@@ -375,7 +390,7 @@ export default function LandingPage() {
             
             {/* Instalaciones */}
             <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">Salud Actual de Instalaciones</h3>
+              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.facilities.title')}</h3>
               <div className="flex justify-center">
                 <div className="w-48 h-48 relative">
                   <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -407,7 +422,7 @@ export default function LandingPage() {
               <div className="mt-6 text-center">
                 <div className="text-2xl font-semibold">23/42</div>
                 <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>mediciones correctas (instalaciones)</span>
+                  <span>{t('health.facilities.metrics')}</span>
                 </div>
               </div>
             </div>
@@ -419,16 +434,16 @@ export default function LandingPage() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Analítica de Datos Veterinarios</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('analytics.title')}</h2>
             <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Visualiza las métricas de salud animal y optimiza tus decisiones con datos en tiempo real.
+              {t('analytics.subtitle')}
             </p>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* % Correctos por Reporte Chart */}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">% Correctos por Reporte</h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">{t('analytics.correctPercent.title')}</h3>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <RechartBarChart 
@@ -452,11 +467,11 @@ export default function LandingPage() {
                     <YAxis 
                       domain={[0, 100]}
                       ticks={[0, 20, 40, 60, 80, 100]}
-                      label={{ value: '% Correcto', angle: -90, position: 'insideLeft' }}
+                      label={{ value: t('analytics.correctPercent.yaxis'), angle: -90, position: 'insideLeft' }}
                     />
-                    <Tooltip formatter={(value) => [`${value}%`, 'Porcentaje correcto']} />
+                    <Tooltip formatter={(value) => [`${value}%`, t('analytics.correctPercent.tooltip')]} />
                     <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="porcentaje" name="% Salud General" fill="#64B5F6" />
+                    <Bar dataKey="porcentaje" name={t('analytics.correctPercent.legend')} fill="#64B5F6" />
                   </RechartBarChart>
                 </ResponsiveContainer>
               </div>
@@ -465,22 +480,22 @@ export default function LandingPage() {
             {/* Fecal Score Analysis Chart */}
             <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-semibold text-gray-800">Fecal score</h3>
+                <h3 className="text-xl font-semibold text-gray-800">{t('analytics.fecalScore.title')}</h3>
                 <div className="flex items-center">
                   <div className="h-5 w-5 text-green-500 mr-2">
                     <Check size={20} />
                   </div>
-                  <span className="text-sm font-medium">88% correcto (15/17)</span>
+                  <span className="text-sm font-medium">88% {t('analytics.fecalScore.correctPercent')} (15/17)</span>
                 </div>
               </div>
-              <p className="text-sm text-gray-500 mb-6">Animal</p>
+              <p className="text-sm text-gray-500 mb-6">{t('analytics.fecalScore.subtitle')}</p>
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Distribución de Variables */}
                 <div>
-                  <h4 className="text-base text-gray-600 mb-4">Distribución de Variables</h4>
+                  <h4 className="text-base text-gray-600 mb-4">{t('analytics.fecalScore.distribution.title')}</h4>
                   <div className="text-center mb-2">
-                    <span className="text-sm font-medium">Distribución de Fecal score</span>
+                    <span className="text-sm font-medium">{t('analytics.fecalScore.title')}</span>
                   </div>
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
@@ -491,13 +506,13 @@ export default function LandingPage() {
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <XAxis 
                           dataKey="valor" 
-                          label={{ value: 'Valor de la medición', position: 'bottom', offset: -5 }}
+                          label={{ value: t('analytics.fecalScore.distribution.xaxis'), position: 'bottom', offset: -5 }}
                           domain={[1, 5]}
                           ticks={[1, 2, 3, 4, 5]}
                         />
                         <YAxis 
                           label={{ 
-                            value: 'Cantidad de mediciones', 
+                            value: t('analytics.fecalScore.distribution.yaxis'), 
                             angle: -90, 
                             position: 'left',
                             offset: 15
@@ -568,48 +583,48 @@ export default function LandingPage() {
           
           {/* Tendencia Histórica por Corral Chart */}
           <div className="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Tendencia Histórica de Fecal score</h3>
-            <p className="text-sm text-gray-600 mb-6">Evolución del valor promedio a través del tiempo por corral</p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('trend.title')}</h3>
+            <p className="text-sm text-gray-600 mb-6">{t('trend.subtitle')}</p>
             
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-center text-base font-medium text-gray-700 mb-3">Tendencia de Fecal score por Corral</h4>
+              <h4 className="text-center text-base font-medium text-gray-700 mb-3">{t('trend.chart.title')}</h4>
               
               <div className="grid grid-cols-3 lg:grid-cols-9 gap-2 mb-4">
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-red-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 7</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 7</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-green-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 8</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 8</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-purple-500 mr-2"></span>
-                  <span className="text-xs">Corral Tanque</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Tanque</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-yellow-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 6</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 6</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-cyan-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 5</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 5</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-pink-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 4</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 4</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-lime-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 3</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 3</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-blue-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 2</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 2</span>
                 </div>
                 <div className="flex items-center">
                   <span className="inline-block w-4 h-3 bg-orange-500 mr-2"></span>
-                  <span className="text-xs">Corral Corral 1</span>
+                  <span className="text-xs">{t('trend.corral.prefix')} Corral 1</span>
                 </div>
               </div>
               
@@ -622,10 +637,10 @@ export default function LandingPage() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis 
                       dataKey="fecha" 
-                      label={{ value: 'Fecha/Reporte', position: 'bottom', offset: 0 }}
+                      label={{ value: t('trend.chart.xaxis'), position: 'bottom', offset: 0 }}
                     />
                     <YAxis 
-                      label={{ value: 'Valor promedio', angle: -90, position: 'insideLeft' }}
+                      label={{ value: t('trend.chart.yaxis'), angle: -90, position: 'insideLeft' }}
                       domain={[2.0, 3.4]}
                       ticks={[2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4]}
                     />
@@ -652,15 +667,15 @@ export default function LandingPage() {
       {/* CTA Section */}
       <section className="bg-emerald-700 py-16">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Comienza a optimizar tu gestión agrícola hoy</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('cta.title')}</h2>
           <p className="text-xl text-emerald-100 mb-8 max-w-3xl mx-auto">
-            Únete a cientos de agricultores que ya están mejorando su productividad con MeasureMe.
+            {t('cta.subtitle')}
           </p>
           <Link 
             href="/register" 
             className="bg-white hover:bg-gray-100 text-emerald-700 font-semibold px-8 py-3 rounded-md text-lg shadow-md inline-block"
           >
-            Crear cuenta gratuita
+            {t('nav.register')}
           </Link>
         </div>
       </section>
@@ -682,18 +697,18 @@ export default function LandingPage() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Producto</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('footer.product')}</h3>
                 <ul className="space-y-2">
-                  <li><a href="#features" className="text-gray-400 hover:text-white">Características</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">Precios</a></li>
+                  <li><a href="#features" className="text-gray-400 hover:text-white">{t('footer.features')}</a></li>
+                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.pricing')}</a></li>
                   <li><a href="#" className="text-gray-400 hover:text-white">Soporte</a></li>
                 </ul>
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-4">Empresa</h3>
+                <h3 className="text-lg font-semibold mb-4">{t('footer.company')}</h3>
                 <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-400 hover:text-white">Acerca de</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">Contacto</a></li>
+                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.about')}</a></li>
+                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.contact')}</a></li>
                   <li><a href="/privacy-policy" className="text-gray-400 hover:text-white">Privacidad</a></li>
                 </ul>
               </div>
@@ -707,7 +722,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-6 text-center md:text-left">
-            <p className="text-gray-400">&copy; {new Date().getFullYear()} MeasureMe. Todos los derechos reservados.</p>
+            <p className="text-gray-400">&copy; {new Date().getFullYear()} MeasureMe. {t('footer.copyright')}</p>
           </div>
         </div>
       </footer>
