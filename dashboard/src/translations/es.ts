@@ -7,22 +7,22 @@ export const es = {
   'nav.register': 'Registrarse',
 
   // Hero section
-  'hero.title': 'Gestión agrícola inteligente y eficiente',
-  'hero.subtitle': 'Monitoriza tus campos, corrales y variables agrícolas con precisión. Optimiza tus operaciones y toma decisiones basadas en datos reales.',
+  'hero.title': 'Gestión ganadera inteligente y eficiente',
+  'hero.subtitle': 'Monitoriza tus corrales y variables ganaderas con precisión. Optimiza tus operaciones y toma decisiones basadas en datos reales.',
   'hero.cta.start': 'Comenzar ahora',
   'hero.cta.learn': 'Conocer más',
 
   // Características
   'features.title': 'Características principales',
-  'features.subtitle': 'Todo lo que necesitas para gestionar eficientemente tus campos agrícolas en una sola plataforma.',
-  'features.fields.title': 'Gestión de campos',
-  'features.fields.desc': 'Organiza y monitorea tus campos con ubicación geográfica y características detalladas.',
+  'features.subtitle': 'Todo lo que necesitas para gestionar eficientemente tu ganadería en una sola plataforma.',
+  'features.fields.title': 'Gestión de establecimientos',
+  'features.fields.desc': 'Organiza y monitorea tus establecimientos con ubicación geográfica y características detalladas.',
   'features.variables.title': 'Variables personalizadas',
-  'features.variables.desc': 'Define y realiza seguimiento de variables específicas para tus cultivos y ganado.',
+  'features.variables.desc': 'Define y realiza seguimiento de variables específicas para tu ganado.',
   'features.reports.title': 'Reportes detallados',
   'features.reports.desc': 'Genera informes completos con métricas clave para tomar decisiones informadas.',
   'features.trends.title': 'Análisis de tendencias',
-  'features.trends.desc': 'Visualiza tendencias y patrones para optimizar tu producción agrícola.',
+  'features.trends.desc': 'Visualiza tendencias y patrones para optimizar tu producción ganadera.',
   'features.pens.title': 'Gestión de corrales',
   'features.pens.desc': 'Administra tus corrales y asocia variables específicas para un seguimiento efectivo.',
   'features.alerts.title': 'Alertas y notificaciones',
@@ -31,11 +31,11 @@ export const es = {
   // Monitoreo de Salud
   'health.title': 'Monitoreo de Salud en Tiempo Real',
   'health.subtitle': 'Estado actual de los indicadores clave de salud en tu operación',
-  'health.field.title': 'Salud Actual del Campo',
+  'health.field.title': 'Estado de Establecimientos',
   'health.field.metrics': 'mediciones correctas',
-  'health.animals.title': 'Salud Actual de Animales',
+  'health.animals.title': 'Salud Actual del Ganado',
   'health.animals.metrics': 'mediciones correctas (animales)',
-  'health.facilities.title': 'Salud Actual de Instalaciones',
+  'health.facilities.title': 'Estado de Instalaciones',
   'health.facilities.metrics': 'mediciones correctas (instalaciones)',
 
   // Analítica
@@ -68,8 +68,8 @@ export const es = {
   'trend.corral.prefix': 'Corral',
 
   // CTA
-  'cta.title': 'Comienza a optimizar tu gestión agrícola hoy',
-  'cta.subtitle': 'Únete a cientos de agricultores que ya están mejorando su productividad con MeasureMe.',
+  'cta.title': 'Comienza a optimizar tu gestión ganadera hoy',
+  'cta.subtitle': 'Únete a cientos de ganaderos que ya están mejorando su productividad con MeasureMe.',
   'cta.button': 'Comenzar gratis',
 
   // Footer

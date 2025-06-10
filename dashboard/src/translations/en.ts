@@ -7,22 +7,22 @@ export const en = {
   'nav.register': 'Sign up',
 
   // Hero section
-  'hero.title': 'Smart and efficient agricultural management',
-  'hero.subtitle': 'Monitor your fields, pens, and agricultural variables with precision. Optimize your operations and make decisions based on real data.',
+  'hero.title': 'Smart and efficient livestock management',
+  'hero.subtitle': 'Monitor your pens and livestock variables with precision. Optimize your operations and make decisions based on real data.',
   'hero.cta.start': 'Get started',
   'hero.cta.learn': 'Learn more',
 
   // Features
   'features.title': 'Key Features',
-  'features.subtitle': 'Everything you need to efficiently manage your agricultural fields in one platform.',
-  'features.fields.title': 'Field Management',
-  'features.fields.desc': 'Organize and monitor your fields with geographic location and detailed characteristics.',
+  'features.subtitle': 'Everything you need to efficiently manage your livestock operations in one platform.',
+  'features.fields.title': 'Establishment Management',
+  'features.fields.desc': 'Organize and monitor your establishments with geographic location and detailed characteristics.',
   'features.variables.title': 'Custom Variables',
-  'features.variables.desc': 'Define and track specific variables for your crops and livestock.',
+  'features.variables.desc': 'Define and track specific variables for your livestock.',
   'features.reports.title': 'Detailed Reports',
   'features.reports.desc': 'Generate comprehensive reports with key metrics for informed decision making.',
   'features.trends.title': 'Trend Analysis',
-  'features.trends.desc': 'Visualize trends and patterns to optimize your agricultural production.',
+  'features.trends.desc': 'Visualize trends and patterns to optimize your livestock production.',
   'features.pens.title': 'Pen Management',
   'features.pens.desc': 'Manage your pens and associate specific variables for effective tracking.',
   'features.alerts.title': 'Alerts & Notifications',
@@ -31,11 +31,11 @@ export const en = {
   // Health Monitoring
   'health.title': 'Real-Time Health Monitoring',
   'health.subtitle': 'Current status of key health indicators in your operation',
-  'health.field.title': 'Current Field Health',
+  'health.field.title': 'Establishment Status',
   'health.field.metrics': 'correct measurements',
-  'health.animals.title': 'Current Animal Health',
+  'health.animals.title': 'Current Livestock Health',
   'health.animals.metrics': 'correct measurements (animals)',
-  'health.facilities.title': 'Current Facility Health',
+  'health.facilities.title': 'Facility Status',
   'health.facilities.metrics': 'correct measurements (facilities)',
 
   // Analytics
@@ -71,8 +71,8 @@ export const en = {
   'trend.corral.prefix': 'Pen',
 
   // CTA
-  'cta.title': 'Start optimizing your agricultural management today',
-  'cta.subtitle': 'Join hundreds of farmers already improving their productivity with MeasureMe.',
+  'cta.title': 'Start optimizing your livestock management today',
+  'cta.subtitle': 'Join hundreds of ranchers already improving their productivity with MeasureMe.',
   'cta.button': 'Start for free',
 
   // Footer
