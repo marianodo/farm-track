@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from 'react-i18next';
 import styles from './styles';
 import {
@@ -64,6 +65,11 @@ type FormDataError = {
 
 const EditPen: React.FC = () => {
   const { penId, penName, type_of_objects, fieldId } = useLocalSearchParams();
+  const colorScheme = useColorScheme();
+  
+  // Define theme-aware colors
+  const backgroundColor = colorScheme === 'dark' ? '#333333' : '#F1F1F1';
+  const textColor = colorScheme === 'dark' ? '#FFFFFF' : '#292929';
 
   const { validateTypeObjectValue, validateNameInput } = useValidationRules();
   const [error, setError] = useState<FormDataError>({
@@ -98,7 +104,7 @@ const EditPen: React.FC = () => {
   }));
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [itemsValue, setItemsValue] = useState<string | undefined | string[]>(
+  const [itemsValue, setItemsValue] = useState<number[]>(
     JSON.parse(
       Array.isArray(type_of_objects) ? type_of_objects[0] : type_of_objects
     ).map((item: { id: number; name: string }) => item.id)
@@ -195,10 +201,8 @@ const EditPen: React.FC = () => {
     React.useCallback(() => {
       const onBackPress = () => {
         if (
-          formData.name ||
-          formData.type ||
-          formData.defaultValue ||
-          formData.type_of_object_ids
+          formData.name !== penName ||
+          formData.type_of_object_ids !== null
         ) {
           setShowModal(true);
           setTexts({
@@ -303,6 +307,7 @@ const EditPen: React.FC = () => {
               fontSize: 18,
               fontWeight: 'bold',
               fontFamily: 'Pro-Regular',
+              color: textColor, // Use the theme-aware text color
             }}
           >
             {t('penView.createPenTextDetail')}
@@ -321,16 +326,17 @@ const EditPen: React.FC = () => {
             <View style={{ marginBottom: 20 }}>
               <TextInput
                 mode="outlined"
-                placeholderTextColor="#292929"
+                placeholderTextColor={colorScheme === 'dark' ? '#BBBBBB' : '#292929'}
                 placeholder={t('penView.penNamePlaceHolder')}
                 value={formData.name ?? ''}
                 onChangeText={(value) => onChange('name', value)}
                 autoCapitalize="sentences"
                 activeOutlineColor="transparent"
-                outlineColor="#F1F1F1"
+                outlineColor={backgroundColor}
                 cursorColor="#486732"
                 selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                style={styles.input}
+                style={[styles.input, { backgroundColor, color: textColor }]}
+                theme={{ colors: { text: textColor } }}
               />
               {error?.name && (
                 <Text style={styles.errorText}>{error?.name}</Text>
@@ -355,21 +361,52 @@ const EditPen: React.FC = () => {
                 listMode="SCROLLVIEW"
                 zIndex={open ? 1 : 0}
                 zIndexInverse={open ? 1 : 0}
-                arrowIconStyle={{ tintColor: '#486732' }}
+                arrowIconStyle={{ width: 15, height: 15 }}
+                ArrowDownIconComponent={({ style }) => (
+                  <IconButton icon="chevron-down" iconColor="#486732" size={20} style={{ margin: 0, padding: 0 }} />
+                )}
+                ArrowUpIconComponent={({ style }) => (
+                  <IconButton icon="chevron-up" iconColor="#486732" size={20} style={{ margin: 0, padding: 0 }} />
+                )}
                 open={open}
-                value={itemsValue as ValueType}
+                value={itemsValue}
                 items={items ?? []}
                 setOpen={setOpen}
-                setValue={setItemsValue}
-                setItems={setItems as Dispatch<SetStateAction<any[]>>}
-                onChangeValue={() =>
-                  onChange(
-                    'type_of_object_ids',
-                    (itemsValue ?? []).length > 0 ? itemsValue : null
-                  )
-                }
+                setValue={(callback) => {
+                  if (typeof callback === 'function') {
+                    // Handle callback function
+                    setItemsValue(currentValue => {
+                      const newValue = callback(currentValue);
+                      return newValue as number[];
+                    });
+                  } else {
+                    // Handle direct value
+                    setItemsValue(callback as number[]);
+                  }
+                }}
+                setItems={setItems as Dispatch<SetStateAction<Item[]>>}
+                onChangeValue={(value) => {
+                  // Ensure value is always treated as number[] or null
+                  const typedValue = Array.isArray(value) && value.length > 0 ? 
+                    value as number[] : null;
+                  onChange('type_of_object_ids', typedValue);
+                }}
                 multiple={true}
                 mode="BADGE"
+                badgeTextStyle={{
+                  color: '#FFFFFF', // Ensure text is white for visibility
+                  fontWeight: 'bold',
+                  fontSize: rMS(12),
+                }}
+                badgeColors={[
+                  '#486732', // Use consistent green color for all badges
+                  '#486732',
+                  '#486732',
+                  '#486732',
+                  '#486732',
+                  '#486732',
+                  '#486732',
+                ]}
                 badgeDotColors={[
                   '#e76f51',
                   '#00b4d8',

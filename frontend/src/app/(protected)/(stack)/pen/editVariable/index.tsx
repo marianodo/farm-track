@@ -882,10 +882,10 @@ const EditVariable: React.FC = () => {
                             key={index}
                             onPress={() => onChangeDefaultValue(category, 'delete')}
                           >
-                            <View style={styles.definedValueItem}>
-                              <Text style={styles.definedValueText}>{category}</Text>
+                            <View style={[styles.definedValueItem, { backgroundColor: '#486732' }]}>
+                              <Text style={[styles.definedValueText, { color: '#FFFFFF' }]}>{category}</Text>
                               <View style={styles.definedValueSeparator} />
-                              <Text style={styles.definedValueDeleteText}>x</Text>
+                              <Text style={[styles.definedValueDeleteText, { color: '#FFFFFF' }]}>x</Text>
                             </View>
                           </Pressable>
                         )
@@ -968,7 +968,7 @@ const EditVariable: React.FC = () => {
         {/* Botón fijo */}
         <View style={styles.fixedButtonContainer}>
           <Pressable onPress={handleSubmit} style={styles.button}>
-            <Text style={styles.buttonText}>
+            <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>
               {t('attributeView.updateVariableTextButton')}
             </Text>
           </Pressable>

@@ -29,6 +29,7 @@ import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
 import React, { Fragment, useEffect, useState } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
@@ -206,6 +207,12 @@ export default function HomeScreen() {
 
   const [visiblee, setVisiblee] = React.useState(false);
   const [textColor, setTextColor] = useState('#000'); // Color por defecto
+  const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    setTextColor(colorScheme === 'dark' ? '#FFFFFF' : '#000000');
+  }, [colorScheme]);
+
   const showDialog = () => setVisiblee(true);
 
   const hideDialog = () => setVisiblee(false);
@@ -224,12 +231,12 @@ export default function HomeScreen() {
           style={{
             display: 'flex',
             justifyContent: 'center',
-            backgroundColor: '#fff',
+            backgroundColor: textColor === '#000' ? '#fff' : '#121212',
           }}
           visible={visiblee}
           onDismiss={hideDialog}
         >
-          <Dialog.Title style={{ textAlign: 'center' }}>
+          <Dialog.Title style={{ textAlign: 'center', color: textColor }}>
             {t('fieldView.toGoText')}
           </Dialog.Title>
           <Dialog.Actions
@@ -274,7 +281,7 @@ export default function HomeScreen() {
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16) }}>
+                <Text style={{ fontSize: rMS(16), color: textColor }}>
                   {t('fieldView.penText')}
                 </Text>
               </View>
@@ -314,7 +321,7 @@ export default function HomeScreen() {
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16) }}>
+                <Text style={{ fontSize: rMS(16), color: textColor }}>
                   {t('fieldView.evaluationText')}
                 </Text>
               </View>
@@ -527,6 +534,7 @@ export default function HomeScreen() {
                         paddingLeft: 6,
                         fontWeight: 'bold',
                         fontFamily: 'Pro-Regular',
+                        color: '#000000',
                       }}
                     >
                       {field.name}
@@ -553,7 +561,10 @@ export default function HomeScreen() {
                         contentFit="contain"
                       />
                       <Text
-                        style={{ width: rS(158) }}
+                        style={{ 
+                          width: rS(158),
+                          color: '#333333' 
+                        }}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -1226,6 +1237,7 @@ const styles = StyleSheet.create({
     marginTop: rMS(2),
     fontSize: 16,
     fontFamily: 'Pro-Regular',
+    color: '#333333',
   },
   floatingButton: {
     position: 'absolute',

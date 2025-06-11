@@ -3,6 +3,7 @@ import usePenStore from '@/store/penStore';
 import { rMS, rMV } from '@/styles/responsive';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -75,6 +76,7 @@ const PenList: React.FC<PenListProps> = ({
   typeOfObjects,
   variables,
 }) => {
+  const colorScheme = useColorScheme();
   const { pensLoading } = usePenStore((state) => ({
     pensLoading: state.pensLoading,
   }));
@@ -250,20 +252,30 @@ const PenList: React.FC<PenListProps> = ({
                     });
                   }}
                 >
-                  <Badge
+                  <View
                     key={index}
                     style={{
-                      paddingHorizontal: rMS(7),
+                      paddingHorizontal: rMS(10),
                       height: rMS(24),
                       backgroundColor: '#486732',
-                      fontFamily: 'Pro-Regular',
-                      fontSize: rMS(12),
-                      marginRight: rMS(4), // Add margin to ensure proper spacing
-                      marginBottom: rMS(4), // Add margin to ensure proper spacing
+                      marginRight: rMS(4),
+                      marginBottom: rMS(4),
+                      borderRadius: 16,
+                      justifyContent: 'center',
+                      alignItems: 'center',
                     }}
                   >
-                    {type_of_object.name}
-                  </Badge>
+                    <Text
+                      style={{
+                        color: '#FFFFFF', // Explicit white text for visibility on dark green
+                        fontFamily: 'Pro-Regular',
+                        fontSize: rMS(12),
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {type_of_object.name}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}

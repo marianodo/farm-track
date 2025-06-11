@@ -32,6 +32,7 @@ import {
 } from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
 import { useEffect, useState } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import Animated, {
@@ -56,6 +57,7 @@ interface ListItemProps {
 }
 
 export default function AttributeScreen() {
+  const colorScheme = useColorScheme();
   const { startsWithABlankSpace, minLength } = useValidationRules();
   const [errors, setErrors] = useState<FormErrors>({});
   const router = useRouter();
@@ -350,6 +352,7 @@ export default function AttributeScreen() {
                 paddingLeft: 6,
                 fontWeight: 'bold',
                 fontFamily: 'Pro-Regular',
+                color: '#000000',
               }}
             >
               {item?.name}
@@ -404,20 +407,30 @@ export default function AttributeScreen() {
           >
             {item.type_of_objects.map((variable: any, index: number) => {
               return (
-                <Badge
+                <View
                   key={index}
                   style={{
-                    paddingHorizontal: rMS(7),
+                    paddingHorizontal: rMS(10),
                     height: rMS(24),
                     backgroundColor: '#486732',
-                    fontFamily: 'Pro-Regular',
-                    fontSize: rMS(12),
-                    marginRight: rMS(4), // Add margin to ensure proper spacing
-                    marginBottom: rMS(4), // Add margin to ensure proper spacing
+                    marginRight: rMS(4),
+                    marginBottom: rMS(4),
+                    borderRadius: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center',
                   }}
                 >
-                  {variable.name}
-                </Badge>
+                  <Text
+                    style={{
+                      color: '#FFFFFF', // Explicit white text for visibility on dark green
+                      fontFamily: 'Pro-Regular',
+                      fontSize: rMS(12),
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {variable.name}
+                  </Text>
+                </View>
               );
             })}
           </View>
@@ -527,6 +540,7 @@ export default function AttributeScreen() {
             fontSize: 18,
             fontWeight: 'bold',
             fontFamily: 'Pro-Regular',
+            color: '#000000',
           }}
         >
           {t('attributeView.attributeText')}
@@ -704,13 +718,12 @@ const styles = StyleSheet.create({
   attributeContainer: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    height: rMS(68),
-    marginBottom: 10,
-    paddingHorizontal: 10,
+    padding: rMS(10),
+    paddingHorizontal: rMS(10),
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
+    height: rS(58),
   },
   floatingButton: {
     position: 'absolute',
@@ -718,7 +731,6 @@ const styles = StyleSheet.create({
     zIndex: 99999,
     bottom: 20,
     right: 15,
-    width: rMS(56),
     height: rMS(56),
     borderRadius: 30,
     backgroundColor: '#486732',
