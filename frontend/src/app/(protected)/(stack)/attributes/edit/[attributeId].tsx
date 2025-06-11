@@ -653,6 +653,7 @@ const EditAttribute: React.FC = () => {
               activeOutlineColor="transparent"
               outlineColor="#F1F1F1"
               cursorColor="#486732"
+              textColor='#486732'
               selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
               style={styles.input}
             />
@@ -724,6 +725,7 @@ const EditAttribute: React.FC = () => {
                       outlineColor="#486732"
                       cursorColor="#486732"
                       keyboardType="numeric"
+                      textColor='#486732'
                       value={
                         (
                           formData?.defaultValue?.value as NumericValue
@@ -745,6 +747,7 @@ const EditAttribute: React.FC = () => {
                       outlineColor="#486732"
                       cursorColor="#486732"
                       keyboardType="numeric"
+                      textColor='#486732'
                       value={
                         (
                           formData?.defaultValue?.value as NumericValue
@@ -776,6 +779,7 @@ const EditAttribute: React.FC = () => {
                       outlineColor="#486732"
                       cursorColor="#486732"
                       keyboardType="numeric"
+                      textColor='#486732'
                       value={
                         (
                           formData?.defaultValue?.value as NumericValue
@@ -797,6 +801,7 @@ const EditAttribute: React.FC = () => {
                       outlineColor="#486732"
                       cursorColor="#486732"
                       keyboardType="numeric"
+                      textColor='#486732'
                       value={
                         (
                           formData?.defaultValue?.value as NumericValue
