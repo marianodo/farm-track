@@ -12,6 +12,7 @@ import {
   FlatList,
   // Image,
   ImageBackground,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -227,26 +228,50 @@ export default function HomeScreen() {
       }}
     >
       {/* Start Dialog */}
-      <Portal>
-        <Dialog
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            backgroundColor: textColor === '#000' ? '#fff' : '#121212',
-          }}
-          visible={visiblee}
-          onDismiss={hideDialog}
-        >
-          <Dialog.Title style={{ textAlign: 'center', color: textColor }}>
-            {t('fieldView.toGoText')}
-          </Dialog.Title>
-          <Dialog.Actions
+      {/* Reemplazamos Dialog con Modal nativo para mejor control */}
+      <Modal
+        visible={visiblee}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={hideDialog}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }}>
+          <View 
             style={{
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
+              backgroundColor: colorScheme === 'dark' ? '#121212' : '#FFFFFF',
+              borderRadius: 10,
+              padding: 20,
+              width: '80%',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5
             }}
           >
+            <Text 
+              style={{ 
+                textAlign: 'center', 
+                fontSize: 18,
+                color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                fontWeight: 'bold',
+                marginBottom: 20
+              }}
+            >
+              {t('fieldView.toGoText')}
+            </Text>
+            <View
+              style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+              }}
+            >
             <Button
               style={{
                 height: rMS(40),
@@ -268,7 +293,7 @@ export default function HomeScreen() {
                 });
                 setFieldId(fieldInfo?.fieldId!);
               }}
-              rippleColor="rgba(72, 118, 50, 0.5)"
+              rippleColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(72, 118, 50, 0.5)'}
             >
               <View
                 style={{
@@ -279,10 +304,15 @@ export default function HomeScreen() {
               >
                 <IconButton
                   icon={'arrow-right'}
+                  iconColor={colorScheme === 'dark' ? '#FFFFFF' : '#487632'}
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16), color: textColor }}>
+                <Text style={{ 
+                  fontSize: rMS(16), 
+                  color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  fontWeight: '500'
+                }}>
                   {t('fieldView.penText')}
                 </Text>
               </View>
@@ -308,7 +338,7 @@ export default function HomeScreen() {
                 });
                 setFieldId(fieldInfo?.fieldId!);
               }}
-              rippleColor="rgba(72, 118, 50, 0.5)"
+              rippleColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(72, 118, 50, 0.5)'}
             >
               <View
                 style={{
@@ -319,18 +349,24 @@ export default function HomeScreen() {
               >
                 <IconButton
                   icon={'arrow-right'}
+                  iconColor={colorScheme === 'dark' ? '#FFFFFF' : '#487632'}
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16), color: textColor }}>
+                <Text style={{ 
+                  fontSize: rMS(16), 
+                  color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  fontWeight: '500'
+                }}>
                   {t('fieldView.evaluationText')}
                 </Text>
               </View>
             </Button>
-          </Dialog.Actions>
-        </Dialog>
-        {/* End Dialog */}
-      </Portal>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* End Custom Modal */}
       {/* Contenedor de la imagen de fondo y el header */}
       <ImageBackground
         source={require('../../../../../assets/images/tabs/tabs-header.png')}
