@@ -1,4 +1,5 @@
 // Utilizando path alias para evitar problemas con importaciones relativas
+import React from 'react';
 import { NumericValue, CategoricalValue } from './index';
 
 // Type guard para identificar valores categóricos
@@ -11,5 +12,7 @@ export function isNumericValue(value: NumericValue | CategoricalValue): value is
   return !('categories' in value);
 }
 
-// Prevenir a Expo Router de tratar este archivo como una ruta
-export default null;
+// Componente vacío para satisfacer los requisitos de Expo Router
+// que espera una exportación por defecto de un componente React
+const UtilsComponent: React.FC = () => null;
+export default UtilsComponent;
