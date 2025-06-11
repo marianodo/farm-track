@@ -12,6 +12,7 @@ import {
   FlatList,
   // Image,
   ImageBackground,
+  Modal,
   Platform,
   Pressable,
   SafeAreaView,
@@ -22,6 +23,7 @@ import {
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
+import { MaterialIcons } from '@expo/vector-icons';
 import useAuthStore from '@/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -29,6 +31,7 @@ import { ScrollView, Swipeable } from 'react-native-gesture-handler';
 import { typeOfProductionImages } from '@/utils/typeOfProductionImages/typeOfProductionImages';
 import useFieldStore from '@/store/fieldStore';
 import React, { Fragment, useEffect, useState } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import MessageModal from '@/components/modal/MessageModal';
@@ -206,6 +209,12 @@ export default function HomeScreen() {
 
   const [visiblee, setVisiblee] = React.useState(false);
   const [textColor, setTextColor] = useState('#000'); // Color por defecto
+  const colorScheme = useColorScheme();
+
+  useEffect(() => {
+    setTextColor(colorScheme === 'dark' ? '#FFFFFF' : '#000000');
+  }, [colorScheme]);
+
   const showDialog = () => setVisiblee(true);
 
   const hideDialog = () => setVisiblee(false);
@@ -219,26 +228,50 @@ export default function HomeScreen() {
       }}
     >
       {/* Start Dialog */}
-      <Portal>
-        <Dialog
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            backgroundColor: '#fff',
-          }}
-          visible={visiblee}
-          onDismiss={hideDialog}
-        >
-          <Dialog.Title style={{ textAlign: 'center' }}>
-            {t('fieldView.toGoText')}
-          </Dialog.Title>
-          <Dialog.Actions
+      {/* Reemplazamos Dialog con Modal nativo para mejor control */}
+      <Modal
+        visible={visiblee}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={hideDialog}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }}>
+          <View 
             style={{
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'flex-start',
+              backgroundColor: colorScheme === 'dark' ? '#121212' : '#FFFFFF',
+              borderRadius: 10,
+              padding: 20,
+              width: '80%',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5
             }}
           >
+            <Text 
+              style={{ 
+                textAlign: 'center', 
+                fontSize: 18,
+                color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                fontWeight: 'bold',
+                marginBottom: 20
+              }}
+            >
+              {t('fieldView.toGoText')}
+            </Text>
+            <View
+              style={{
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'flex-start',
+              }}
+            >
             <Button
               style={{
                 height: rMS(40),
@@ -260,7 +293,7 @@ export default function HomeScreen() {
                 });
                 setFieldId(fieldInfo?.fieldId!);
               }}
-              rippleColor="rgba(72, 118, 50, 0.5)"
+              rippleColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(72, 118, 50, 0.5)'}
             >
               <View
                 style={{
@@ -271,10 +304,15 @@ export default function HomeScreen() {
               >
                 <IconButton
                   icon={'arrow-right'}
+                  iconColor={colorScheme === 'dark' ? '#FFFFFF' : '#487632'}
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16) }}>
+                <Text style={{ 
+                  fontSize: rMS(16), 
+                  color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  fontWeight: '500'
+                }}>
                   {t('fieldView.penText')}
                 </Text>
               </View>
@@ -300,7 +338,7 @@ export default function HomeScreen() {
                 });
                 setFieldId(fieldInfo?.fieldId!);
               }}
-              rippleColor="rgba(72, 118, 50, 0.5)"
+              rippleColor={colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(72, 118, 50, 0.5)'}
             >
               <View
                 style={{
@@ -311,18 +349,24 @@ export default function HomeScreen() {
               >
                 <IconButton
                   icon={'arrow-right'}
+                  iconColor={colorScheme === 'dark' ? '#FFFFFF' : '#487632'}
                   size={16}
                   style={{ marginLeft: -10, padding: 0 }}
                 />
-                <Text style={{ fontSize: rMS(16) }}>
+                <Text style={{ 
+                  fontSize: rMS(16), 
+                  color: colorScheme === 'dark' ? '#FFFFFF' : '#000000',
+                  fontWeight: '500'
+                }}>
                   {t('fieldView.evaluationText')}
                 </Text>
               </View>
             </Button>
-          </Dialog.Actions>
-        </Dialog>
-        {/* End Dialog */}
-      </Portal>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      {/* End Custom Modal */}
       {/* Contenedor de la imagen de fondo y el header */}
       <ImageBackground
         source={require('../../../../../assets/images/tabs/tabs-header.png')}
@@ -414,6 +458,7 @@ export default function HomeScreen() {
             fontSize: 18,
             fontWeight: 'bold',
             fontFamily: 'Pro-Regular',
+            color: '#000000',
           }}
         >
           {t('fieldView.fieldText')}
@@ -527,6 +572,7 @@ export default function HomeScreen() {
                         paddingLeft: 6,
                         fontWeight: 'bold',
                         fontFamily: 'Pro-Regular',
+                        color: '#000000',
                       }}
                     >
                       {field.name}
@@ -543,17 +589,22 @@ export default function HomeScreen() {
                         width: rS(178),
                       }}
                     >
-                      <Image
-                        source={require('../../../../../assets/images/map-marker.png')}
-                        style={{
-                          width: rMS(16),
-                          height: rMS(16),
-                          alignSelf: 'center',
-                        }}
-                        contentFit="contain"
-                      />
+                      {/* Usar componente Text como contenedor seguro para el icono */}
+                      <Text style={{ alignSelf: 'center' }}>
+                        <MaterialIcons 
+                          name="location-on" 
+                          size={18} 
+                          color={colorScheme === 'dark' ? '#FFFFFF' : '#486732'} 
+                        />
+                      </Text>
                       <Text
-                        style={{ width: rS(158) }}
+                        style={{
+                          width: rS(158),
+                          color: colorScheme === 'dark' ? '#FFFFFF' : '#333333',
+                          backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.5)' : undefined,
+                          paddingHorizontal: colorScheme === 'dark' ? 4 : 0,
+                          borderRadius: colorScheme === 'dark' ? 4 : 0
+                        }}
                         numberOfLines={1}
                         ellipsizeMode="tail"
                       >
@@ -1226,6 +1277,7 @@ const styles = StyleSheet.create({
     marginTop: rMS(2),
     fontSize: 16,
     fontFamily: 'Pro-Regular',
+    color: '#333333',
   },
   floatingButton: {
     position: 'absolute',
