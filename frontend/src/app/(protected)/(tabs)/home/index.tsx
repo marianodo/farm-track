@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
+import { MaterialIcons } from '@expo/vector-icons';
 import useAuthStore from '@/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -421,6 +422,7 @@ export default function HomeScreen() {
             fontSize: 18,
             fontWeight: 'bold',
             fontFamily: 'Pro-Regular',
+            color: '#000000',
           }}
         >
           {t('fieldView.fieldText')}
@@ -551,19 +553,21 @@ export default function HomeScreen() {
                         width: rS(178),
                       }}
                     >
-                      <Image
-                        source={require('../../../../../assets/images/map-marker.png')}
-                        style={{
-                          width: rMS(16),
-                          height: rMS(16),
-                          alignSelf: 'center',
-                        }}
-                        contentFit="contain"
-                      />
+                      {/* Usar componente Text como contenedor seguro para el icono */}
+                      <Text style={{ alignSelf: 'center' }}>
+                        <MaterialIcons 
+                          name="location-on" 
+                          size={18} 
+                          color={colorScheme === 'dark' ? '#FFFFFF' : '#486732'} 
+                        />
+                      </Text>
                       <Text
-                        style={{ 
+                        style={{
                           width: rS(158),
-                          color: '#333333' 
+                          color: colorScheme === 'dark' ? '#FFFFFF' : '#333333',
+                          backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.5)' : undefined,
+                          paddingHorizontal: colorScheme === 'dark' ? 4 : 0,
+                          borderRadius: colorScheme === 'dark' ? 4 : 0
                         }}
                         numberOfLines={1}
                         ellipsizeMode="tail"

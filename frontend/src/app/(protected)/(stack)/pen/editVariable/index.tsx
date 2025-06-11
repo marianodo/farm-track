@@ -29,6 +29,7 @@ import { useFocusEffect } from 'expo-router';
 import { useValidationRules } from '@/utils/validation/validationRules';
 import useVariableStore from '@/store/variableStore';
 import usePenVariableTypeOfObjectStore from '@/store/pen_variable_typeOfObject_store';
+import { isCategoricalValue, isNumericValue } from './_utils';
 const { width, height } = Dimensions.get('window');
 
 type Item = {
@@ -42,9 +43,13 @@ export type NumericValue = {
   optimal_min: number | string;
   optimal_max: number | string;
   granularity: number | string;
+  optimal_values?: string[];
 };
 
-export type CategoricalValue = string[];
+export type CategoricalValue = {
+  categories: string[];
+  optimal_values?: string[];
+};
 
 type DefaultParameters = {
   value: NumericValue | CategoricalValue;
@@ -129,17 +134,14 @@ const EditVariable: React.FC = () => {
             formData.custom_parameters?.value as NumericValue,
             t
           )
-          : Array.isArray(formData.custom_parameters?.value)
+          : formData.custom_parameters?.value && isCategoricalValue(formData.custom_parameters.value)
             ? validateCategoricalValue(
-              formData.custom_parameters?.value as CategoricalValue,
+              formData.custom_parameters.value.categories,
               t
             )
-            : validateCategoricalValue(
-              formData.custom_parameters?.value?.categories as CategoricalValue,
-              t
-            ),
+            : null,
       optimal_values: type === 'CATEGORICAL'
-        ? validateOptimalCategoricalValue(formData.custom_parameters?.value?.optimal_values as string[], t)
+        ? validateOptimalCategoricalValue((formData.custom_parameters?.value as CategoricalValue)?.optimal_values || [], t)
         : null,
     };
 
@@ -177,8 +179,8 @@ const EditVariable: React.FC = () => {
     if (
       value &&
       value.trim() !== '' &&
-      !formData.custom_parameters?.value?.optimal_values.some(
-        (item) => item.toLowerCase() === value.toLowerCase()
+      (formData.custom_parameters?.value as CategoricalValue)?.categories?.some(
+        (item: string) => item.toLowerCase() === value.toLowerCase()
       )
     ) {
       // setOptimalValues([...optimalValues, value]);
@@ -269,7 +271,7 @@ const EditVariable: React.FC = () => {
           };
 
           const errors = validateCategoricalValue(
-            newFormData.defaultValue?.value?.categories as CategoricalValue,
+            newFormData.custom_parameters?.value as CategoricalValue,
             t
           );
 
@@ -309,7 +311,7 @@ const EditVariable: React.FC = () => {
           }
 
           const errors = validateCategoricalValue(
-            newFormData.custom_parameters?.value?.categories as CategoricalValue,
+            newFormData.custom_parameters?.value as CategoricalValue,
             t
           );
 
@@ -814,7 +816,7 @@ const EditVariable: React.FC = () => {
                       {t('attributeView.createSubTextDefinedValues')}
                     </Text>
                     <View style={styles.definedValuesRow}>
-                      {formData.custom_parameters.value.map(
+                      {(formData.custom_parameters?.value as CategoricalValue)?.categories?.map(
                         (item, index) => (
                           <Pressable
                             key={index}
@@ -876,7 +878,7 @@ const EditVariable: React.FC = () => {
                       {t('attributeView.createSubTextDefinedValues')}
                     </Text>
                     <View style={styles.definedValuesRow}>
-                      {formData.custom_parameters?.value?.categories.map(
+                      {(formData.custom_parameters?.value as CategoricalValue)?.categories?.map(
                         (category, index) => (
                           <Pressable
                             key={index}
@@ -930,8 +932,8 @@ const EditVariable: React.FC = () => {
                       {t('attributeView.createSubTextDefinedValuesOptimal')}
                     </Text>
                     <View style={styles.definedValuesRow}>
-                      {formData.custom_parameters?.value.categories.length > 0 &&
-                        formData.custom_parameters.value.categories.map((item, index) => (
+                      {(formData.custom_parameters?.value as CategoricalValue)?.categories?.map(
+                        (item, index) => (
                           <Pressable
                             key={index}
                             onPress={() =>
