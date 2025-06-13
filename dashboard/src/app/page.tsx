@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 import { BarChart, Check, Leaf, PieChart, Tractor, TrendingUp, Globe } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { BarChart as RechartBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, Cell } from 'recharts';
+import Contact from "@/components/sections/Contact";
+import CallToAction from "@/components/sections/CallToAction";
 
 // Datos de ejemplo para los gráficos
 const saludAnimalData = [
@@ -679,6 +681,10 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      <CallToAction />
+      
+      <Contact />
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-12">
