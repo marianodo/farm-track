@@ -589,105 +589,108 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
     return <div className="text-center text-gray-500">No hay datos de corrales disponibles para esta variable.</div>;
   }
   
-  // Sort measurements by report date/ID
-  const sortedMeasurements = [...variableMeasurements].sort((a, b) => {
-    // Sort by date if available, otherwise by report ID
-    if (a.measureDate && b.measureDate) {
-      return new Date(a.measureDate).getTime() - new Date(b.measureDate).getTime();
-    }
-    return Number(a.report_id) - Number(b.report_id);
-  });
-  
-  // Create a map of pen -> reportId -> average value
-  const penReportData = new Map();
-  
-  // Define types for report data
-  interface ReportData {
-    reportId: string;
-    date: Date | null;
-    avgValue: number;
-  }
-
-  // Process measurements to get average values per pen and report
-  uniquePens.forEach(pen => {
-    const penMeasurements = sortedMeasurements.filter(m => m.pen === pen);
-    
-    // Group by report_id
-    const reportGroups: ReportData[] = [];
-    penMeasurements.forEach(measurement => {
-      const reportId = String(measurement.report_id);
-      const value = Number(measurement.value);
-      
-      if (isNaN(value)) return; // Skip non-numeric values
-      
-      if (!reportGroups.find(r => r.reportId === reportId)) {
-        reportGroups.push({
-          reportId,
-          date: measurement.measureDate ? new Date(measurement.measureDate) : null,
-          avgValue: value
-        });
-      } else {
-        const existingReport = reportGroups.find(r => r.reportId === reportId);
-        if (existingReport) {
-          existingReport.avgValue = (existingReport.avgValue + value) / 2;
+  // Step 1: Collect report IDs with their associated dates
+  const reportData: { id: number; date: Date | null; label: string }[] = [];
+  variableMeasurements.forEach(m => {
+    const id = Number(m.report_id);
+    if (!isNaN(id)) {
+      // Try to get a date, default to null if not available or invalid
+      let date = null;
+      if (m.measureDate) {
+        try {
+          date = new Date(m.measureDate);
+          if (isNaN(date.getTime())) date = null;
+        } catch (e) {
+          date = null;
         }
       }
-    });
-    
-    // Sort by date and set the data for this pen
-    penReportData.set(pen, reportGroups.sort((a, b) => {
-      if (a.date && b.date) return a.date.getTime() - b.date.getTime();
-      return a.reportId.localeCompare(b.reportId);
-    }));
-  });
-  
-  // Get all unique report dates across all pens
-  const allReportDates = new Set<string>();
-  penReportData.forEach((reports) => {
-    reports.forEach((report) => {
-      if (report.date) {
-        allReportDates.add(report.date.toISOString().split('T')[0]);
-      } else {
-        allReportDates.add(report.reportId);
+      
+      // Only add if not already in the array
+      if (!reportData.some(item => item.id === id)) {
+        reportData.push({ 
+          id, 
+          date, 
+          // Create a nicely formatted label if date is available, otherwise use the ID
+          label: date ? date.toLocaleDateString() : `#${id}` 
+        });
       }
-    });
+    }
   });
   
-  // Convert to sorted array
-  const sortedDates = Array.from(allReportDates).sort();
+  // Step 2: Sort report data by ID (our reliable ordering)
+  reportData.sort((a, b) => a.id - b.id);
   
-  // Create datasets for each pen - filter out pens with no data
-  const datasets = Array.from(penReportData.entries())
-    .filter(([_, reports]) => reports && reports.length > 0) // Filter out pens with no reports
-    .map(([pen, reports], index) => {
+  // Get sorted arrays of IDs and their corresponding labels
+  const sortedReportIds = reportData.map(item => item.id);
+  const labels = reportData.map(item => item.label);
+  
+  // Step 3: Create a mapping of pen to its values per report
+  // Key: pen name, Value: array of values in the same order as sortedReportIds
+  // Use null for missing values so chart skips them
+  const penValues: Record<string, (number | null)[]> = {};
+  
+  // Initialize with null arrays for each pen
+  uniquePens.forEach(pen => {
+    penValues[pen] = Array(sortedReportIds.length).fill(null);
+  });
+  
+  // Process all measurements into the structure
+  variableMeasurements.forEach(m => {
+    const pen = m.pen;
+    const reportId = Number(m.report_id);
+    const value = Number(m.value);
+    
+    if (pen && !isNaN(reportId) && !isNaN(value)) {
+      const reportIndex = sortedReportIds.indexOf(reportId);
+      if (reportIndex !== -1) {
+        // If we already have a value here, average them
+        if (penValues[pen][reportIndex] !== null) {
+          const existing = penValues[pen][reportIndex] as number;
+          penValues[pen][reportIndex] = (existing + value) / 2;
+        } else {
+          penValues[pen][reportIndex] = value;
+        }
+      }
+    }
+  });
+  
+  // Step 4: Create datasets for Chart.js
+  const datasets = Object.entries(penValues)
+    .map(([pen, values], index) => {
       // Generate a color based on the index
-      const hue = (index * 137.5) % 360; // Use golden angle approximation for good distribution
+      const hue = (index * 137.5) % 360; // Golden angle approximation for good distribution
+      const color = `hsla(${hue}, 70%, 50%, 1)`;
+      
+      // Skip pens with no data at all
+      if (values.every(v => v === null)) return null;
       
       return {
         label: `Corral ${pen}`,
-        data: reports.map((report: ReportData) => ({
-          x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
-          y: report.avgValue
-        })),
-        borderColor: `hsla(${hue}, 70%, 50%, 1)`,
+        data: values,
+        borderColor: color,
         backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
         tension: 0.3,
         pointRadius: 4,
-        pointBackgroundColor: `hsla(${hue}, 70%, 50%, 1)`,
+        pointBackgroundColor: color,
         pointBorderColor: '#fff',
-        pointHoverRadius: 5
+        pointHoverRadius: 5,
+        // Gaps are explicitly represented by null values
+        spanGaps: true
       };
-    });
+    })
+    .filter(dataset => dataset !== null); // Remove empty datasets
   
-  // Get optimal range from measurements (assuming it's the same for all pens)
-  const measurementWithRanges = sortedMeasurements.find(m => 
+  // Get optimal range from measurements
+  const measurementWithRanges = variableMeasurements.find(m => 
     m.optimo_min !== undefined || m.optimo_max !== undefined
   );
   const optimalMin = measurementWithRanges?.optimo_min;
   const optimalMax = measurementWithRanges?.optimo_max;
   
-  // Chart data
+  // Chart data structure - simple format with labels and datasets
   const trendData = {
+    // Use the numerical order sorted report IDs as labels
+    labels, 
     datasets
   };
   
@@ -695,6 +698,23 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
   const trendOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Fecha/Reporte'
+        },
+        grid: { display: false }
+      },
+      y: {
+        beginAtZero: false,
+        title: {
+          display: true,
+          text: 'Valor promedio'
+        },
+        grid: { color: 'rgba(0, 0, 0, 0.05)' }
+      }
+    },
     plugins: {
       title: {
         display: true,
@@ -708,23 +728,23 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
         callbacks: {
           title: function(items: any[]) {
             if (!items.length) return '';
-            const item = items[0];
-            const xValue = item.parsed.x;
-            // Try to parse as date if it looks like a date
-            try {
-              if (typeof xValue === 'string' && xValue.includes('-')) {
-                return `Fecha: ${new Date(xValue).toLocaleDateString()}`;
-              }
-            } catch (e) {}
-            return `Reporte: #${xValue}`;
+            const index = items[0].dataIndex;
+            // Check if the label looks like a date or report ID
+            const label = labels[index];
+            const isDate = label && !label.startsWith('#');
+            
+            return isDate 
+              ? `Fecha: ${label}` 
+              : `Reporte: ${label}`;
           },
           label: function(context: any) {
             const label = context.dataset.label || '';
-            const value = context.parsed.y?.toFixed(2) || '0';
+            const value = context.raw !== null ? Number(context.raw).toFixed(2) : 'Sin dato';
             return `${label}: ${value}`;
           },
           afterLabel: function(context: any) {
-            const value = context.parsed.y;
+            if (context.raw === null) return '';
+            const value = context.raw;
             if (optimalMin !== undefined && optimalMax !== undefined) {
               const isInRange = value >= optimalMin && optimalMax >= value;
               return `Estado: ${isInRange ? '✅ En rango óptimo' : '⚠️ Fuera de rango'}`;
@@ -737,25 +757,12 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
         bodyFont: { size: 12 },
         multiKeyBackground: '#fff',
         usePointStyle: true
-      },
-      // Omit annotation plugin to fix TypeScript errors
-      // We can implement this later with proper type definitions if needed
-    },
-    scales: {
-      x: {
-        type: 'category' as const,
-        title: { display: true, text: 'Fecha/Reporte' },
-        grid: { display: false }
-      },
-      y: {
-        title: { display: true, text: 'Valor promedio' },
-        beginAtZero: false,
-        grid: { color: 'rgba(0, 0, 0, 0.05)' }
       }
     },
     elements: { line: { borderWidth: 2 } }
-  } as any; // Type assertion to bypass TypeScript errors
+  };
   
+  // Render the chart
   return (
     <div className="w-full h-full">
       <Line options={trendOptions} data={trendData} />
@@ -824,6 +831,8 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
           const sortedByReport = [...variableMeasurements].sort((a, b) => Number(b.report_id) - Number(a.report_id));
           
           // Get the latest report measurements
+          console.log("AAA")
+          console.log(sortedByReport)
           const latestReportMeasurements = selectedReportId 
             ? variableMeasurements.filter((m: Measurement) => String(m.report_id) === String(selectedReportId))
                 .sort((a: Measurement, b: Measurement) => new Date(a.measureDate).getTime() - new Date(b.measureDate).getTime())

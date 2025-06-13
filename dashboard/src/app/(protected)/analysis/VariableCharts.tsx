@@ -589,86 +589,67 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
     return <div className="text-center text-gray-500">No hay datos de corrales disponibles para esta variable.</div>;
   }
   
-  // Sort measurements by report date/ID
-  const sortedMeasurements = [...variableMeasurements].sort((a, b) => {
-    // Sort by date if available, otherwise by report ID
-    if (a.measureDate && b.measureDate) {
-      return new Date(a.measureDate).getTime() - new Date(b.measureDate).getTime();
-    }
-    return Number(a.report_id) - Number(b.report_id);
-  });
+  // Get all unique report IDs and sort them numerically
+  const allReportIds = Array.from(new Set(variableMeasurements.map(m => String(m.report_id))))
+    .sort((a, b) => {
+      // Try to parse as numbers first for numeric sorting
+      const numA = Number(a);
+      const numB = Number(b);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      // Fall back to string comparison
+      return a.localeCompare(b);
+    });
   
-  // Create a map of pen -> reportId -> average value
-  const penReportData = new Map();
+  // Structure to store all data points, organized by pen and reportId
+  const penData = new Map<string, Map<string, number>>();
   
-  // Define types for report data
-  interface ReportData {
-    reportId: string;
-    date: Date | null;
-    avgValue: number;
-  }
-
-  // Process measurements to get average values per pen and report
+  // Initialize data structure for each pen
   uniquePens.forEach(pen => {
-    const penMeasurements = sortedMeasurements.filter(m => m.pen === pen);
-    
-    // Group by report_id
-    const reportGroups: ReportData[] = [];
-    penMeasurements.forEach(measurement => {
-      const reportId = String(measurement.report_id);
-      const value = Number(measurement.value);
-      
-      if (isNaN(value)) return; // Skip non-numeric values
-      
-      if (!reportGroups.find(r => r.reportId === reportId)) {
-        reportGroups.push({
-          reportId,
-          date: measurement.measureDate ? new Date(measurement.measureDate) : null,
-          avgValue: value
-        });
-      } else {
-        const existingReport = reportGroups.find(r => r.reportId === reportId);
-        if (existingReport) {
-          existingReport.avgValue = (existingReport.avgValue + value) / 2;
-        }
-      }
-    });
-    
-    // Sort by date and set the data for this pen
-    penReportData.set(pen, reportGroups.sort((a, b) => {
-      if (a.date && b.date) return a.date.getTime() - b.date.getTime();
-      return a.reportId.localeCompare(b.reportId);
-    }));
+    penData.set(pen, new Map<string, number>());
   });
   
-  // Get all unique report dates across all pens
-  const allReportDates = new Set<string>();
-  penReportData.forEach((reports) => {
-    reports.forEach((report) => {
-      if (report.date) {
-        allReportDates.add(report.date.toISOString().split('T')[0]);
+  // Process measurements to collect average values per pen and report ID
+  variableMeasurements.forEach(measurement => {
+    const pen = measurement.pen;
+    const reportId = String(measurement.report_id);
+    
+    if (!pen || !penData.has(pen)) return;
+    
+    const value = Number(measurement.value);
+    if (isNaN(value)) return; // Skip non-numeric values
+    
+    const penDataMap = penData.get(pen);
+    if (penDataMap) {
+      if (penDataMap.has(reportId)) {
+        // Average if we already have a value
+        const existingValue = penDataMap.get(reportId) || 0;
+        penDataMap.set(reportId, (existingValue + value) / 2);
       } else {
-        allReportDates.add(report.reportId);
+        penDataMap.set(reportId, value);
       }
-    });
+    }
   });
   
-  // Convert to sorted array
-  const sortedDates = Array.from(allReportDates).sort();
-  
-  // Create datasets for each pen - filter out pens with no data
-  const datasets = Array.from(penReportData.entries())
-    .filter(([_, reports]) => reports && reports.length > 0) // Filter out pens with no reports
-    .map(([pen, reports], index) => {
+  // Create datasets for each pen using the sorted report IDs
+  const datasets = Array.from(penData.entries())
+    .map(([pen, dataMap], index) => {
       // Generate a color based on the index
       const hue = (index * 137.5) % 360; // Use golden angle approximation for good distribution
       
+      // Create data points using the sorted report IDs
+      // This ensures all pens use the same x-axis ordering
+      const dataPoints = allReportIds
+        .filter(reportId => dataMap.has(reportId)) // Only include reports for which this pen has data
+        .map(reportId => ({
+          x: reportId,
+          y: dataMap.get(reportId) || 0
+        }));
+      
       return {
         label: `Corral ${pen}`,
-        data: reports.map((report: ReportData) => ({
-          x: report.date ? report.date.toISOString().split('T')[0] : report.reportId,
-          y: report.avgValue
-        })),
+        data: dataPoints,
         borderColor: `hsla(${hue}, 70%, 50%, 1)`,
         backgroundColor: `hsla(${hue}, 70%, 50%, 0.2)`,
         tension: 0.3,
@@ -677,10 +658,10 @@ const renderVariableTrendByPen = (measurements: Measurement[], variableName: str
         pointBorderColor: '#fff',
         pointHoverRadius: 5
       };
-    });
+    }).filter(dataset => dataset.data.length > 0); // Remove empty datasets
   
   // Get optimal range from measurements (assuming it's the same for all pens)
-  const measurementWithRanges = sortedMeasurements.find(m => 
+  const measurementWithRanges = variableMeasurements.find(m => 
     m.optimo_min !== undefined || m.optimo_max !== undefined
   );
   const optimalMin = measurementWithRanges?.optimo_min;
