@@ -29,6 +29,7 @@ import { Bar } from 'react-chartjs-2';
 import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
 import VariableCharts from "./VariableCharts";
+import jsPDF from 'jspdf';
 
 type TabType = "general" | "pens" | "numerical";
 
@@ -290,6 +291,81 @@ const DashboardPage: React.FC = () => {
         } else {
             setMeasurements([]);
         }
+    };
+
+    const handleExportHistoricToPDF = () => {
+        // 1. Obtener los totales históricos
+        const totalReportes = reportOptions.length;
+        const totalMediciones = measurements.length;
+        const totalAnimales = measurements.filter(m => m.type_of_object === 'Animal').length;
+        const totalInstalacion = measurements.filter(m => m.type_of_object === 'Installation').length;
+
+        // 2. Obtener el histórico de % correctos por reporte
+        // Usamos el mismo cálculo que el gráfico
+        const reportIdStrings = reportOptions.map(opt => String(opt.value));
+        const historicData = reportIdStrings.map(reportId => {
+            const reportData = measurements.filter(m => String(m.report_id) === reportId);
+            const total = reportData.length;
+            const correct = reportData.filter(m => String(m.correct) === '1' || m.correct === 1).length;
+            const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+            // Buscar la fecha del reporte
+            let date = '';
+            const found = reportData[0];
+            if (found && found.measureDate) {
+                date = new Date(found.measureDate).toLocaleDateString();
+            } else {
+                // Buscar en reportOptions
+                const opt = reportOptions.find(opt => String(opt.value) === reportId);
+                if (opt && opt.label) {
+                    date = opt.label.split(' (ID:')[0];
+                }
+            }
+            return { reportId, date, percent };
+        });
+
+        // 3. Obtener el canvas del gráfico de barras
+        // Buscamos el primer canvas de Chart.js en la página
+        const chartCanvas = document.querySelector('canvas');
+        let chartImgData = null;
+        if (chartCanvas) {
+            chartImgData = chartCanvas.toDataURL('image/png', 1.0);
+        }
+
+        // 4. Crear el PDF
+        const doc = new jsPDF({ orientation: 'landscape' });
+        let y = 10;
+        doc.setFontSize(18);
+        doc.text('Histórico de Reportes', 10, y);
+        y += 10;
+        doc.setFontSize(12);
+        doc.text(`Total Reportes: ${totalReportes}`, 10, y);
+        doc.text(`Total Mediciones: ${totalMediciones}`, 60, y);
+        doc.text(`Total Animales: ${totalAnimales}`, 120, y);
+        doc.text(`Total Instalación: ${totalInstalacion}`, 180, y);
+        y += 10;
+
+        // 5. Insertar gráfico si existe
+        if (chartImgData) {
+            doc.addImage(chartImgData, 'PNG', 10, y, 120, 60);
+            y += 65;
+        }
+
+        // 6. Insertar tabla de histórico
+        doc.setFontSize(14);
+        doc.text('Histórico de % Correctos por Reporte', 10, y);
+        y += 8;
+        doc.setFontSize(10);
+        doc.text('Fecha', 10, y);
+        doc.text('% Correctos', 60, y);
+        y += 6;
+        historicData.forEach(row => {
+            doc.text(row.date, 10, y);
+            doc.text(row.percent + '%', 60, y);
+            y += 6;
+        });
+
+        // 7. Descargar PDF
+        doc.save('historico_dashboard.pdf');
     };
 
     return (
@@ -958,14 +1034,24 @@ const DashboardPage: React.FC = () => {
           <div className="overflow-x-auto">
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold">Mediciones del Último Reporte</h3>
-              {measurements.length > 0 && (
-                <button 
-                  onClick={handleDownloadAllMeasurements}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
-                >
-                  Download (CSV)
-                </button>
-              )}
+              <div className="flex gap-2">
+                {measurements.length > 0 && (
+                  <>
+                    <button 
+                      onClick={handleDownloadAllMeasurements}
+                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
+                    >
+                      Download (CSV)
+                    </button>
+                    <button
+                      onClick={handleExportHistoricToPDF}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm"
+                    >
+                      Exportar a PDF
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
             <table className="min-w-full bg-white border border-gray-200 rounded-lg">
               <thead>
