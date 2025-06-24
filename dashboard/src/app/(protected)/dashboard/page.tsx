@@ -400,7 +400,75 @@ const DashboardPage: React.FC = () => {
             y = Math.max(y, yG + 55);
         }
 
-        // 6. Descargar PDF
+        // 6. Cards de corrales del último reporte
+        const pens = Array.from(new Set(summaryReportMeasurements.map(m => m.pen))).filter(pen => pen);
+        if (pens.length) {
+            y += 10;
+            doc.setFontSize(15);
+            doc.text('Análisis por Corral', 10, y);
+            y += 8;
+            let col = 0, x0 = 10, cardW = 90, cardH = 50, gapX = 8, gapY = 8;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margen = 10;
+            pens.forEach((pen, idx) => {
+              // Si no hay espacio suficiente para la siguiente card, salto de página
+              if (y + cardH + margen > pageHeight) {
+                doc.addPage();
+                y = margen;
+                col = 0;
+              }
+              const penMeasurements = summaryReportMeasurements.filter(m => m.pen === pen);
+              const totalCount = penMeasurements.length;
+              const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+              const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+              // Animales
+              const animalMeasurements = penMeasurements.filter(m => m.type_of_object === 'Animal');
+              const animalTotal = animalMeasurements.length;
+              const animalCorrect = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+              const animalPercent = animalTotal > 0 ? Math.round((animalCorrect / animalTotal) * 100) : null;
+              // Instalaciones
+              const installMeasurements = penMeasurements.filter(m => m.type_of_object === 'Installation');
+              const installTotal = installMeasurements.length;
+              const installCorrect = installMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+              const installPercent = installTotal > 0 ? Math.round((installCorrect / installTotal) * 100) : null;
+              // Posición
+              const x = x0 + col * (cardW + gapX);
+              const yCard = y;
+              // Card
+              doc.setDrawColor(200);
+              doc.setFillColor(245,245,245);
+              doc.roundedRect(x, yCard, cardW, cardH, 4, 4, 'F');
+              doc.setFontSize(12);
+              doc.setTextColor(30,30,30);
+              doc.text(pen, x + 4, yCard + 8);
+              doc.setFontSize(10);
+              doc.setTextColor(100,100,100);
+              doc.text('Score de salud', x + 4, yCard + 15);
+              doc.setFontSize(16);
+              doc.setTextColor(30,30,30);
+              doc.text(`${percent}%`, x + 4, yCard + 25);
+              doc.setFontSize(10);
+              doc.setTextColor(100,100,100);
+              doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 32);
+              // Animales
+              if (animalTotal > 0) {
+                doc.setFontSize(9);
+                doc.setTextColor(60,60,60);
+                doc.text(`Animales: ${animalPercent !== null ? animalPercent + '%' : '-'} (${animalCorrect}/${animalTotal})`, x + 4, yCard + 38);
+              }
+              // Instalaciones
+              if (installTotal > 0) {
+                doc.setFontSize(9);
+                doc.setTextColor(60,60,60);
+                doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, yCard + 44);
+              }
+              col++;
+              if (col === 3) { col = 0; y += cardH + gapY; }
+            });
+            if (col !== 0) y += cardH + gapY;
+        }
+
+        // 7. Descargar PDF
         doc.save('historico_dashboard.pdf');
     };
 
@@ -565,7 +633,7 @@ const DashboardPage: React.FC = () => {
     }
 
     const totalCountCurrent = summaryReportMeasurements.length;
-    const correctCountCurrent = summaryReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const correctCountCurrent = summaryReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
 
     let comparisonDisplay = null;
@@ -581,7 +649,7 @@ const DashboardPage: React.FC = () => {
 
         if (previousReportMeasurements.length > 0) {
           const totalCountPrevious = previousReportMeasurements.length;
-          const correctCountPrevious = previousReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const correctCountPrevious = previousReportMeasurements.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
           const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
           const diff = percentCurrent - percentPrevious;
 
@@ -649,7 +717,7 @@ const DashboardPage: React.FC = () => {
     }
 
     const totalCountCurrent = animalMeasurementsCurrent.length;
-    const correctCountCurrent = animalMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const correctCountCurrent = animalMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
 
     let comparisonDisplay = null;
@@ -666,7 +734,7 @@ const DashboardPage: React.FC = () => {
 
         if (animalMeasurementsPrevious.length > 0) {
           const totalCountPrevious = animalMeasurementsPrevious.length;
-          const correctCountPrevious = animalMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const correctCountPrevious = animalMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
           const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
           const diff = percentCurrent - percentPrevious;
 
@@ -733,7 +801,7 @@ const DashboardPage: React.FC = () => {
     }
 
     const totalCountCurrent = installationMeasurementsCurrent.length;
-    const correctCountCurrent = installationMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+    const correctCountCurrent = installationMeasurementsCurrent.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
     const percentCurrent = totalCountCurrent > 0 ? Math.round((correctCountCurrent / totalCountCurrent) * 100) : 0;
 
     let comparisonDisplay = null;
@@ -750,7 +818,7 @@ const DashboardPage: React.FC = () => {
 
         if (installationMeasurementsPrevious.length > 0) {
           const totalCountPrevious = installationMeasurementsPrevious.length;
-          const correctCountPrevious = installationMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || m.correct === 1).length;
+          const correctCountPrevious = installationMeasurementsPrevious.filter((m: Measurement) => String(m.correct) === '1' || String(m.correct) === 'true').length;
           const percentPrevious = totalCountPrevious > 0 ? Math.round((correctCountPrevious / totalCountPrevious) * 100) : 0;
           const diff = percentCurrent - percentPrevious;
 
@@ -895,7 +963,7 @@ const DashboardPage: React.FC = () => {
                     // Calculate overall health percentage
                     const totalMeasurements = reportMeasurements.length;
                     const correctMeasurements = reportMeasurements.filter(
-                        m => String(m.correct) === '1' || m.correct === 1
+                        m => String(m.correct) === '1' || String(m.correct) === 'true'
                     ).length;
                     
                     const healthPercentage = totalMeasurements > 0
@@ -933,14 +1001,14 @@ const DashboardPage: React.FC = () => {
                                     const reportData = measurements.filter(m => String(m.report_id) === reportId);
                                     const totalMeasurements = reportData.length;
                                     const correctMeasurements = reportData.filter(
-                                        m => String(m.correct) === '1' || m.correct === 1
+                                        m => String(m.correct) === '1' || String(m.correct) === 'true'
                                     ).length;
                                     
                                     // Calculate animal percentage
                                     const animalData = reportData.filter(m => m.type_of_object === 'Animal');
                                     const animalTotal = animalData.length;
                                     const animalCorrect = animalData.filter(
-                                        m => String(m.correct) === '1' || m.correct === 1
+                                        m => String(m.correct) === '1' || String(m.correct) === 'true'
                                     ).length;
                                     const animalPercentage = animalTotal > 0 
                                         ? Math.round((animalCorrect / animalTotal) * 100) 
@@ -950,7 +1018,7 @@ const DashboardPage: React.FC = () => {
                                     const installationData = reportData.filter(m => m.type_of_object === 'Installation');
                                     const installationTotal = installationData.length;
                                     const installationCorrect = installationData.filter(
-                                        m => String(m.correct) === '1' || m.correct === 1
+                                        m => String(m.correct) === '1' || String(m.correct) === 'true'
                                     ).length;
                                     const installationPercentage = installationTotal > 0 
                                         ? Math.round((installationCorrect / installationTotal) * 100) 
@@ -1031,7 +1099,7 @@ const DashboardPage: React.FC = () => {
               `"${m.value !== undefined ? String(m.value) : ''}"`, 
               `"${m.pen || ''}"`, 
               `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
-              `"${(String(m.correct) === '1' || m.correct === 1) ? 'Sí' : 'No'}"`, 
+              `"${(String(m.correct) === '1' || String(m.correct) === 'true') ? 'Sí' : 'No'}"`, 
               `"${m.type_of_object || ''}"`, 
               `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
               `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
@@ -1108,7 +1176,7 @@ const DashboardPage: React.FC = () => {
                     <td className="py-2 px-4 border-b">{m.pen}</td>
                     <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
                     <td className="py-2 px-4 border-b">
-  {String(m.correct) === '1' || m.correct === 1 ? (
+  {String(m.correct) === '1' || String(m.correct) === 'true' ? (
     <span className="flex justify-center">
       <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
