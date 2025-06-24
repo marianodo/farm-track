@@ -30,6 +30,8 @@ import RadialGauge from "./RadialGauge";
 import { Tab } from "@headlessui/react";
 import VariableCharts from "./VariableCharts";
 import jsPDF from 'jspdf';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import useReportStore from '@/store/reportStore';
 
 type TabType = "general" | "pens" | "numerical";
 
@@ -57,6 +59,7 @@ interface Measurement {
     optimo_max?: number; // numeric
     min?: number; // absolute minimum value
     max?: number; // absolute maximum value
+    field_id?: string; // Added field_id
 }
 
 interface HealthStatus {
@@ -128,6 +131,9 @@ const DashboardPage: React.FC = () => {
     const [selectedReportId, setSelectedReportId] = useState<string>("");
     const [selectedReportIdForSummary, setSelectedReportIdForSummary] = useState<string>("");
     const [selectedVariable, setSelectedVariable] = useState<string>("");
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [selectedReportIds, setSelectedReportIds] = useState<string[]>([]);
+    const { getReportsByField, reportsByField, reportLoading } = useReportStore();
 
     const handleReportChangeForSummary = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedReportIdForSummary(event.target.value);
@@ -318,293 +324,333 @@ const DashboardPage: React.FC = () => {
         }
     };
 
-    const handleExportHistoricToPDF = async () => {
-        // 1. Totales históricos
-        const totalReportes = reportOptions.length;
-        const totalMediciones = measurements.length;
-        const totalAnimales = measurements.filter(m => m.type_of_object === 'Animal').length;
-        const totalInstalacion = measurements.filter(m => m.type_of_object === 'Installation').length;
-
-        // 2. Gráfico de barras
-        const chartCanvas = document.querySelector('canvas');
-        let chartImgData = null;
-        if (chartCanvas) {
-            chartImgData = chartCanvas.toDataURL('image/png', 1.0);
+    // Obtener reportes únicos de las mediciones actuales (sin filtrar por field_id)
+    const fieldReports = React.useMemo(() => {
+      // Extrae reportes únicos por id de las mediciones visibles
+      const uniqueReports: { id: string, name?: string, created_at?: string }[] = [];
+      const seen = new Set();
+      for (const m of measurements) {
+        if (!seen.has(String(m.report_id))) {
+          uniqueReports.push({
+            id: String(m.report_id),
+            name: undefined, // Si tienes el nombre, puedes extraerlo aquí
+            created_at: m.measureDate
+          });
+          seen.add(String(m.report_id));
         }
+      }
+      return uniqueReports;
+    }, [measurements]);
 
-        // 3. Crear PDF
-        const doc = new jsPDF({ orientation: 'landscape' });
-        let y = 10;
-        doc.setFontSize(18);
-        doc.text('Histórico de Reportes', 10, y);
-        y += 10;
-        doc.setFontSize(12);
-        doc.text(`Total Reportes: ${totalReportes}`, 10, y);
-        doc.text(`Total Mediciones: ${totalMediciones}`, 60, y);
-        doc.text(`Total Animales: ${totalAnimales}`, 120, y);
-        doc.text(`Total Instalación: ${totalInstalacion}`, 180, y);
-        y += 10;
+    // Cargar reportes del campo al abrir modal
+    useEffect(() => {
+      if (showExportModal && selectedField.value !== 'all') {
+        getReportsByField(selectedField.value as string);
+      }
+    }, [showExportModal, selectedField, getReportsByField]);
 
-        if (chartImgData) {
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const chartWidth = 120;
-            const chartHeight = 60;
-            const chartX = (pageWidth - chartWidth) / 2;
-            doc.addImage(chartImgData, 'PNG', chartX, y, chartWidth, chartHeight);
-            y += chartHeight + 5;
-        }
-
-
-
-        // 8. Replicar cards y gauges para cada reporte (del más nuevo al más viejo)
-        const reportIdsSorted = Array.from(new Set(measurements.map(m => m.report_id)))
-          .sort((a, b) => Number(b) - Number(a));
-        for (const reportId of reportIdsSorted) {
-          const reportMeasurements = measurements.filter(m => String(m.report_id) === String(reportId));
-          if (!reportMeasurements.length) continue;
-          doc.addPage();
-          let yR = 20;
-          // Título con fecha
-          let fechaReporte = '-';
-          if (reportMeasurements[0]?.measureDate) {
-            fechaReporte = new Date(reportMeasurements[0].measureDate).toLocaleDateString();
-          }
-          doc.setFontSize(18);
-          doc.text(`Reporte: ${fechaReporte}`, 10, yR);
-          yR += 10;
-          // Resumen a la izquierda
-          const cantidadMediciones = reportMeasurements.length;
-          const totalCorrales = new Set(reportMeasurements.map(m => m.pen)).size;
-          const variablesMedidas = new Set(reportMeasurements.map(m => m.variable)).size;
-          doc.setFontSize(12);
-          let resumenX = 10, resumenY = yR + 5;
-          doc.text('Cantidad Mediciones', resumenX, resumenY);
-          doc.setFontSize(18);
-          doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
-          doc.setFontSize(12);
-          doc.text('Total Corrales', resumenX, resumenY + 18);
-          doc.setFontSize(18);
-          doc.text(String(totalCorrales), resumenX, resumenY + 26);
-          doc.setFontSize(12);
-          doc.text('Variables Medidas', resumenX, resumenY + 36);
-          doc.setFontSize(18);
-          doc.text(String(variablesMedidas), resumenX, resumenY + 44);
-          // Gauges (usamos los valores, no imagen SVG)
-          // General
-          const totalCountGeneral = reportMeasurements.length;
-          const correctCountGeneral = reportMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-          const percentGeneral = totalCountGeneral > 0 ? Math.round((correctCountGeneral / totalCountGeneral) * 100) : 0;
-          // Animales
-          const animalMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Animal');
-          const totalCountAnimal = animalMeasurements.length;
-          const correctCountAnimal = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-          const percentAnimal = totalCountAnimal > 0 ? Math.round((correctCountAnimal / totalCountAnimal) * 100) : 0;
-          // Instalaciones
-          const installationMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Installation');
-          const totalCountInstallation = installationMeasurements.length;
-          const correctCountInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-          const percentInstallation = totalCountInstallation > 0 ? Math.round((correctCountInstallation / totalCountInstallation) * 100) : 0;
-          // Dibujo simple de gauges (círculo y texto)
-          let xGauge = 70, yGauge = yR;
-          const drawGauge = (percent: number, label: string) => {
-            const r = 22, cx = xGauge + r, cy = yGauge + r + 10;
-            // Fondo
-            doc.setDrawColor(220);
-            doc.setLineWidth(3);
-            doc.circle(cx, cy, r, 'S');
-            // Arco de progreso (manual)
-            const startAngle = -Math.PI/2;
-            const endAngle = startAngle + (2 * Math.PI * (percent/100));
-            doc.setDrawColor(60,180,75); // verde
-            if (percent < 60) doc.setDrawColor(255,193,7); // amarillo
-            if (percent < 40) doc.setDrawColor(220,53,69); // rojo
-            doc.setLineWidth(4);
-            // Dibuja el arco usando líneas
-            const steps = 40;
-            let prev = null;
-            for (let i = 0; i <= steps * (percent/100); i++) {
-              const angle = startAngle + (endAngle - startAngle) * (i / steps);
-              const x = cx + r * Math.cos(angle);
-              const y = cy + r * Math.sin(angle);
-              if (prev) {
-                doc.line(prev[0], prev[1], x, y);
-              }
-              prev = [x, y];
-            }
-            // Texto centrado
-            doc.setFontSize(15);
-            doc.setTextColor(30,30,30);
-            const percentText = `${percent}%`;
-            const textWidth = doc.getTextWidth(percentText);
-            doc.text(percentText, cx - textWidth/2, cy + 5);
-            doc.setFontSize(9);
-            doc.setTextColor(100,100,100);
-            const labelWidth = doc.getTextWidth(label);
-            doc.text(label, cx - labelWidth/2, cy + r + 14);
-            xGauge += 60;
-          };
-          drawGauge(percentGeneral, 'General');
-          drawGauge(percentAnimal, 'Animales');
-          drawGauge(percentInstallation, 'Instalaciones');
-          yR += 65;
-          // Cards de corrales
-          const pensR = Array.from(new Set(reportMeasurements.map(m => m.pen))).filter(pen => pen);
-          if (pensR.length) {
-            yR += 10;
-            doc.setFontSize(15);
-            doc.text('Análisis por Corral', 10, yR);
-            yR += 8;
-            let col = 0, x0 = 10, cardW = 90, cardH = 60, gapX = 8, gapY = 8;
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margen = 10;
-            pensR.forEach((pen, idx) => {
-              if (yR + cardH + margen > pageHeight) {
-                doc.addPage();
-                yR = margen;
-                col = 0;
-              }
-              const penMeasurements = reportMeasurements.filter(m => m.pen === pen);
-              const totalCount = penMeasurements.length;
-              const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-              const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-              // Animales
-              const animalMeasurements = penMeasurements.filter(m => m.type_of_object === 'Animal');
-              const animalTotal = animalMeasurements.length;
-              const animalCorrect = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-              const animalPercent = animalTotal > 0 ? Math.round((animalCorrect / animalTotal) * 100) : null;
-              // Instalaciones
-              const installMeasurements = penMeasurements.filter(m => m.type_of_object === 'Installation');
-              const installTotal = installMeasurements.length;
-              const installCorrect = installMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-              const installPercent = installTotal > 0 ? Math.round((installCorrect / installTotal) * 100) : null;
-              // Posición
-              const x = x0 + col * (cardW + gapX);
-              const yCard = yR;
-              // Card
-              doc.setDrawColor(200);
-              doc.setFillColor(245,245,245);
-              doc.roundedRect(x, yCard, cardW, cardH, 4, 4, 'F');
-              doc.setFontSize(12);
-              doc.setTextColor(30,30,30);
-              doc.text(pen, x + 4, yCard + 8);
-              doc.setFontSize(10);
-              doc.setTextColor(100,100,100);
-              doc.text('Score de salud', x + 4, yCard + 15);
-              doc.setFontSize(16);
-              doc.setTextColor(30,30,30);
-              doc.text(`${percent}%`, x + 4, yCard + 25);
-              doc.setFontSize(10);
-              doc.setTextColor(100,100,100);
-              doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 32);
-              // Barra de score de salud
-              const barX = x + 4;
-              const barY = yCard + 30;
-              const barW = cardW - 8;
-              const barH = 3;
-              
-              let nextBarY = barY + barH;
-              // Animales
-              if (animalTotal > 0) {
-                doc.setFontSize(9);
-                doc.setTextColor(60,60,60);
-                doc.text(`Animales: ${animalPercent !== null ? animalPercent + '%' : '-'} (${animalCorrect}/${animalTotal})`, x + 4, nextBarY + 6);
-                // Barra de animales
-                const barColorAnimal: [number, number, number] = animalPercent !== null && animalPercent < 50 ? [220,53,69] : animalPercent !== null && animalPercent < 80 ? [255,193,7] : [40,167,69];
-                const barX = x + 4;
-                const barW = cardW - 8;
-                const barH = 3;
-                doc.setFillColor(230,230,230);
-                doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
-                doc.setFillColor(...barColorAnimal);
-                doc.roundedRect(barX, nextBarY + 8, barW * ((animalPercent ?? 0)/100), barH, 1, 1, 'F');
-                nextBarY += 14;
-              }
-              // Instalaciones
-              if (installTotal > 0) {
-                doc.setFontSize(9);
-                doc.setTextColor(60,60,60);
-                doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, nextBarY + 6);
-                // Barra de instalaciones
-                const barColorInst: [number, number, number] = installPercent !== null && installPercent < 50 ? [220,53,69] : installPercent !== null && installPercent < 80 ? [255,193,7] : [255,152,0];
-                const barX = x + 4;
-                const barW = cardW - 8;
-                const barH = 3;
-                doc.setFillColor(230,230,230);
-                doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
-                doc.setFillColor(...barColorInst);
-                doc.roundedRect(barX, nextBarY + 8, barW * ((installPercent ?? 0)/100), barH, 1, 1, 'F');
-                nextBarY += 14;
-              }
-              col++;
-              if (col === 3) { col = 0; yR += cardH + gapY; }
-            });
-            if (col !== 0) yR += cardH + gapY;
-          }
-          // Cards de variables por reporte
-          const variablesR = Array.from(new Set(reportMeasurements.map(m => m.variable))).filter(v => v);
-          if (variablesR.length) {
-            yR += 10;
-            doc.setFontSize(15);
-            doc.text('Análisis por Variable', 10, yR);
-            yR += 10;
-            let colV = 0, x0V = 10, cardWV = 120, cardHV = 55, gapXV = 12, gapYV = 12;
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margen = 10;
-            variablesR.forEach((variable, idx) => {
-              if (yR + cardHV + margen > pageHeight) {
-                doc.addPage();
-                yR = margen + 10;
-                colV = 0;
-              }
-              const varMeasurements = reportMeasurements.filter(m => m.variable === variable);
-              const type = varMeasurements[0]?.type_of_object || '-';
-              const totalCount = varMeasurements.length;
-              const correctCount = varMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
-              const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-              // Posición
-              const x = x0V + colV * (cardWV + gapXV);
-              const yCard = yR;
-              // Card
-              doc.setDrawColor(200);
-              doc.setFillColor(250,250,250);
-              doc.roundedRect(x, yCard, cardWV, cardHV, 4, 4, 'F');
-              doc.setFontSize(13);
-              doc.setTextColor(30,30,30);
-              doc.text(variable, x + 4, yCard + 10);
-              doc.setFontSize(10);
-              doc.setTextColor(120,120,120);
-              doc.text(type, x + 4, yCard + 17);
-              doc.text('Score de salud', x + 4, yCard + 23);
-              doc.setFontSize(16);
-              doc.setTextColor(30,30,30);
-              doc.text(`${percent}%`, x + 4, yCard + 33);
-              doc.setFontSize(10);
-              doc.setTextColor(100,100,100);
-              doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 40);
-              // Barra de score de salud para variable debajo del ratio
-              const barX = x + 4;
-              const barY = yCard + 43;
-              const barW = cardWV - 8;
-              const barH = 3;
-              let barColor: [number, number, number] = [40, 167, 69]; // verde
-              if (percent < 50) barColor = [220, 53, 69]; // rojo
-              else if (percent < 80) barColor = [255, 193, 7]; // amarillo
-              doc.setFillColor(230,230,230);
-              doc.roundedRect(barX, barY, barW, barH, 1, 1, 'F');
-              doc.setFillColor(...barColor);
-              doc.roundedRect(barX, barY, barW * (percent/100), barH, 1, 1, 'F');
-              colV++;
-              if (colV === 2) { colV = 0; yR += cardHV + gapYV; }
-            });
-            if (colV !== 0) yR += cardHV + gapYV;
-          }
-        }
-
-        // 7. Descargar PDF
-        doc.save('historico_dashboard.pdf');
+    // Abrir modal en vez de exportar directo
+    const handleExportHistoricToPDF = () => {
+      setShowExportModal(true);
+      setSelectedReportIds([]);
+      // Debug: log campo y reportes únicos
+      console.log('Campo seleccionado:', selectedField);
+      console.log('Reportes únicos detectados:', fieldReports);
     };
 
+    // Seleccionar/deseleccionar todos
+    const handleSelectAll = () => {
+      if (selectedReportIds.length === fieldReports.length) {
+        setSelectedReportIds([]);
+      } else {
+        setSelectedReportIds(fieldReports.map(r => r.id));
+      }
+    };
+
+    // Confirmar selección y exportar
+    const handleConfirmExport = () => {
+      setShowExportModal(false);
+      if (selectedReportIds.length === 0) return;
+      // Filtra las mediciones solo de los reportes seleccionados
+      const selectedMeasurements = measurements.filter(m => selectedReportIds.includes(String(m.report_id)));
+      // Ordena los reportes seleccionados de más nuevo a más viejo
+      const reportIdsSorted = [...selectedReportIds].sort((a, b) => Number(b) - Number(a));
+      // Llama a la función de exportación pasando solo los reportes seleccionados
+      exportSelectedReportsToPDF(selectedMeasurements, reportIdsSorted);
+    };
+
+    // Nueva función para exportar solo los reportes seleccionados
+    function exportSelectedReportsToPDF(selectedMeasurements: Measurement[], reportIdsSorted: string[]) {
+      // 1. Totales históricos (siempre al inicio)
+      const totalReportes = reportIdsSorted.length;
+      const totalMediciones = selectedMeasurements.length;
+      const totalAnimales = selectedMeasurements.filter(m => m.type_of_object === 'Animal').length;
+      const totalInstalacion = selectedMeasurements.filter(m => m.type_of_object === 'Installation').length;
+
+      // 2. Gráfico de barras (puedes mantener la lógica actual)
+      // ... (puedes mantener la lógica actual si quieres)
+
+      // 3. Crear PDF
+      const doc = new jsPDF({ orientation: 'landscape' });
+      let y = 10;
+      doc.setFontSize(18);
+      doc.text('Histórico de Reportes', 10, y);
+      y += 10;
+      doc.setFontSize(12);
+      doc.text(`Total Reportes: ${totalReportes}`, 10, y);
+      doc.text(`Total Mediciones: ${totalMediciones}`, 60, y);
+      doc.text(`Total Animales: ${totalAnimales}`, 120, y);
+      doc.text(`Total Instalación: ${totalInstalacion}`, 180, y);
+      y += 10;
+      // (Aquí puedes agregar el gráfico si lo deseas)
+
+      // 4. Para cada reporte seleccionado, mostrar gauges, cards de corrales y de variables
+      for (const reportId of reportIdsSorted) {
+        const reportMeasurements = selectedMeasurements.filter(m => String(m.report_id) === String(reportId));
+        if (!reportMeasurements.length) continue;
+        doc.addPage();
+        let yR = 20;
+        // Título con fecha
+        let fechaReporte = '-';
+        if (reportMeasurements[0]?.measureDate) {
+          fechaReporte = new Date(reportMeasurements[0].measureDate).toLocaleDateString();
+        }
+        doc.setFontSize(18);
+        doc.text(`Reporte: ${fechaReporte}`, 10, yR);
+        yR += 10;
+        // Resumen a la izquierda
+        const cantidadMediciones = reportMeasurements.length;
+        const totalCorrales = new Set(reportMeasurements.map(m => m.pen)).size;
+        const variablesMedidas = new Set(reportMeasurements.map(m => m.variable)).size;
+        doc.setFontSize(12);
+        let resumenX = 10, resumenY = yR + 5;
+        doc.text('Cantidad Mediciones', resumenX, resumenY);
+        doc.setFontSize(18);
+        doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
+        doc.setFontSize(12);
+        doc.text('Total Corrales', resumenX, resumenY + 18);
+        doc.setFontSize(18);
+        doc.text(String(totalCorrales), resumenX, resumenY + 26);
+        doc.setFontSize(12);
+        doc.text('Variables Medidas', resumenX, resumenY + 36);
+        doc.setFontSize(18);
+        doc.text(String(variablesMedidas), resumenX, resumenY + 44);
+        // Gauges (usamos los valores, no imagen SVG)
+        // General
+        const totalCountGeneral = reportMeasurements.length;
+        const correctCountGeneral = reportMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+        const percentGeneral = totalCountGeneral > 0 ? Math.round((correctCountGeneral / totalCountGeneral) * 100) : 0;
+        // Animales
+        const animalMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Animal');
+        const totalCountAnimal = animalMeasurements.length;
+        const correctCountAnimal = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+        const percentAnimal = totalCountAnimal > 0 ? Math.round((correctCountAnimal / totalCountAnimal) * 100) : 0;
+        // Instalaciones
+        const installationMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Installation');
+        const totalCountInstallation = installationMeasurements.length;
+        const correctCountInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+        const percentInstallation = totalCountInstallation > 0 ? Math.round((correctCountInstallation / totalCountInstallation) * 100) : 0;
+        // Dibujo simple de gauges (círculo y texto)
+        let xGauge = 70, yGauge = yR;
+        const drawGauge = (percent: number, label: string) => {
+          const r = 22, cx = xGauge + r, cy = yGauge + r + 10;
+          // Fondo
+          doc.setDrawColor(220);
+          doc.setLineWidth(3);
+          doc.circle(cx, cy, r, 'S');
+          // Arco de progreso (manual)
+          const startAngle = -Math.PI/2;
+          const endAngle = startAngle + (2 * Math.PI * (percent/100));
+          doc.setDrawColor(60,180,75); // verde
+          if (percent < 60) doc.setDrawColor(255,193,7); // amarillo
+          if (percent < 40) doc.setDrawColor(220,53,69); // rojo
+          doc.setLineWidth(4);
+          // Dibuja el arco usando líneas
+          const steps = 40;
+          let prev = null;
+          for (let i = 0; i <= steps * (percent/100); i++) {
+            const angle = startAngle + (endAngle - startAngle) * (i / steps);
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (prev) {
+              doc.line(prev[0], prev[1], x, y);
+            }
+            prev = [x, y];
+          }
+          // Texto centrado
+          doc.setFontSize(15);
+          doc.setTextColor(30,30,30);
+          const percentText = `${percent}%`;
+          const textWidth = doc.getTextWidth(percentText);
+          doc.text(percentText, cx - textWidth/2, cy + 5);
+          doc.setFontSize(9);
+          doc.setTextColor(100,100,100);
+          const labelWidth = doc.getTextWidth(label);
+          doc.text(label, cx - labelWidth/2, cy + r + 14);
+          xGauge += 60;
+        };
+        drawGauge(percentGeneral, 'General');
+        drawGauge(percentAnimal, 'Animales');
+        drawGauge(percentInstallation, 'Instalaciones');
+        yR += 65;
+        // Cards de corrales (igual que antes)
+        const pensR = Array.from(new Set(reportMeasurements.map(m => m.pen))).filter(pen => pen);
+        if (pensR.length) {
+          yR += 10;
+          doc.setFontSize(15);
+          doc.text('Análisis por Corral', 10, yR);
+          yR += 8;
+          let col = 0, x0 = 10, cardW = 90, cardH = 60, gapX = 8, gapY = 8;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const margen = 10;
+          pensR.forEach((pen, idx) => {
+            if (yR + cardH + margen > pageHeight) {
+              doc.addPage();
+              yR = margen;
+              col = 0;
+            }
+            const penMeasurements = reportMeasurements.filter(m => m.pen === pen);
+            const totalCount = penMeasurements.length;
+            const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+            const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+            // Animales
+            const animalMeasurements = penMeasurements.filter(m => m.type_of_object === 'Animal');
+            const animalTotal = animalMeasurements.length;
+            const animalCorrect = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+            const animalPercent = animalTotal > 0 ? Math.round((animalCorrect / animalTotal) * 100) : null;
+            // Instalaciones
+            const installMeasurements = penMeasurements.filter(m => m.type_of_object === 'Installation');
+            const installTotal = installMeasurements.length;
+            const installCorrect = installMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+            const installPercent = installTotal > 0 ? Math.round((installCorrect / installTotal) * 100) : null;
+            // Posición
+            const x = x0 + col * (cardW + gapX);
+            const yCard = yR;
+            // Card
+            doc.setDrawColor(200);
+            doc.setFillColor(245,245,245);
+            doc.roundedRect(x, yCard, cardW, cardH, 4, 4, 'F');
+            doc.setFontSize(12);
+            doc.setTextColor(30,30,30);
+            doc.text(pen, x + 4, yCard + 8);
+            doc.setFontSize(10);
+            doc.setTextColor(100,100,100);
+            doc.text('Score de salud', x + 4, yCard + 15);
+            doc.setFontSize(16);
+            doc.setTextColor(30,30,30);
+            doc.text(`${percent}%`, x + 4, yCard + 25);
+            doc.setFontSize(10);
+            doc.setTextColor(100,100,100);
+            doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 32);
+            // Barra de score de salud
+            const barX = x + 4;
+            const barY = yCard + 30;
+            const barW = cardW - 8;
+            const barH = 3;
+            
+            let nextBarY = barY + barH;
+            // Animales
+            if (animalTotal > 0) {
+              doc.setFontSize(9);
+              doc.setTextColor(60,60,60);
+              doc.text(`Animales: ${animalPercent !== null ? animalPercent + '%' : '-'} (${animalCorrect}/${animalTotal})`, x + 4, nextBarY + 6);
+              // Barra de animales
+              const barColorAnimal: [number, number, number] = animalPercent !== null && animalPercent < 50 ? [220,53,69] : animalPercent !== null && animalPercent < 80 ? [255,193,7] : [40,167,69];
+              const barX = x + 4;
+              const barW = cardW - 8;
+              const barH = 3;
+              doc.setFillColor(230,230,230);
+              doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
+              doc.setFillColor(...barColorAnimal);
+              doc.roundedRect(barX, nextBarY + 8, barW * ((animalPercent ?? 0)/100), barH, 1, 1, 'F');
+              nextBarY += 14;
+            }
+            // Instalaciones
+            if (installTotal > 0) {
+              doc.setFontSize(9);
+              doc.setTextColor(60,60,60);
+              doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, nextBarY + 6);
+              // Barra de instalaciones
+              const barColorInst: [number, number, number] = installPercent !== null && installPercent < 50 ? [220,53,69] : installPercent !== null && installPercent < 80 ? [255,193,7] : [255,152,0];
+              const barX = x + 4;
+              const barW = cardW - 8;
+              const barH = 3;
+              doc.setFillColor(230,230,230);
+              doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
+              doc.setFillColor(...barColorInst);
+              doc.roundedRect(barX, nextBarY + 8, barW * ((installPercent ?? 0)/100), barH, 1, 1, 'F');
+              nextBarY += 14;
+            }
+            col++;
+            if (col === 3) { col = 0; yR += cardH + gapY; }
+          });
+          if (col !== 0) yR += cardH + gapY;
+        }
+        // Cards de variables por reporte (igual que antes)
+        const variablesR = Array.from(new Set(reportMeasurements.map(m => m.variable))).filter(v => v);
+        if (variablesR.length) {
+          yR += 10;
+          doc.setFontSize(15);
+          doc.text('Análisis por Variable', 10, yR);
+          yR += 10;
+          let colV = 0, x0V = 10, cardWV = 120, cardHV = 55, gapXV = 12, gapYV = 12;
+          const pageHeight = doc.internal.pageSize.getHeight();
+          const margen = 10;
+          variablesR.forEach((variable, idx) => {
+            if (yR + cardHV + margen > pageHeight) {
+              doc.addPage();
+              yR = margen + 10;
+              colV = 0;
+            }
+            const varMeasurements = reportMeasurements.filter(m => m.variable === variable);
+            const type = varMeasurements[0]?.type_of_object || '-';
+            const totalCount = varMeasurements.length;
+            const correctCount = varMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+            const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+            // Posición
+            const x = x0V + colV * (cardWV + gapXV);
+            const yCard = yR;
+            // Card
+            doc.setDrawColor(200);
+            doc.setFillColor(250,250,250);
+            doc.roundedRect(x, yCard, cardWV, cardHV, 4, 4, 'F');
+            doc.setFontSize(13);
+            doc.setTextColor(30,30,30);
+            doc.text(variable, x + 4, yCard + 10);
+            doc.setFontSize(10);
+            doc.setTextColor(120,120,120);
+            doc.text(type, x + 4, yCard + 17);
+            doc.text('Score de salud', x + 4, yCard + 23);
+            doc.setFontSize(16);
+            doc.setTextColor(30,30,30);
+            doc.text(`${percent}%`, x + 4, yCard + 33);
+            doc.setFontSize(10);
+            doc.setTextColor(100,100,100);
+            doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 40);
+            // Barra de score de salud para variable debajo del ratio
+            const barX = x + 4;
+            const barY = yCard + 43;
+            const barW = cardWV - 8;
+            const barH = 3;
+            let barColor: [number, number, number] = [40, 167, 69]; // verde
+            if (percent < 50) barColor = [220, 53, 69]; // rojo
+            else if (percent < 80) barColor = [255, 193, 7]; // amarillo
+            doc.setFillColor(230,230,230);
+            doc.roundedRect(barX, barY, barW, barH, 1, 1, 'F');
+            doc.setFillColor(...barColor);
+            doc.roundedRect(barX, barY, barW * (percent/100), barH, 1, 1, 'F');
+            colV++;
+            if (colV === 2) { colV = 0; yR += cardHV + gapYV; }
+          });
+          if (colV !== 0) yR += cardHV + gapYV;
+        }
+      }
+      // Descargar PDF
+      doc.save('historico_dashboard.pdf');
+    }
+
     return (
+      <>
         <div className="flex flex-col w-full py-4 items-start justify-start">
             <h1 className="text-3xl font-bold mb-6 text-green-dark">Dashboard</h1>
             <div className="bg-white rounded-lg w-full shadow-md mb-6 p-6">
@@ -1779,6 +1825,63 @@ const DashboardPage: React.FC = () => {
                 </div>
             </div>
         </div>
+        <Dialog open={showExportModal} onOpenChange={setShowExportModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Seleccionar reportes a exportar</DialogTitle>
+            </DialogHeader>
+            {reportLoading ? (
+              <div className="py-4 text-center">Cargando reportes...</div>
+            ) : fieldReports.length === 0 ? (
+              <div className="py-4 text-center text-gray-500">No hay reportes para este campo.</div>
+            ) : (
+              <form className="space-y-2 max-h-72 overflow-y-auto">
+                <div className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    id="select-all"
+                    checked={selectedReportIds.length === fieldReports.length && fieldReports.length > 0}
+                    onChange={handleSelectAll}
+                    className="mr-2"
+                  />
+                  <label htmlFor="select-all" className="font-medium cursor-pointer">Seleccionar todos</label>
+                </div>
+                {fieldReports.map((report) => (
+                  <div key={report.id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`report-${report.id}`}
+                      checked={selectedReportIds.includes(report.id)}
+                      onChange={() => {
+                        setSelectedReportIds(ids => ids.includes(report.id)
+                          ? ids.filter(id => id !== report.id)
+                          : [...ids, report.id]);
+                      }}
+                      className="mr-2"
+                    />
+                    <label htmlFor={`report-${report.id}`} className="cursor-pointer">
+                      {report.name || `Reporte ${report.id}`} - {report.created_at ? new Date(report.created_at).toLocaleDateString() : ''}
+                    </label>
+                  </div>
+                ))}
+              </form>
+            )}
+            <DialogFooter>
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={selectedReportIds.length === 0}
+                onClick={handleConfirmExport}
+              >
+                Exportar seleccionados
+              </button>
+              <DialogClose asChild>
+                <button type="button" className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancelar</button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
 };
 
