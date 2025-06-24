@@ -403,15 +403,15 @@ const DashboardPage: React.FC = () => {
         // 6. Cards de corrales del último reporte
         const pens = Array.from(new Set(summaryReportMeasurements.map(m => m.pen))).filter(pen => pen);
         if (pens.length) {
-            y += 10;
-            doc.setFontSize(15);
+            doc.addPage();
+            y = 20;
+            doc.setFontSize(18);
             doc.text('Análisis por Corral', 10, y);
             y += 8;
             let col = 0, x0 = 10, cardW = 90, cardH = 50, gapX = 8, gapY = 8;
             const pageHeight = doc.internal.pageSize.getHeight();
             const margen = 10;
             pens.forEach((pen, idx) => {
-              // Si no hay espacio suficiente para la siguiente card, salto de página
               if (y + cardH + margen > pageHeight) {
                 doc.addPage();
                 y = margen;
@@ -466,6 +466,53 @@ const DashboardPage: React.FC = () => {
               if (col === 3) { col = 0; y += cardH + gapY; }
             });
             if (col !== 0) y += cardH + gapY;
+        }
+
+        // 7. Página nueva para Variables
+        const variables = Array.from(new Set(summaryReportMeasurements.map(m => m.variable))).filter(v => v);
+        if (variables.length) {
+            doc.addPage();
+            let yVar = 20;
+            doc.setFontSize(18);
+            doc.text('Análisis por Variable', 10, yVar);
+            yVar += 10;
+            let col = 0, x0 = 10, cardW = 120, cardH = 45, gapX = 12, gapY = 12;
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margen = 10;
+            variables.forEach((variable, idx) => {
+              if (yVar + cardH + margen > pageHeight) {
+                doc.addPage();
+                yVar = margen + 10;
+                col = 0;
+              }
+              const varMeasurements = summaryReportMeasurements.filter(m => m.variable === variable);
+              const type = varMeasurements[0]?.type_of_object || '-';
+              const totalCount = varMeasurements.length;
+              const correctCount = varMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+              const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+              // Posición
+              const x = x0 + col * (cardW + gapX);
+              const yCard = yVar;
+              // Card
+              doc.setDrawColor(200);
+              doc.setFillColor(250,250,250);
+              doc.roundedRect(x, yCard, cardW, cardH, 4, 4, 'F');
+              doc.setFontSize(13);
+              doc.setTextColor(30,30,30);
+              doc.text(variable, x + 4, yCard + 10);
+              doc.setFontSize(10);
+              doc.setTextColor(120,120,120);
+              doc.text(type, x + 4, yCard + 17);
+              doc.text('Score de salud', x + 4, yCard + 23);
+              doc.setFontSize(16);
+              doc.setTextColor(30,30,30);
+              doc.text(`${percent}%`, x + 4, yCard + 33);
+              doc.setFontSize(10);
+              doc.setTextColor(100,100,100);
+              doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 40);
+              col++;
+              if (col === 2) { col = 0; yVar += cardH + gapY; }
+            });
         }
 
         // 7. Descargar PDF
