@@ -581,6 +581,18 @@ const DashboardPage: React.FC = () => {
               doc.setFontSize(10);
               doc.setTextColor(100,100,100);
               doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 40);
+              // Barra de score de salud para variable debajo del ratio
+              const barX = x + 4;
+              const barY = yCard + 43;
+              const barW = cardWV - 8;
+              const barH = 3;
+              let barColor: [number, number, number] = [40, 167, 69]; // verde
+              if (percent < 50) barColor = [220, 53, 69]; // rojo
+              else if (percent < 80) barColor = [255, 193, 7]; // amarillo
+              doc.setFillColor(230,230,230);
+              doc.roundedRect(barX, barY, barW, barH, 1, 1, 'F');
+              doc.setFillColor(...barColor);
+              doc.roundedRect(barX, barY, barW * (percent/100), barH, 1, 1, 'F');
               colV++;
               if (colV === 2) { colV = 0; yR += cardHV + gapYV; }
             });
