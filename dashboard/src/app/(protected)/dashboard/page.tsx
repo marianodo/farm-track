@@ -346,8 +346,12 @@ const DashboardPage: React.FC = () => {
         y += 10;
 
         if (chartImgData) {
-            doc.addImage(chartImgData, 'PNG', 10, y, 120, 60);
-            y += 65;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const chartWidth = 120;
+            const chartHeight = 60;
+            const chartX = (pageWidth - chartWidth) / 2;
+            doc.addImage(chartImgData, 'PNG', chartX, y, chartWidth, chartHeight);
+            y += chartHeight + 5;
         }
 
         // 4. Título y resumen + gauges del último reporte
