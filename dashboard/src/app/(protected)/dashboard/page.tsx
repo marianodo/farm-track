@@ -90,6 +90,31 @@ function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(" ");
 }
 
+// Utilidad para convertir SVG a imagen base64
+async function svgToPngDataUrl(svgElement: SVGSVGElement, width = 140, height = 140): Promise<string> {
+  return new Promise((resolve) => {
+    const svgString = new XMLSerializer().serializeToString(svgElement);
+    const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new window.Image();
+    img.onload = function () {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        const pngDataUrl = canvas.toDataURL('image/png');
+        URL.revokeObjectURL(url);
+        resolve(pngDataUrl);
+      } else {
+        resolve('');
+      }
+    };
+    img.src = url;
+  });
+}
+
 const DashboardPage: React.FC = () => {
     const [selectedField, setSelectedField] = useState<Field | AllFieldsOption>({
         value: "all",
@@ -293,45 +318,21 @@ const DashboardPage: React.FC = () => {
         }
     };
 
-    const handleExportHistoricToPDF = () => {
-        // 1. Obtener los totales históricos
+    const handleExportHistoricToPDF = async () => {
+        // 1. Totales históricos
         const totalReportes = reportOptions.length;
         const totalMediciones = measurements.length;
         const totalAnimales = measurements.filter(m => m.type_of_object === 'Animal').length;
         const totalInstalacion = measurements.filter(m => m.type_of_object === 'Installation').length;
 
-        // 2. Obtener el histórico de % correctos por reporte
-        // Usamos el mismo cálculo que el gráfico
-        const reportIdStrings = reportOptions.map(opt => String(opt.value));
-        const historicData = reportIdStrings.map(reportId => {
-            const reportData = measurements.filter(m => String(m.report_id) === reportId);
-            const total = reportData.length;
-            const correct = reportData.filter(m => String(m.correct) === '1' || m.correct === 1).length;
-            const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
-            // Buscar la fecha del reporte
-            let date = '';
-            const found = reportData[0];
-            if (found && found.measureDate) {
-                date = new Date(found.measureDate).toLocaleDateString();
-            } else {
-                // Buscar en reportOptions
-                const opt = reportOptions.find(opt => String(opt.value) === reportId);
-                if (opt && opt.label) {
-                    date = opt.label.split(' (ID:')[0];
-                }
-            }
-            return { reportId, date, percent };
-        });
-
-        // 3. Obtener el canvas del gráfico de barras
-        // Buscamos el primer canvas de Chart.js en la página
+        // 2. Gráfico de barras
         const chartCanvas = document.querySelector('canvas');
         let chartImgData = null;
         if (chartCanvas) {
             chartImgData = chartCanvas.toDataURL('image/png', 1.0);
         }
 
-        // 4. Crear el PDF
+        // 3. Crear PDF
         const doc = new jsPDF({ orientation: 'landscape' });
         let y = 10;
         doc.setFontSize(18);
@@ -344,27 +345,62 @@ const DashboardPage: React.FC = () => {
         doc.text(`Total Instalación: ${totalInstalacion}`, 180, y);
         y += 10;
 
-        // 5. Insertar gráfico si existe
         if (chartImgData) {
             doc.addImage(chartImgData, 'PNG', 10, y, 120, 60);
             y += 65;
         }
 
-        // 6. Insertar tabla de histórico
-        doc.setFontSize(14);
-        doc.text('Histórico de % Correctos por Reporte', 10, y);
-        y += 8;
-        doc.setFontSize(10);
-        doc.text('Fecha', 10, y);
-        doc.text('% Correctos', 60, y);
-        y += 6;
-        historicData.forEach(row => {
-            doc.text(row.date, 10, y);
-            doc.text(row.percent + '%', 60, y);
-            y += 6;
-        });
+        // 4. Título y resumen + gauges del último reporte
+        let fechaReporte = '-';
+        if (selectedReportIdForSummary && summaryReportMeasurements.length > 0 && summaryReportMeasurements[0]?.measureDate) {
+            fechaReporte = new Date(summaryReportMeasurements[0].measureDate).toLocaleDateString();
+        } else if (selectedReportIdForSummary) {
+            const selectedOption = reportOptions.find(opt => String(opt.value) === String(selectedReportIdForSummary));
+            if (selectedOption && selectedOption.label.includes(' (ID:')) {
+                fechaReporte = selectedOption.label.split(' (ID:')[0];
+            } else if (selectedOption) {
+                fechaReporte = selectedOption.label; 
+            } else {
+                fechaReporte = `ID: ${selectedReportIdForSummary}`;
+            }
+        }
+        y += 10;
+        doc.setFontSize(16);
+        doc.text(`Datos del Reporte (${fechaReporte})`, 10, y);
+        y += 10;
 
-        // 7. Descargar PDF
+        // Resumen a la izquierda
+        const cantidadMediciones = summaryReportMeasurements.length;
+        const totalCorrales = new Set(summaryReportMeasurements.map(m => m.pen)).size;
+        const variablesMedidas = new Set(summaryReportMeasurements.map(m => m.variable)).size;
+        doc.setFontSize(12);
+        let resumenX = 10, resumenY = y + 5;
+        doc.text('Cantidad Mediciones', resumenX, resumenY);
+        doc.setFontSize(18);
+        doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
+        doc.setFontSize(12);
+        doc.text('Total Corrales', resumenX, resumenY + 18);
+        doc.setFontSize(18);
+        doc.text(String(totalCorrales), resumenX, resumenY + 26);
+        doc.setFontSize(12);
+        doc.text('Variables Medidas', resumenX, resumenY + 36);
+        doc.setFontSize(18);
+        doc.text(String(variablesMedidas), resumenX, resumenY + 44);
+
+        // 5. Insertar imágenes de los tres RadialGauge visibles (en una fila, a la derecha del resumen)
+        const gaugeSvgs = Array.from(document.querySelectorAll('svg')).filter(svg => {
+            return Array.from(svg.querySelectorAll('text')).some(t => t.textContent && (t.textContent.includes('%') || t.textContent.includes('Sin datos')));
+        });
+        const gaugeImgs: string[] = await Promise.all(gaugeSvgs.slice(0, 3).map(svg => svgToPngDataUrl(svg as SVGSVGElement, 120, 120)));
+        if (gaugeImgs.length) {
+            let x = 70, yG = y;
+            gaugeImgs.forEach((img, i) => {
+                if (img) doc.addImage(img, 'PNG', x + i * 60, yG, 50, 50);
+            });
+            y = Math.max(y, yG + 55);
+        }
+
+        // 6. Descargar PDF
         doc.save('historico_dashboard.pdf');
     };
 
