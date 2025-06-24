@@ -38,7 +38,10 @@ export type NumericValue = {
   granularity: number | string;
 };
 
-export type CategoricalValue = string[];
+export type CategoricalValue = {
+  categories: string[];
+  optimal_values?: string[];
+};
 
 type DefaultParameters = {
   value: NumericValue | CategoricalValue;
@@ -129,25 +132,35 @@ const EditAttribute: React.FC = () => {
     const newError: FormDataError = {
       name: validateNameInput(formData.name ?? '', t),
       type: formData.type ? null : t('validation.required'),
-      defaultValue:
-        formData.type === 'NUMBER'
-          ? validateRangeOrGranularity(
-            formData.defaultValue?.value as NumericValue,
-            t
-          )
-          : validateCategoricalValue(
-            formData.defaultValue?.value?.categories as CategoricalValue,
-            t
-          ),
-      optimal_values: validateOptimalCategoricalValue(
-        formData.defaultValue?.value?.optimal_values as string[],
-        t
-      ),
+      defaultValue: null,
       type_of_object_ids: validateTypeObjectValue(
         formData.type_of_object_ids,
         t
       ),
+      optimal_values: null,
     };
+
+    // Validar según el tipo de atributo
+    if (formData.type === 'NUMBER') {
+      // Validación para variables numéricas
+      newError.defaultValue = validateRangeOrGranularity(
+        formData.defaultValue?.value as NumericValue,
+        t
+      );
+    } else if (formData.type === 'CATEGORICAL') {
+      // Validación para variables categóricas
+      const categoricalValue = formData.defaultValue?.value as CategoricalValue;
+      newError.defaultValue = validateCategoricalValue(
+        categoricalValue?.categories || [],
+        t
+      );
+      
+      // Solo validar valores óptimos si es categórico
+      newError.optimal_values = validateOptimalCategoricalValue(
+        categoricalValue?.optimal_values || [],
+        t
+      );
+    }
 
     setError(newError);
     return (
@@ -212,108 +225,6 @@ const EditAttribute: React.FC = () => {
     }
     setFormData(updatedFormData);
   };
-
-  // const onChangeDefaultValue = (value: any, key: string) => {
-  //   if (formData.type !== null && formData.type === 'NUMBER') {
-  //     const updatedValues = {
-  //       ...((formData.defaultValue?.value as NumericValue) || {}),
-  //       [key]: value !== '' ? Number(value) : '',
-  //     };
-
-  //     const newFormData = {
-  //       ...formData,
-  //       defaultValue: {
-  //         ...formData.defaultValue,
-  //         value: updatedValues,
-  //       },
-  //     };
-
-  //     setFormData(newFormData);
-
-  //     const errors = validateRangeOrGranularity(
-  //       newFormData?.defaultValue?.value as NumericValue,
-  //       t
-  //     );
-
-  //     setError((prevError) => ({
-  //       ...prevError,
-  //       defaultValue: errors,
-  //     }));
-  //     return;
-  //   }
-  //   if (formData.type !== null && formData.type === 'CATEGORICAL') {
-  //     if (key === 'delete') {
-  //       setFormData((prevFormData) => {
-  //         const updatedValues = Array.isArray(prevFormData.defaultValue?.value)
-  //           ? prevFormData.defaultValue.value.filter(
-  //             (item: string) => item.toLowerCase() !== value.toLowerCase()
-  //           )
-  //           : [];
-
-  //         const newFormData = {
-  //           ...prevFormData,
-  //           defaultValue:
-  //             updatedValues.length > 0
-  //               ? {
-  //                 ...prevFormData.defaultValue,
-  //                 value: updatedValues,
-  //               }
-  //               : null,
-  //         };
-
-  //         const errors = validateCategoricalValue(
-  //           newFormData.defaultValue?.value as CategoricalValue,
-  //           t
-  //         );
-
-  //         setError((prevError) => ({
-  //           ...prevError,
-  //           defaultValue: errors,
-  //         }));
-
-  //         return newFormData;
-  //       });
-  //     } else {
-  //       setFormData((prevFormData) => {
-  //         let newFormData: FormData;
-  //         const currentValues = Array.isArray(prevFormData.defaultValue?.value)
-  //           ? prevFormData.defaultValue.value
-  //           : [];
-
-  //         if (
-  //           value &&
-  //           value.trim() !== '' &&
-  //           !currentValues.some(
-  //             (item) => item.toLowerCase() === value.toLowerCase()
-  //           )
-  //         ) {
-  //           const newValues = [...currentValues, value];
-  //           newFormData = {
-  //             ...prevFormData,
-  //             defaultValue: {
-  //               ...prevFormData.defaultValue,
-  //               value: newValues,
-  //             },
-  //           };
-  //         } else {
-  //           newFormData = prevFormData;
-  //         }
-
-  //         const errors = validateCategoricalValue(
-  //           newFormData.defaultValue?.value as CategoricalValue,
-  //           t
-  //         );
-
-  //         setError((prevError) => ({
-  //           ...prevError,
-  //           defaultValue: errors,
-  //         }));
-
-  //         return newFormData;
-  //       });
-  //     }
-  //   }
-  // };
 
   const onChangeDefaultValue = (value: any, key: string) => {
     if (formData.type !== null && formData.type === 'NUMBER') {
