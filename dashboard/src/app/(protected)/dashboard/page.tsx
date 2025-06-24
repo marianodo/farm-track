@@ -354,74 +354,116 @@ const DashboardPage: React.FC = () => {
             y += chartHeight + 5;
         }
 
-        // 4. Título y resumen + gauges del último reporte
-        let fechaReporte = '-';
-        if (selectedReportIdForSummary && summaryReportMeasurements.length > 0 && summaryReportMeasurements[0]?.measureDate) {
-            fechaReporte = new Date(summaryReportMeasurements[0].measureDate).toLocaleDateString();
-        } else if (selectedReportIdForSummary) {
-            const selectedOption = reportOptions.find(opt => String(opt.value) === String(selectedReportIdForSummary));
-            if (selectedOption && selectedOption.label.includes(' (ID:')) {
-                fechaReporte = selectedOption.label.split(' (ID:')[0];
-            } else if (selectedOption) {
-                fechaReporte = selectedOption.label; 
-            } else {
-                fechaReporte = `ID: ${selectedReportIdForSummary}`;
+
+
+        // 8. Replicar cards y gauges para cada reporte (del más nuevo al más viejo)
+        const reportIdsSorted = Array.from(new Set(measurements.map(m => m.report_id)))
+          .sort((a, b) => Number(b) - Number(a));
+        for (const reportId of reportIdsSorted) {
+          const reportMeasurements = measurements.filter(m => String(m.report_id) === String(reportId));
+          if (!reportMeasurements.length) continue;
+          doc.addPage();
+          let yR = 20;
+          // Título con fecha
+          let fechaReporte = '-';
+          if (reportMeasurements[0]?.measureDate) {
+            fechaReporte = new Date(reportMeasurements[0].measureDate).toLocaleDateString();
+          }
+          doc.setFontSize(18);
+          doc.text(`Reporte: ${fechaReporte}`, 10, yR);
+          yR += 10;
+          // Resumen a la izquierda
+          const cantidadMediciones = reportMeasurements.length;
+          const totalCorrales = new Set(reportMeasurements.map(m => m.pen)).size;
+          const variablesMedidas = new Set(reportMeasurements.map(m => m.variable)).size;
+          doc.setFontSize(12);
+          let resumenX = 10, resumenY = yR + 5;
+          doc.text('Cantidad Mediciones', resumenX, resumenY);
+          doc.setFontSize(18);
+          doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
+          doc.setFontSize(12);
+          doc.text('Total Corrales', resumenX, resumenY + 18);
+          doc.setFontSize(18);
+          doc.text(String(totalCorrales), resumenX, resumenY + 26);
+          doc.setFontSize(12);
+          doc.text('Variables Medidas', resumenX, resumenY + 36);
+          doc.setFontSize(18);
+          doc.text(String(variablesMedidas), resumenX, resumenY + 44);
+          // Gauges (usamos los valores, no imagen SVG)
+          // General
+          const totalCountGeneral = reportMeasurements.length;
+          const correctCountGeneral = reportMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+          const percentGeneral = totalCountGeneral > 0 ? Math.round((correctCountGeneral / totalCountGeneral) * 100) : 0;
+          // Animales
+          const animalMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Animal');
+          const totalCountAnimal = animalMeasurements.length;
+          const correctCountAnimal = animalMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+          const percentAnimal = totalCountAnimal > 0 ? Math.round((correctCountAnimal / totalCountAnimal) * 100) : 0;
+          // Instalaciones
+          const installationMeasurements = reportMeasurements.filter(m => m.type_of_object === 'Installation');
+          const totalCountInstallation = installationMeasurements.length;
+          const correctCountInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
+          const percentInstallation = totalCountInstallation > 0 ? Math.round((correctCountInstallation / totalCountInstallation) * 100) : 0;
+          // Dibujo simple de gauges (círculo y texto)
+          let xGauge = 70, yGauge = yR;
+          const drawGauge = (percent: number, label: string) => {
+            const r = 22, cx = xGauge + r, cy = yGauge + r + 10;
+            // Fondo
+            doc.setDrawColor(220);
+            doc.setLineWidth(3);
+            doc.circle(cx, cy, r, 'S');
+            // Arco de progreso (manual)
+            const startAngle = -Math.PI/2;
+            const endAngle = startAngle + (2 * Math.PI * (percent/100));
+            doc.setDrawColor(60,180,75); // verde
+            if (percent < 60) doc.setDrawColor(255,193,7); // amarillo
+            if (percent < 40) doc.setDrawColor(220,53,69); // rojo
+            doc.setLineWidth(4);
+            // Dibuja el arco usando líneas
+            const steps = 40;
+            let prev = null;
+            for (let i = 0; i <= steps * (percent/100); i++) {
+              const angle = startAngle + (endAngle - startAngle) * (i / steps);
+              const x = cx + r * Math.cos(angle);
+              const y = cy + r * Math.sin(angle);
+              if (prev) {
+                doc.line(prev[0], prev[1], x, y);
+              }
+              prev = [x, y];
             }
-        }
-        y += 10;
-        doc.setFontSize(16);
-        doc.text(`Datos del Reporte (${fechaReporte})`, 10, y);
-        y += 10;
-
-        // Resumen a la izquierda
-        const cantidadMediciones = summaryReportMeasurements.length;
-        const totalCorrales = new Set(summaryReportMeasurements.map(m => m.pen)).size;
-        const variablesMedidas = new Set(summaryReportMeasurements.map(m => m.variable)).size;
-        doc.setFontSize(12);
-        let resumenX = 10, resumenY = y + 5;
-        doc.text('Cantidad Mediciones', resumenX, resumenY);
-        doc.setFontSize(18);
-        doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
-        doc.setFontSize(12);
-        doc.text('Total Corrales', resumenX, resumenY + 18);
-        doc.setFontSize(18);
-        doc.text(String(totalCorrales), resumenX, resumenY + 26);
-        doc.setFontSize(12);
-        doc.text('Variables Medidas', resumenX, resumenY + 36);
-        doc.setFontSize(18);
-        doc.text(String(variablesMedidas), resumenX, resumenY + 44);
-
-        // 5. Insertar imágenes de los tres RadialGauge visibles (en una fila, a la derecha del resumen)
-        const gaugeSvgs = Array.from(document.querySelectorAll('svg')).filter(svg => {
-            return Array.from(svg.querySelectorAll('text')).some(t => t.textContent && (t.textContent.includes('%') || t.textContent.includes('Sin datos')));
-        });
-        const gaugeImgs: string[] = await Promise.all(gaugeSvgs.slice(0, 3).map(svg => svgToPngDataUrl(svg as SVGSVGElement, 120, 120)));
-        if (gaugeImgs.length) {
-            let x = 70, yG = y;
-            gaugeImgs.forEach((img, i) => {
-                if (img) doc.addImage(img, 'PNG', x + i * 60, yG, 50, 50);
-            });
-            y = Math.max(y, yG + 55);
-        }
-
-        // 6. Cards de corrales del último reporte
-        const pens = Array.from(new Set(summaryReportMeasurements.map(m => m.pen))).filter(pen => pen);
-        if (pens.length) {
-            doc.addPage();
-            y = 20;
-            doc.setFontSize(18);
-            doc.text('Análisis por Corral', 10, y);
-            y += 8;
+            // Texto centrado
+            doc.setFontSize(15);
+            doc.setTextColor(30,30,30);
+            const percentText = `${percent}%`;
+            const textWidth = doc.getTextWidth(percentText);
+            doc.text(percentText, cx - textWidth/2, cy + 5);
+            doc.setFontSize(9);
+            doc.setTextColor(100,100,100);
+            const labelWidth = doc.getTextWidth(label);
+            doc.text(label, cx - labelWidth/2, cy + r + 14);
+            xGauge += 60;
+          };
+          drawGauge(percentGeneral, 'General');
+          drawGauge(percentAnimal, 'Animales');
+          drawGauge(percentInstallation, 'Instalaciones');
+          yR += 65;
+          // Cards de corrales
+          const pensR = Array.from(new Set(reportMeasurements.map(m => m.pen))).filter(pen => pen);
+          if (pensR.length) {
+            yR += 10;
+            doc.setFontSize(15);
+            doc.text('Análisis por Corral', 10, yR);
+            yR += 8;
             let col = 0, x0 = 10, cardW = 90, cardH = 50, gapX = 8, gapY = 8;
             const pageHeight = doc.internal.pageSize.getHeight();
             const margen = 10;
-            pens.forEach((pen, idx) => {
-              if (y + cardH + margen > pageHeight) {
+            pensR.forEach((pen, idx) => {
+              if (yR + cardH + margen > pageHeight) {
                 doc.addPage();
-                y = margen;
+                yR = margen;
                 col = 0;
               }
-              const penMeasurements = summaryReportMeasurements.filter(m => m.pen === pen);
+              const penMeasurements = reportMeasurements.filter(m => m.pen === pen);
               const totalCount = penMeasurements.length;
               const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
               const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
@@ -437,7 +479,7 @@ const DashboardPage: React.FC = () => {
               const installPercent = installTotal > 0 ? Math.round((installCorrect / installTotal) * 100) : null;
               // Posición
               const x = x0 + col * (cardW + gapX);
-              const yCard = y;
+              const yCard = yR;
               // Card
               doc.setDrawColor(200);
               doc.setFillColor(245,245,245);
@@ -467,40 +509,38 @@ const DashboardPage: React.FC = () => {
                 doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, yCard + 44);
               }
               col++;
-              if (col === 3) { col = 0; y += cardH + gapY; }
+              if (col === 3) { col = 0; yR += cardH + gapY; }
             });
-            if (col !== 0) y += cardH + gapY;
-        }
-
-        // 7. Página nueva para Variables
-        const variables = Array.from(new Set(summaryReportMeasurements.map(m => m.variable))).filter(v => v);
-        if (variables.length) {
-            doc.addPage();
-            let yVar = 20;
-            doc.setFontSize(18);
-            doc.text('Análisis por Variable', 10, yVar);
-            yVar += 10;
-            let col = 0, x0 = 10, cardW = 120, cardH = 45, gapX = 12, gapY = 12;
+            if (col !== 0) yR += cardH + gapY;
+          }
+          // Cards de variables por reporte
+          const variablesR = Array.from(new Set(reportMeasurements.map(m => m.variable))).filter(v => v);
+          if (variablesR.length) {
+            yR += 10;
+            doc.setFontSize(15);
+            doc.text('Análisis por Variable', 10, yR);
+            yR += 10;
+            let colV = 0, x0V = 10, cardWV = 120, cardHV = 45, gapXV = 12, gapYV = 12;
             const pageHeight = doc.internal.pageSize.getHeight();
             const margen = 10;
-            variables.forEach((variable, idx) => {
-              if (yVar + cardH + margen > pageHeight) {
+            variablesR.forEach((variable, idx) => {
+              if (yR + cardHV + margen > pageHeight) {
                 doc.addPage();
-                yVar = margen + 10;
-                col = 0;
+                yR = margen + 10;
+                colV = 0;
               }
-              const varMeasurements = summaryReportMeasurements.filter(m => m.variable === variable);
+              const varMeasurements = reportMeasurements.filter(m => m.variable === variable);
               const type = varMeasurements[0]?.type_of_object || '-';
               const totalCount = varMeasurements.length;
               const correctCount = varMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
               const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
               // Posición
-              const x = x0 + col * (cardW + gapX);
-              const yCard = yVar;
+              const x = x0V + colV * (cardWV + gapXV);
+              const yCard = yR;
               // Card
               doc.setDrawColor(200);
               doc.setFillColor(250,250,250);
-              doc.roundedRect(x, yCard, cardW, cardH, 4, 4, 'F');
+              doc.roundedRect(x, yCard, cardWV, cardHV, 4, 4, 'F');
               doc.setFontSize(13);
               doc.setTextColor(30,30,30);
               doc.text(variable, x + 4, yCard + 10);
@@ -514,9 +554,11 @@ const DashboardPage: React.FC = () => {
               doc.setFontSize(10);
               doc.setTextColor(100,100,100);
               doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 40);
-              col++;
-              if (col === 2) { col = 0; yVar += cardH + gapY; }
+              colV++;
+              if (colV === 2) { colV = 0; yR += cardHV + gapYV; }
             });
+            if (colV !== 0) yR += cardHV + gapYV;
+          }
         }
 
         // 7. Descargar PDF
