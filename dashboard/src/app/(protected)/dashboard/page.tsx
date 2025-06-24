@@ -454,7 +454,7 @@ const DashboardPage: React.FC = () => {
             doc.setFontSize(15);
             doc.text('Análisis por Corral', 10, yR);
             yR += 8;
-            let col = 0, x0 = 10, cardW = 90, cardH = 50, gapX = 8, gapY = 8;
+            let col = 0, x0 = 10, cardW = 90, cardH = 60, gapX = 8, gapY = 8;
             const pageHeight = doc.internal.pageSize.getHeight();
             const margen = 10;
             pensR.forEach((pen, idx) => {
@@ -496,17 +496,44 @@ const DashboardPage: React.FC = () => {
               doc.setFontSize(10);
               doc.setTextColor(100,100,100);
               doc.text(`${correctCount}/${totalCount} mediciones`, x + 4, yCard + 32);
+              // Barra de score de salud
+              const barX = x + 4;
+              const barY = yCard + 30;
+              const barW = cardW - 8;
+              const barH = 3;
+              
+              let nextBarY = barY + barH;
               // Animales
               if (animalTotal > 0) {
                 doc.setFontSize(9);
                 doc.setTextColor(60,60,60);
-                doc.text(`Animales: ${animalPercent !== null ? animalPercent + '%' : '-'} (${animalCorrect}/${animalTotal})`, x + 4, yCard + 38);
+                doc.text(`Animales: ${animalPercent !== null ? animalPercent + '%' : '-'} (${animalCorrect}/${animalTotal})`, x + 4, nextBarY + 6);
+                // Barra de animales
+                const barColorAnimal: [number, number, number] = animalPercent !== null && animalPercent < 50 ? [220,53,69] : animalPercent !== null && animalPercent < 80 ? [255,193,7] : [40,167,69];
+                const barX = x + 4;
+                const barW = cardW - 8;
+                const barH = 3;
+                doc.setFillColor(230,230,230);
+                doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
+                doc.setFillColor(...barColorAnimal);
+                doc.roundedRect(barX, nextBarY + 8, barW * ((animalPercent ?? 0)/100), barH, 1, 1, 'F');
+                nextBarY += 14;
               }
               // Instalaciones
               if (installTotal > 0) {
                 doc.setFontSize(9);
                 doc.setTextColor(60,60,60);
-                doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, yCard + 44);
+                doc.text(`Instalaciones: ${installPercent !== null ? installPercent + '%' : '-'} (${installCorrect}/${installTotal})`, x + 4, nextBarY + 6);
+                // Barra de instalaciones
+                const barColorInst: [number, number, number] = installPercent !== null && installPercent < 50 ? [220,53,69] : installPercent !== null && installPercent < 80 ? [255,193,7] : [255,152,0];
+                const barX = x + 4;
+                const barW = cardW - 8;
+                const barH = 3;
+                doc.setFillColor(230,230,230);
+                doc.roundedRect(barX, nextBarY + 8, barW, barH, 1, 1, 'F');
+                doc.setFillColor(...barColorInst);
+                doc.roundedRect(barX, nextBarY + 8, barW * ((installPercent ?? 0)/100), barH, 1, 1, 'F');
+                nextBarY += 14;
               }
               col++;
               if (col === 3) { col = 0; yR += cardH + gapY; }
@@ -520,7 +547,7 @@ const DashboardPage: React.FC = () => {
             doc.setFontSize(15);
             doc.text('Análisis por Variable', 10, yR);
             yR += 10;
-            let colV = 0, x0V = 10, cardWV = 120, cardHV = 45, gapXV = 12, gapYV = 12;
+            let colV = 0, x0V = 10, cardWV = 120, cardHV = 55, gapXV = 12, gapYV = 12;
             const pageHeight = doc.internal.pageSize.getHeight();
             const margen = 10;
             variablesR.forEach((variable, idx) => {
