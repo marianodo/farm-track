@@ -595,47 +595,82 @@ const DashboardPage: React.FC = () => {
         const gaugesY = startY + cardsBlockHeight / 2 - gaugeRadius;
         const gaugeLabels = ['General', 'Animales', 'Instalaciones'];
         const gaugePercents = [percentGeneral, percentAnimal, percentInstallation];
+        
+        // Función para obtener color moderno del gauge
+        const getModernGaugeColor = (percent: number) => {
+          if (percent >= 80) return [34, 197, 94]; // Verde moderno
+          if (percent >= 60) return [251, 146, 60]; // Naranja moderno
+          if (percent >= 40) return [251, 191, 36]; // Amarillo moderno
+          return [239, 68, 68]; // Rojo moderno
+        };
+        
         gaugePercents.forEach((percent, i) => {
           const cx = gaugesStartX + i * (gaugeRadius * 2 + gaugeGap) + gaugeRadius;
           const cy = gaugesY + gaugeRadius;
-          // Sombra/fondo
-          doc.setDrawColor(230,230,230);
-          doc.setFillColor(255,255,255);
-          doc.circle(cx, cy, gaugeRadius+4, 'F');
-          // Gauge principal
-          doc.setDrawColor(220);
-          doc.setLineWidth(4);
+          
+          // Sombra exterior más suave y moderna
+          doc.setDrawColor(240, 240, 240);
+          doc.setFillColor(255, 255, 255);
+          doc.circle(cx, cy, gaugeRadius + 6, 'F');
+          
+          // Fondo del gauge con gradiente sutil
+          doc.setDrawColor(245, 245, 245);
+          doc.setFillColor(250, 250, 250);
+          doc.circle(cx, cy, gaugeRadius + 2, 'F');
+          
+          // Gauge principal con borde más suave
+          doc.setDrawColor(230, 230, 230);
+          doc.setLineWidth(3);
           doc.circle(cx, cy, gaugeRadius, 'S');
-          // Arco de progreso
+          
+          // Arco de progreso CONTINUO (sin líneas blancas)
           const startAngle = -Math.PI/2;
           const endAngle = startAngle + (2 * Math.PI * (percent/100));
-          if (percent >= 80) doc.setDrawColor(40,167,69);
-          else if (percent >= 60) doc.setDrawColor(255,193,7);
-          else doc.setDrawColor(220,53,69);
-          doc.setLineWidth(6);
-          const steps = 40;
+          const [r, g, b] = getModernGaugeColor(percent);
+          doc.setDrawColor(r, g, b);
+          doc.setLineWidth(8);
+          // Dibuja el arco como una polilínea continua
+          const steps = 180; // muchos pasos para que sea liso
           let prev = null;
           for (let j = 0; j <= steps * (percent/100); j++) {
-            const angle = startAngle + ((endAngle - startAngle) * (j / steps));
+            const angle = startAngle + ((endAngle - startAngle) * (j / (steps * (percent/100))));
             const x = cx + gaugeRadius * Math.cos(angle);
             const y = cy + gaugeRadius * Math.sin(angle);
             if (prev) doc.line(prev[0], prev[1], x, y);
             prev = [x, y];
           }
-          // Porcentaje centrado
-          doc.setFontSize(13);
-          doc.setTextColor(30,30,30);
+          
+          // Círculo central blanco con sombra
+          doc.setDrawColor(255, 255, 255);
+          doc.setFillColor(255, 255, 255);
+          doc.circle(cx, cy, gaugeRadius - 6, 'F');
+          
+          // Porcentaje centrado con tipografía moderna
+          doc.setFontSize(14);
+          doc.setTextColor(30, 30, 30);
           doc.setFont('helvetica', 'bold');
           const percentText = `${percent}%`;
           const textWidth = doc.getTextWidth(percentText);
-          doc.text(percentText, cx - textWidth/2, cy + 4);
+          doc.text(percentText, cx - textWidth/2, cy + 5);
           doc.setFont('helvetica', 'normal');
-          // Label debajo
-          doc.setFontSize(9);
-          doc.setTextColor(120,120,120);
+          
+          // Label debajo con mejor espaciado
+          doc.setFontSize(10);
+          doc.setTextColor(100, 100, 100);
           const label = gaugeLabels[i];
           const labelWidth = doc.getTextWidth(label);
-          doc.text(label, cx - labelWidth/2, cy + gaugeRadius + 10);
+          doc.text(label, cx - labelWidth/2, cy + gaugeRadius + 12);
+          
+          // Indicador de punto en el extremo del arco (opcional)
+          if (percent > 0) {
+            const endX = cx + gaugeRadius * Math.cos(endAngle);
+            const endY = cy + gaugeRadius * Math.sin(endAngle);
+            doc.setDrawColor(r, g, b);
+            doc.setFillColor(255, 255, 255);
+            doc.circle(endX, endY, 2, 'F');
+            doc.setLineWidth(1);
+            doc.circle(endX, endY, 2, 'S');
+          }
         });
         // Ajustar yR para el siguiente bloque (cards + gauges)
         const gaugesBlockHeight = gaugeRadius * 2 + 20;
@@ -943,7 +978,7 @@ const DashboardPage: React.FC = () => {
                 <div className="col-span-3 grid grid-cols-3 gap-4">
 
                     <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual del Campo</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-3">Score general del campo</h3>
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
@@ -1026,7 +1061,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Animales</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-3">Score de animales</h3>
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
@@ -1110,7 +1145,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="text-sm font-medium text-gray-500 mb-3">Salud Actual de Instalaciones</h3>
+                        <h3 className="text-sm font-medium text-gray-500 mb-3">Score de instalaciones</h3>
                         <div className="relative pt-1">
                             <div className="flex items-center justify-center w-full" style={{minHeight: '140px'}}>
   {(() => {
