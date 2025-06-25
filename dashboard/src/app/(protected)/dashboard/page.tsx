@@ -553,33 +553,41 @@ const DashboardPage: React.FC = () => {
         const correctCountInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
         const percentInstallation = totalCountInstallation > 0 ? Math.round((correctCountInstallation / totalCountInstallation) * 100) : 0;
 
-        // --- Cards resumen del reporte alineadas a la izquierda (más chicas) ---
-        const cardW = 38, cardH = 20, gap = 10;
-        const cardBg = [245, 247, 250];
+        // --- Cards resumen del reporte alineadas a la izquierda (moderno) ---
+        const cardW = 42, cardH = 24, gap = 14;
+        const cardBg = [240, 245, 250];
+        const cardShadow = [210, 220, 230];
         const cardBorder = [220, 220, 220];
+        const cardRadius = 7;
         const resumenCards = [
           { label: 'Cantidad Mediciones', value: reportMeasurements.length },
           { label: 'Total Corrales', value: new Set(reportMeasurements.map(m => m.pen)).size },
           { label: 'Variables Medidas', value: new Set(reportMeasurements.map(m => m.variable)).size }
         ];
-        const startX = 10;
-        const startY = yR;
+        const startX = 18, startY = yR + 8;
         resumenCards.forEach((card, i) => {
           const x = startX;
           const y = startY + i * (cardH + gap);
+          // Sombra
+          doc.setDrawColor(cardShadow[0], cardShadow[1], cardShadow[2]);
+          doc.setFillColor(cardShadow[0], cardShadow[1], cardShadow[2]);
+          doc.roundedRect(x+1.5, y+2.5, cardW, cardH, cardRadius, cardRadius, 'F');
+          // Card principal
           doc.setDrawColor(cardBorder[0], cardBorder[1], cardBorder[2]);
           doc.setFillColor(cardBg[0], cardBg[1], cardBg[2]);
-          doc.roundedRect(x, y, cardW, cardH, 5, 5, 'F');
+          doc.roundedRect(x, y, cardW, cardH, cardRadius, cardRadius, 'F');
           doc.setFontSize(10);
-          doc.setTextColor(120, 120, 120);
-          doc.text(card.label, x + cardW/2, y + 8, { align: 'center' });
-          doc.setFontSize(15);
-          doc.setTextColor(40, 40, 40);
-          doc.text(String(card.value), x + cardW/2, y + 16, { align: 'center' });
+          doc.setTextColor(150, 150, 150);
+          doc.text(card.label, x + cardW/2, y + 9, { align: 'center' });
+          doc.setFontSize(16);
+          doc.setTextColor(30, 30, 30);
+          doc.setFont('helvetica', 'bold');
+          doc.text(String(card.value), x + cardW/2, y + 18, { align: 'center' });
+          doc.setFont('helvetica', 'normal');
         });
-        // --- Gauges centrados horizontal y verticalmente respecto a las cards ---
-        const gaugeRadius = 24;
-        const gaugeGap = 18;
+        // --- Gauges modernos centrados ---
+        const gaugeRadius = 22;
+        const gaugeGap = 22;
         const gaugesBlockWidth = 3 * gaugeRadius * 2 + 2 * gaugeGap;
         const pageWidth = doc.internal.pageSize.getWidth();
         const cardsBlockHeight = resumenCards.length * cardH + (resumenCards.length - 1) * gap;
@@ -590,9 +598,13 @@ const DashboardPage: React.FC = () => {
         gaugePercents.forEach((percent, i) => {
           const cx = gaugesStartX + i * (gaugeRadius * 2 + gaugeGap) + gaugeRadius;
           const cy = gaugesY + gaugeRadius;
-          // Fondo
+          // Sombra/fondo
+          doc.setDrawColor(230,230,230);
+          doc.setFillColor(255,255,255);
+          doc.circle(cx, cy, gaugeRadius+4, 'F');
+          // Gauge principal
           doc.setDrawColor(220);
-          doc.setLineWidth(5);
+          doc.setLineWidth(4);
           doc.circle(cx, cy, gaugeRadius, 'S');
           // Arco de progreso
           const startAngle = -Math.PI/2;
@@ -600,7 +612,7 @@ const DashboardPage: React.FC = () => {
           if (percent >= 80) doc.setDrawColor(40,167,69);
           else if (percent >= 60) doc.setDrawColor(255,193,7);
           else doc.setDrawColor(220,53,69);
-          doc.setLineWidth(7);
+          doc.setLineWidth(6);
           const steps = 40;
           let prev = null;
           for (let j = 0; j <= steps * (percent/100); j++) {
@@ -612,20 +624,22 @@ const DashboardPage: React.FC = () => {
           }
           // Porcentaje centrado
           doc.setFontSize(13);
-          doc.setTextColor(40,40,40);
+          doc.setTextColor(30,30,30);
+          doc.setFont('helvetica', 'bold');
           const percentText = `${percent}%`;
           const textWidth = doc.getTextWidth(percentText);
           doc.text(percentText, cx - textWidth/2, cy + 4);
+          doc.setFont('helvetica', 'normal');
           // Label debajo
           doc.setFontSize(9);
-          doc.setTextColor(100,100,100);
+          doc.setTextColor(120,120,120);
           const label = gaugeLabels[i];
           const labelWidth = doc.getTextWidth(label);
           doc.text(label, cx - labelWidth/2, cy + gaugeRadius + 10);
         });
         // Ajustar yR para el siguiente bloque (cards + gauges)
         const gaugesBlockHeight = gaugeRadius * 2 + 20;
-        yR = Math.max(startY + cardsBlockHeight, gaugesY + gaugeRadius + 20) + 8;
+        yR = Math.max(startY + cardsBlockHeight, gaugesY + gaugeRadius + 20) + 12;
    
         const pensR = Array.from(new Set(reportMeasurements.map(m => m.pen))).filter(pen => pen);
         if (pensR.length) {
