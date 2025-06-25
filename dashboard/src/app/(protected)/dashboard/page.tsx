@@ -375,34 +375,153 @@ const DashboardPage: React.FC = () => {
       const selectedMeasurements = measurements.filter(m => selectedReportIds.includes(String(m.report_id)));
       // Ordena los reportes seleccionados de más nuevo a más viejo
       const reportIdsSorted = [...selectedReportIds].sort((a, b) => Number(b) - Number(a));
-      // Llama a la función de exportación pasando solo los reportes seleccionados
-      exportSelectedReportsToPDF(selectedMeasurements, reportIdsSorted);
+      // Llama a la función de exportación pasando solo los reportes seleccionados y todas las mediciones del campo
+      exportSelectedReportsToPDF(selectedMeasurements, reportIdsSorted, measurements);
     };
 
     // Nueva función para exportar solo los reportes seleccionados
-    function exportSelectedReportsToPDF(selectedMeasurements: Measurement[], reportIdsSorted: string[]) {
-      // 1. Totales históricos (siempre al inicio)
-      const totalReportes = reportIdsSorted.length;
-      const totalMediciones = selectedMeasurements.length;
-      const totalAnimales = selectedMeasurements.filter(m => m.type_of_object === 'Animal').length;
-      const totalInstalacion = selectedMeasurements.filter(m => m.type_of_object === 'Installation').length;
+    function exportSelectedReportsToPDF(selectedMeasurements: Measurement[], reportIdsSorted: string[], allMeasurements: Measurement[]) {
+      // 1. Totales históricos (siempre al inicio, usando todas las mediciones del campo)
+      const totalReportes = new Set(allMeasurements.map(m => m.report_id)).size;
+      const totalMediciones = allMeasurements.length;
+      const totalAnimales = allMeasurements.filter(m => m.type_of_object === 'Animal').length;
+      const totalInstalacion = allMeasurements.filter(m => m.type_of_object === 'Installation').length;
 
-      // 2. Gráfico de barras (puedes mantener la lógica actual)
-      // ... (puedes mantener la lógica actual si quieres)
-
-      // 3. Crear PDF
+      // 2. Crear PDF
       const doc = new jsPDF({ orientation: 'landscape' });
+      const pageWidth = doc.internal.pageSize.getWidth();
       let y = 10;
-      doc.setFontSize(18);
+      doc.setFontSize(20);
+      doc.setTextColor(30,30,30);
       doc.text('Histórico de Reportes', 10, y);
       y += 10;
-      doc.setFontSize(12);
-      doc.text(`Total Reportes: ${totalReportes}`, 10, y);
-      doc.text(`Total Mediciones: ${totalMediciones}`, 60, y);
-      doc.text(`Total Animales: ${totalAnimales}`, 120, y);
-      doc.text(`Total Instalación: ${totalInstalacion}`, 180, y);
-      y += 10;
-      // (Aquí puedes agregar el gráfico si lo deseas)
+
+      // --- Cards modernos para los totales (centradas) ---
+      const cardW = 45, cardH = 22, gap = 10;
+      const cardBg = [245, 247, 250]; // gris muy suave
+      const cardBorder = [220, 220, 220];
+      const cardTitles = [
+        { label: 'Total Reportes', value: totalReportes },
+        { label: 'Total Mediciones', value: totalMediciones },
+        { label: 'Total Animales', value: totalAnimales },
+        { label: 'Total Instalación', value: totalInstalacion }
+      ];
+      const cardsBlockWidth = cardTitles.length * cardW + (cardTitles.length - 1) * gap;
+      const startX = (pageWidth - cardsBlockWidth) / 2;
+      const startY = y;
+      cardTitles.forEach((card, i) => {
+        const x = startX + i * (cardW + gap);
+        doc.setDrawColor(cardBorder[0], cardBorder[1], cardBorder[2]);
+        doc.setFillColor(cardBg[0], cardBg[1], cardBg[2]);
+        doc.roundedRect(x, startY, cardW, cardH, 5, 5, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(120, 120, 120);
+        doc.text(card.label, x + cardW/2, startY + 9, { align: 'center' });
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text(String(card.value), x + cardW/2, startY + 18, { align: 'center' });
+      });
+      y += cardH + 12;
+
+      // 3. Gráfico de barras del historial de % correctos por reporte (usando todas las mediciones del campo)
+      doc.setFontSize(13);
+      doc.setTextColor(30,30,30);
+      doc.text('% Correctos por Reporte - Historial', pageWidth/2, y, { align: 'center' });
+      y += 8;
+
+      // Preparar datos para el gráfico (usando todas las mediciones del campo)
+      const allReportIdStrings = [...new Set(allMeasurements.map(m => String(m.report_id)))].sort((a, b) => Number(a) - Number(b));
+      const chartLabels: string[] = [];
+      const healthPercentages: number[] = [];
+
+      allReportIdStrings.forEach(reportId => {
+        const reportMeasurements = allMeasurements.filter(m => String(m.report_id) === reportId);
+        // Determine label (report date)
+        const firstMeasurementOfReport = reportMeasurements[0];
+        if (firstMeasurementOfReport && firstMeasurementOfReport.measureDate) {
+          chartLabels.push(new Date(firstMeasurementOfReport.measureDate).toLocaleDateString());
+        } else {
+          chartLabels.push(`Reporte ${reportId}`); // Fallback
+        }
+        // Calculate overall health percentage
+        const totalMeasurements = reportMeasurements.length;
+        const correctMeasurements = reportMeasurements.filter(
+          m => String(m.correct) === '1' || String(m.correct) === 'true'
+        ).length;
+        const healthPercentage = totalMeasurements > 0
+          ? Math.round((correctMeasurements / totalMeasurements) * 100)
+          : 0;
+        healthPercentages.push(healthPercentage);
+      });
+
+      // --- Gráfico de barras más pequeño y centrado ---
+      if (healthPercentages.length > 0) {
+        const chartWidth = 180;
+        const chartHeight = 55;
+        const chartX = (pageWidth - chartWidth) / 2;
+        const chartY = y;
+        const barWidth = chartWidth / healthPercentages.length * 0.7; // 70% del espacio disponible
+        const barSpacing = chartWidth / healthPercentages.length * 0.3; // 30% para espaciado
+
+        // Ejes
+        doc.setDrawColor(180, 180, 180);
+        doc.setLineWidth(0.7);
+        doc.line(chartX, chartY + chartHeight, chartX + chartWidth, chartY + chartHeight); // X
+        doc.line(chartX, chartY, chartX, chartY + chartHeight); // Y
+
+        // Líneas horizontales
+        doc.setDrawColor(230, 230, 230);
+        doc.setLineWidth(0.3);
+        for (let i = 0; i <= 10; i++) {
+          const lineY = chartY + chartHeight - (chartHeight * i / 10);
+          doc.line(chartX, lineY, chartX + chartWidth, lineY);
+        }
+
+        // Barras
+        healthPercentages.forEach((percentage, index) => {
+          const barX = chartX + (index * (barWidth + barSpacing)) + barSpacing / 2;
+          const barHeight = (percentage / 100) * chartHeight;
+          const barY = chartY + chartHeight - barHeight;
+
+          // Color moderno
+          if (percentage >= 80) {
+            doc.setFillColor(40, 167, 69); // Verde
+          } else if (percentage >= 60) {
+            doc.setFillColor(255, 193, 7); // Amarillo
+          } else {
+            doc.setFillColor(220, 53, 69); // Rojo
+          }
+
+          doc.roundedRect(barX, barY, barWidth, barHeight, 2, 2, 'F');
+
+          // Porcentaje en la barra
+          if (barHeight > 12) {
+            doc.setFontSize(8);
+            doc.setTextColor(255, 255, 255);
+            const textWidth = doc.getTextWidth(`${percentage}%`);
+            doc.text(`${percentage}%`, barX + barWidth/2 - textWidth/2, barY + barHeight/2 + 2.5);
+          }
+
+          // Etiqueta X
+          doc.setFontSize(7);
+          doc.setTextColor(100, 100, 100);
+          const label = chartLabels[index];
+          const labelWidth = doc.getTextWidth(label);
+          doc.text(label, barX + barWidth/2 - labelWidth/2, chartY + chartHeight + 5);
+        });
+
+        // Etiquetas Y
+        doc.setFontSize(7);
+        doc.setTextColor(120, 120, 120);
+        for (let i = 0; i <= 10; i++) {
+          const labelY = chartY + chartHeight - (chartHeight * i / 10) + 2.5;
+          const label = `${i * 10}%`;
+          const labelWidth = doc.getTextWidth(label);
+          doc.text(label, chartX - labelWidth - 3, labelY);
+        }
+
+        y += chartHeight + 18; // Espacio para el gráfico + etiquetas
+      }
 
       // 4. Para cada reporte seleccionado, mostrar gauges, cards de corrales y de variables
       for (const reportId of reportIdsSorted) {
@@ -415,28 +534,11 @@ const DashboardPage: React.FC = () => {
         if (reportMeasurements[0]?.measureDate) {
           fechaReporte = new Date(reportMeasurements[0].measureDate).toLocaleDateString();
         }
-        doc.setFontSize(18);
+        doc.setFontSize(22);
+        doc.setTextColor(30,30,30);
         doc.text(`Reporte: ${fechaReporte}`, 10, yR);
-        yR += 10;
-        // Resumen a la izquierda
-        const cantidadMediciones = reportMeasurements.length;
-        const totalCorrales = new Set(reportMeasurements.map(m => m.pen)).size;
-        const variablesMedidas = new Set(reportMeasurements.map(m => m.variable)).size;
-        doc.setFontSize(12);
-        let resumenX = 10, resumenY = yR + 5;
-        doc.text('Cantidad Mediciones', resumenX, resumenY);
-        doc.setFontSize(18);
-        doc.text(String(cantidadMediciones), resumenX, resumenY + 8);
-        doc.setFontSize(12);
-        doc.text('Total Corrales', resumenX, resumenY + 18);
-        doc.setFontSize(18);
-        doc.text(String(totalCorrales), resumenX, resumenY + 26);
-        doc.setFontSize(12);
-        doc.text('Variables Medidas', resumenX, resumenY + 36);
-        doc.setFontSize(18);
-        doc.text(String(variablesMedidas), resumenX, resumenY + 44);
-        // Gauges (usamos los valores, no imagen SVG)
-        // General
+        yR += 14;
+        // Calcular porcentajes para los gauges antes de dibujar cards/gauges
         const totalCountGeneral = reportMeasurements.length;
         const correctCountGeneral = reportMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
         const percentGeneral = totalCountGeneral > 0 ? Math.round((correctCountGeneral / totalCountGeneral) * 100) : 0;
@@ -450,50 +552,81 @@ const DashboardPage: React.FC = () => {
         const totalCountInstallation = installationMeasurements.length;
         const correctCountInstallation = installationMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
         const percentInstallation = totalCountInstallation > 0 ? Math.round((correctCountInstallation / totalCountInstallation) * 100) : 0;
-        // Dibujo simple de gauges (círculo y texto)
-        let xGauge = 70, yGauge = yR;
-        const drawGauge = (percent: number, label: string) => {
-          const r = 22, cx = xGauge + r, cy = yGauge + r + 10;
+
+        // --- Cards resumen del reporte alineadas a la izquierda (más chicas) ---
+        const cardW = 38, cardH = 20, gap = 10;
+        const cardBg = [245, 247, 250];
+        const cardBorder = [220, 220, 220];
+        const resumenCards = [
+          { label: 'Cantidad Mediciones', value: reportMeasurements.length },
+          { label: 'Total Corrales', value: new Set(reportMeasurements.map(m => m.pen)).size },
+          { label: 'Variables Medidas', value: new Set(reportMeasurements.map(m => m.variable)).size }
+        ];
+        const startX = 10;
+        const startY = yR;
+        resumenCards.forEach((card, i) => {
+          const x = startX;
+          const y = startY + i * (cardH + gap);
+          doc.setDrawColor(cardBorder[0], cardBorder[1], cardBorder[2]);
+          doc.setFillColor(cardBg[0], cardBg[1], cardBg[2]);
+          doc.roundedRect(x, y, cardW, cardH, 5, 5, 'F');
+          doc.setFontSize(10);
+          doc.setTextColor(120, 120, 120);
+          doc.text(card.label, x + cardW/2, y + 8, { align: 'center' });
+          doc.setFontSize(15);
+          doc.setTextColor(40, 40, 40);
+          doc.text(String(card.value), x + cardW/2, y + 16, { align: 'center' });
+        });
+        // --- Gauges centrados horizontal y verticalmente respecto a las cards ---
+        const gaugeRadius = 24;
+        const gaugeGap = 18;
+        const gaugesBlockWidth = 3 * gaugeRadius * 2 + 2 * gaugeGap;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const cardsBlockHeight = resumenCards.length * cardH + (resumenCards.length - 1) * gap;
+        const gaugesStartX = (pageWidth - gaugesBlockWidth) / 2;
+        const gaugesY = startY + cardsBlockHeight / 2 - gaugeRadius;
+        const gaugeLabels = ['General', 'Animales', 'Instalaciones'];
+        const gaugePercents = [percentGeneral, percentAnimal, percentInstallation];
+        gaugePercents.forEach((percent, i) => {
+          const cx = gaugesStartX + i * (gaugeRadius * 2 + gaugeGap) + gaugeRadius;
+          const cy = gaugesY + gaugeRadius;
           // Fondo
           doc.setDrawColor(220);
-          doc.setLineWidth(3);
-          doc.circle(cx, cy, r, 'S');
-          // Arco de progreso (manual)
+          doc.setLineWidth(5);
+          doc.circle(cx, cy, gaugeRadius, 'S');
+          // Arco de progreso
           const startAngle = -Math.PI/2;
           const endAngle = startAngle + (2 * Math.PI * (percent/100));
-          doc.setDrawColor(60,180,75); // verde
-          if (percent < 60) doc.setDrawColor(255,193,7); // amarillo
-          if (percent < 40) doc.setDrawColor(220,53,69); // rojo
-          doc.setLineWidth(4);
-          // Dibuja el arco usando líneas
+          if (percent >= 80) doc.setDrawColor(40,167,69);
+          else if (percent >= 60) doc.setDrawColor(255,193,7);
+          else doc.setDrawColor(220,53,69);
+          doc.setLineWidth(7);
           const steps = 40;
           let prev = null;
-          for (let i = 0; i <= steps * (percent/100); i++) {
-            const angle = startAngle + (endAngle - startAngle) * (i / steps);
-            const x = cx + r * Math.cos(angle);
-            const y = cy + r * Math.sin(angle);
-            if (prev) {
-              doc.line(prev[0], prev[1], x, y);
-            }
+          for (let j = 0; j <= steps * (percent/100); j++) {
+            const angle = startAngle + ((endAngle - startAngle) * (j / steps));
+            const x = cx + gaugeRadius * Math.cos(angle);
+            const y = cy + gaugeRadius * Math.sin(angle);
+            if (prev) doc.line(prev[0], prev[1], x, y);
             prev = [x, y];
           }
-          // Texto centrado
-          doc.setFontSize(15);
-          doc.setTextColor(30,30,30);
+          // Porcentaje centrado
+          doc.setFontSize(13);
+          doc.setTextColor(40,40,40);
           const percentText = `${percent}%`;
           const textWidth = doc.getTextWidth(percentText);
-          doc.text(percentText, cx - textWidth/2, cy + 5);
+          doc.text(percentText, cx - textWidth/2, cy + 4);
+          // Label debajo
           doc.setFontSize(9);
           doc.setTextColor(100,100,100);
+          const label = gaugeLabels[i];
           const labelWidth = doc.getTextWidth(label);
-          doc.text(label, cx - labelWidth/2, cy + r + 14);
-          xGauge += 60;
-        };
-        drawGauge(percentGeneral, 'General');
-        drawGauge(percentAnimal, 'Animales');
-        drawGauge(percentInstallation, 'Instalaciones');
-        yR += 65;
-        // Cards de corrales (igual que antes)
+          doc.text(label, cx - labelWidth/2, cy + gaugeRadius + 10);
+        });
+        // Ajustar yR para el siguiente bloque (cards + gauges)
+        const gaugesBlockHeight = gaugeRadius * 2 + 20;
+        yR = Math.max(startY + cardsBlockHeight, gaugesY + gaugeRadius + 20) + 8;
+   
         const pensR = Array.from(new Set(reportMeasurements.map(m => m.pen))).filter(pen => pen);
         if (pensR.length) {
           yR += 10;
