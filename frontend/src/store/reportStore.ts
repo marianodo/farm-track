@@ -172,11 +172,11 @@ const useReportStore = create<ReportState>((set) => ({
     set({ reportsLoading: true });
     
     try {
-      await saveLog('Store: Haciendo llamada GET a /reports/byFieldId', {
+      await saveLog('Store: Haciendo llamada GET a /reports/byField', {
         field_id
       }, 'measurement');
 
-      const response = await axiosInstance.get(`/reports/byFieldId/${field_id}`);
+      const response = await axiosInstance.get(`/reports/byField/${field_id}`);
       
       await saveLog('Store: Llamada GET exitosa, actualizando estado', {
         field_id,
