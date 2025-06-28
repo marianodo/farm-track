@@ -30,6 +30,7 @@ import {
 import useMeasurementStatsStore from '@/store/measurementStatsStore';
 import useFieldStore from '@/store/fieldStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveLog } from '@/utils/logger';
 const { width, height } = Dimensions.get('window');
 
 export type NumericValue = {
@@ -122,10 +123,30 @@ const CreateMeasurement: React.FC = () => {
     name: null,
   });
 
-
+  // Log cuando se carga la pantalla
+  useEffect(() => {
+    saveLog('Pantalla de creación de medición cargada', {
+      typeOfObjectId,
+      typeOfObjectName,
+      fieldName,
+      penName,
+      reportName,
+      reportNameFind,
+      fieldId
+    }, 'measurement');
+  }, []);
 
   useEffect(() => {
     if (measurementVariablesData) {
+      saveLog('Datos de variables de medición cargados', {
+        variablesCount: measurementVariablesData.length,
+        variables: measurementVariablesData.map((e: any) => ({
+          id: e.pen_variable_type_of_object_id,
+          variableName: e.variable.name,
+          type: e.variable.type
+        }))
+      }, 'measurement');
+      
       measurementVariablesData.map((e: any) => {
         setValues((prevValues) => ({
           ...prevValues,
@@ -148,7 +169,12 @@ const CreateMeasurement: React.FC = () => {
     setFormData({ ...formData, [field]: inputValue });
   };
 
-  const validateValues = () => {
+  const validateValues = async () => {
+    await saveLog('Iniciando validación de valores', {
+      values,
+      measurementVariablesDataLength: measurementVariablesData?.length
+    }, 'measurement');
+
     const newErrors: any = [];
     measurementVariablesData.forEach((e: any) => {
       if (
@@ -163,10 +189,25 @@ const CreateMeasurement: React.FC = () => {
       }
     });
     setErrorsName(newErrors);
+    
+    await saveLog('Validación completada', {
+      newErrors,
+      errorsCount: newErrors.length,
+      errorsName: newErrors
+    }, 'measurement');
+    
     return newErrors;
   };
 
   const createNewMeasurement = async () => {
+    await saveLog('Iniciando createNewMeasurement', {
+      formData,
+      typeOfObjectId,
+      fieldId,
+      values,
+      createReportId
+    }, 'measurement');
+
     const newMeasurement = {
       name: formData.name,
       type_of_object_id: typeOfObjectId,
@@ -179,7 +220,23 @@ const CreateMeasurement: React.FC = () => {
           report_id: createReportId,
         })),
     };
+
+    await saveLog('Objeto de medición preparado', {
+      newMeasurement,
+      measurementsCount: newMeasurement.measurements.length
+    }, 'measurement');
+
+    await saveLog('Llamando a createMeasurementWithReportId', {
+      createReportId,
+      reportsLoading
+    }, 'measurement');
+
     await createMeasurementWithReportId(newMeasurement);
+    
+    await saveLog('createMeasurementWithReportId completado', {
+      measurementCount: measurementCount + 1
+    }, 'measurement');
+
     setSliderVal(null);
     setMeasurementCount((prevCount: any) => prevCount + 1);
     setFirstRender(false);
@@ -196,6 +253,10 @@ const CreateMeasurement: React.FC = () => {
     });
     setErrors({});
     setErrorsName([]);
+
+    await saveLog('Estado reseteado después de crear medición', {
+      measurementCount: measurementCount + 1
+    }, 'measurement');
   };
 
   const getModalButtons = () => {
@@ -280,12 +341,34 @@ const CreateMeasurement: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const validationErrors = validateValues();
+    await saveLog('Botón Guardar medición presionado', {
+      typeOfObjectId,
+      typeOfObjectName,
+      fieldName,
+      penName,
+      reportName,
+      fieldId,
+      formData,
+      values
+    }, 'measurement');
+
+    const validationErrors = await validateValues();
+    await saveLog('Validación completada', {
+      validationErrors,
+      errorsLength: validationErrors.length,
+      measurementVariablesDataLength: measurementVariablesData?.length,
+      hasNullValues: Object.values(values).some((value) => value === null)
+    }, 'measurement');
+
     if (
       validationErrors.length > 0 &&
       validationErrors.length === measurementVariablesData.length &&
       Object.values(values).some((value) => value === null)
     ) {
+      await saveLog('Error: Todos los campos están vacíos', {
+        validationErrors,
+        measurementVariablesDataLength: measurementVariablesData?.length
+      }, 'measurement');
       let title =
         'Debes completar al menos un campo para guardar una medición.';
       let subtitle = '';
@@ -298,6 +381,10 @@ const CreateMeasurement: React.FC = () => {
       validationErrors.length < measurementVariablesData.length &&
       Object.values(values).some((value) => value === null)
     ) {
+      await saveLog('Advertencia: Campos incompletos', {
+        validationErrors,
+        incompleteFields: validationErrors.join(', ')
+      }, 'measurement');
       let title = 'Campo incompleto';
       let subtitle: any = (
         <Text>
@@ -312,10 +399,25 @@ const CreateMeasurement: React.FC = () => {
       setModalVisible('modal');
       return;
     }
+    
+    await saveLog('Iniciando creación de medición', {
+      createReportId,
+      reportsLoading,
+      measurementCount
+    }, 'measurement');
+
     try {
       await createNewMeasurement();
+      await saveLog('Medición creada exitosamente', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
 
     } catch (error) {
+      await saveLog('Error al crear medición', {
+        error: error?.toString(),
+        errorMessage: (error as any)?.message,
+        errorStack: (error as any)?.stack
+      }, 'error');
       console.log('ERROR:', error);
     }
   };
