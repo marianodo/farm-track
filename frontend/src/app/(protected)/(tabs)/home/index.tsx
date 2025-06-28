@@ -421,6 +421,14 @@ export default function HomeScreen() {
                 title={t('menuInitial.changePassword')}
               />
               <Menu.Item
+                onPress={() => {
+                  closeMenu();
+                  router.push('/logs');
+                }}
+                title="Ver Logs"
+              />
+              <Divider style={{ backgroundColor: '#487632', height: 1 }} />
+              <Menu.Item
                 onPress={() => onLogoutPressed()}
                 title={t('menuInitial.logout')}
               />
