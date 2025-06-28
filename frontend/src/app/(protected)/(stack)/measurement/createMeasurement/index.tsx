@@ -125,34 +125,48 @@ const CreateMeasurement: React.FC = () => {
 
   // Log cuando se carga la pantalla
   useEffect(() => {
-    saveLog('Pantalla de creación de medición cargada', {
-      typeOfObjectId,
-      typeOfObjectName,
-      fieldName,
-      penName,
-      reportName,
-      reportNameFind,
-      fieldId
-    }, 'measurement');
+    try {
+      saveLog('Pantalla de creación de medición cargada', {
+        typeOfObjectId,
+        typeOfObjectName,
+        fieldName,
+        penName,
+        reportName,
+        reportNameFind,
+        fieldId
+      }, 'measurement');
+    } catch (error) {
+      saveLog('Error al cargar pantalla de medición', {
+        error: error?.toString(),
+        errorMessage: (error as any)?.message
+      }, 'error');
+    }
   }, []);
 
   useEffect(() => {
     if (measurementVariablesData) {
-      saveLog('Datos de variables de medición cargados', {
-        variablesCount: measurementVariablesData.length,
-        variables: measurementVariablesData.map((e: any) => ({
-          id: e.pen_variable_type_of_object_id,
-          variableName: e.variable.name,
-          type: e.variable.type
-        }))
-      }, 'measurement');
-      
-      measurementVariablesData.map((e: any) => {
-        setValues((prevValues) => ({
-          ...prevValues,
-          [e.pen_variable_type_of_object_id]: null,
-        }));
-      });
+      try {
+        saveLog('Datos de variables de medición cargados', {
+          variablesCount: measurementVariablesData.length,
+          variables: measurementVariablesData.map((e: any) => ({
+            id: e.pen_variable_type_of_object_id,
+            variableName: e.variable.name,
+            type: e.variable.type
+          }))
+        }, 'measurement');
+        
+        measurementVariablesData.map((e: any) => {
+          setValues((prevValues) => ({
+            ...prevValues,
+            [e.pen_variable_type_of_object_id]: null,
+          }));
+        });
+      } catch (error) {
+        saveLog('Error al cargar variables de medición', {
+          error: error?.toString(),
+          errorMessage: (error as any)?.message
+        }, 'error');
+      }
     }
   }, []);
 
@@ -237,106 +251,182 @@ const CreateMeasurement: React.FC = () => {
       measurementCount: measurementCount + 1
     }, 'measurement');
 
-    setSliderVal(null);
-    setMeasurementCount((prevCount: any) => prevCount + 1);
-    setFirstRender(false);
-    // setReloadMeasurementStats(true);
-    setModalVisible('success');
-    measurementVariablesData.map((e: any) => {
-      setValues((prevValues) => ({
-        ...prevValues,
-        [e.pen_variable_type_of_object_id]: null,
-      }));
-    });
-    setFormData({
-      name: null,
-    });
-    setErrors({});
-    setErrorsName([]);
+    try {
+      await saveLog('Iniciando actualización de estado después de crear medición', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
 
-    await saveLog('Estado reseteado después de crear medición', {
-      measurementCount: measurementCount + 1
-    }, 'measurement');
+      setSliderVal(null);
+      setMeasurementCount((prevCount: any) => prevCount + 1);
+      setFirstRender(false);
+      // setReloadMeasurementStats(true);
+      
+      await saveLog('Mostrando modal de éxito', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
+
+      setModalVisible('success');
+      
+      await saveLog('Reseteando valores de medición', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
+
+      measurementVariablesData.map((e: any) => {
+        setValues((prevValues) => ({
+          ...prevValues,
+          [e.pen_variable_type_of_object_id]: null,
+        }));
+      });
+      setFormData({
+        name: null,
+      });
+      setErrors({});
+      setErrorsName([]);
+
+      await saveLog('Estado reseteado después de crear medición', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
+
+    } catch (stateError) {
+      await saveLog('Error al actualizar estado después de crear medición', {
+        error: stateError?.toString(),
+        errorMessage: (stateError as any)?.message,
+        measurementCount: measurementCount + 1
+      }, 'error');
+    }
   };
 
   const getModalButtons = () => {
-    if (modalVisible === 'unsavedChanges') {
-      return [
-        {
-          text: t('attributeView.cancelButtonText'),
-          onPress: () => setModalVisible(null),
-        },
-        {
-          text: t('measurementView.leaveButtonText'),
-          onPress: () => {
-            setModalVisible(null);
-            router.back();
+    try {
+      if (modalVisible === 'unsavedChanges') {
+        return [
+          {
+            text: t('attributeView.cancelButtonText'),
+            onPress: () => {
+              saveLog('Botón Cancelar presionado en modal unsavedChanges', {
+                modalType: 'unsavedChanges'
+              }, 'measurement');
+              setModalVisible(null);
+            },
           },
-        },
-        {
-          text: t('measurementView.exitReportText'),
-          onPress: () => {
-            setModalVisible(null);
-            router.dismissTo({
-              pathname: '/report',
-              params: {
-                fieldId: fieldId as string,
-                fieldName: fieldName,
-                withFields: 'false',
-                withObjects: 'true',
-                onReport: 'true',
-              },
-            });
+          {
+            text: t('measurementView.leaveButtonText'),
+            onPress: () => {
+              saveLog('Botón Salir presionado en modal unsavedChanges', {
+                modalType: 'unsavedChanges'
+              }, 'measurement');
+              setModalVisible(null);
+              router.back();
+            },
           },
-        },
-      ];
-    }
+          {
+            text: t('measurementView.exitReportText'),
+            onPress: () => {
+              saveLog('Botón Salir del reporte presionado en modal unsavedChanges', {
+                modalType: 'unsavedChanges',
+                fieldId,
+                fieldName
+              }, 'measurement');
+              setModalVisible(null);
+              router.dismissTo({
+                pathname: '/report',
+                params: {
+                  fieldId: fieldId as string,
+                  fieldName: fieldName,
+                  withFields: 'false',
+                  withObjects: 'true',
+                  onReport: 'true',
+                },
+              });
+            },
+          },
+        ];
+      }
 
-    if (
-      errorsName.length === measurementVariablesData.length &&
-      Object.values(values).every((value) => value === null)
-    ) {
-      return [
-        {
-          text: 'Cancelar',
-          onPress: () => setModalVisible(null),
-        },
-      ];
-    }
-    if (
-      showWarningError &&
-      errorsName.length > 0 &&
-      errorsName.length < measurementVariablesData.length
-    ) {
-      return [
-        {
-          text: 'Continuar sin completar',
-          onPress: async () => {
-            setModalVisible(null);
-            try {
-              await createNewMeasurement();
-            } catch (error) {
-              console.log('ERROR:', error);
-            }
+      if (
+        errorsName.length === measurementVariablesData.length &&
+        Object.values(values).every((value) => value === null)
+      ) {
+        return [
+          {
+            text: 'Cancelar',
+            onPress: () => {
+              saveLog('Botón Cancelar presionado en modal de campos vacíos', {
+                modalType: 'emptyFields',
+                errorsName,
+                values
+              }, 'measurement');
+              setModalVisible(null);
+            },
           },
-        },
-        {
-          text: 'Completar el campo',
-          onPress: () => setModalVisible(null),
-        },
-        {
-          text: 'No mostrar de nuevo',
-          onPress: async () => {
-            setShowWarningError(false);
-            setModalVisible(null);
-            try {
-              await createNewMeasurement();
-            } catch (error) {
-              console.log('ERROR:', error);
-            }
+        ];
+      }
+      if (
+        showWarningError &&
+        errorsName.length > 0 &&
+        errorsName.length < measurementVariablesData.length
+      ) {
+        return [
+          {
+            text: 'Continuar sin completar',
+            onPress: async () => {
+              saveLog('Botón Continuar sin completar presionado', {
+                modalType: 'incompleteFields',
+                errorsName,
+                incompleteFields: errorsName.join(', ')
+              }, 'measurement');
+              setModalVisible(null);
+              try {
+                await createNewMeasurement();
+              } catch (error) {
+                saveLog('Error al continuar sin completar campos', {
+                  error: error?.toString(),
+                  errorMessage: (error as any)?.message
+                }, 'error');
+                console.log('ERROR:', error);
+              }
+            },
           },
-        },
-      ];
+          {
+            text: 'Completar el campo',
+            onPress: () => {
+              saveLog('Botón Completar el campo presionado', {
+                modalType: 'incompleteFields',
+                errorsName
+              }, 'measurement');
+              setModalVisible(null);
+            },
+          },
+          {
+            text: 'No mostrar de nuevo',
+            onPress: async () => {
+              saveLog('Botón No mostrar de nuevo presionado', {
+                modalType: 'incompleteFields',
+                errorsName
+              }, 'measurement');
+              setShowWarningError(false);
+              setModalVisible(null);
+              try {
+                await createNewMeasurement();
+              } catch (error) {
+                saveLog('Error al continuar sin mostrar advertencia', {
+                  error: error?.toString(),
+                  errorMessage: (error as any)?.message
+                }, 'error');
+                console.log('ERROR:', error);
+              }
+            },
+          },
+        ];
+      }
+    } catch (error) {
+      saveLog('Error en getModalButtons', {
+        error: error?.toString(),
+        errorMessage: (error as any)?.message,
+        modalVisible,
+        errorsName,
+        values
+      }, 'error');
     }
   };
 
@@ -1126,7 +1216,24 @@ const CreateMeasurement: React.FC = () => {
       {/* Fin contenido */}
       {/* Inicio de botón para final */}
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity onPress={handleSubmit} disabled={Object.values(errors).filter((e: any) => e !== 'true').length > 0} style={styles.createButton}>
+        <TouchableOpacity 
+          onPress={async () => {
+            try {
+              await saveLog('Botón Guardar presionado - iniciando handleSubmit', {
+                errorsCount: Object.values(errors).filter((e: any) => e !== 'true').length,
+                hasErrors: Object.values(errors).filter((e: any) => e !== 'true').length > 0
+              }, 'measurement');
+              await handleSubmit();
+            } catch (buttonError) {
+              await saveLog('Error al presionar botón Guardar', {
+                error: buttonError?.toString(),
+                errorMessage: (buttonError as any)?.message
+              }, 'error');
+            }
+          }} 
+          disabled={Object.values(errors).filter((e: any) => e !== 'true').length > 0} 
+          style={styles.createButton}
+        >
           <Text style={styles.buttonText}>{t('measurementView.saveText')}
           </Text>
         </TouchableOpacity>
@@ -1135,7 +1242,13 @@ const CreateMeasurement: React.FC = () => {
       {/* Inicio modales */}
       <ModalComponent
         visible={modalVisible === 'modal'}
-        onDismiss={() => setModalVisible(null)}
+        onDismiss={() => {
+          saveLog('Modal de advertencia cerrado', {
+            modalType: 'modal',
+            title: texts.title
+          }, 'measurement');
+          setModalVisible(null);
+        }}
         title={texts.title}
         subtitle={texts.subtitle}
         buttons={getModalButtons()}
@@ -1143,7 +1256,13 @@ const CreateMeasurement: React.FC = () => {
       />
       <UnsavedModalComponent
         visible={modalVisible === 'unsavedChanges'}
-        onDismiss={() => setModalVisible(null)}
+        onDismiss={() => {
+          saveLog('Modal de cambios no guardados cerrado', {
+            modalType: 'unsavedChanges',
+            title: texts.title
+          }, 'measurement');
+          setModalVisible(null);
+        }}
         title={texts.title}
         subtitle={texts.subtitle}
         buttons={getModalButtons()}
@@ -1152,7 +1271,13 @@ const CreateMeasurement: React.FC = () => {
       {/* este view es para poner el boton debajo de todo */}
       <SuccessModal
         visible={modalVisible === 'success'}
-        onDismiss={() => setModalVisible(null)}
+        onDismiss={() => {
+          saveLog('Modal de éxito cerrado', {
+            modalType: 'success',
+            title: 'Medicion guardada'
+          }, 'measurement');
+          setModalVisible(null);
+        }}
         title={'Medicion guardada'}
         icon={
           <IconButton

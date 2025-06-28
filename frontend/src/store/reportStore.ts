@@ -7,6 +7,7 @@ import {
   MeasurementData,
   MeasurementEditData,
 } from './interface/report.interface';
+import { saveLog } from '../utils/logger';
 
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
@@ -162,19 +163,47 @@ const useReportStore = create<ReportState>((set) => ({
       }
     }
   },
-  getAllReportsByField: async (field_id) => {
+  getAllReportsByField: async (field_id: string) => {
+    await saveLog('Store: Iniciando getAllReportsByField', {
+      field_id,
+      reportsLoading: useReportStore.getState().reportsLoading
+    }, 'measurement');
+
     set({ reportsLoading: true });
+    
     try {
-      const response = await axiosInstance.get(`/reports/byField/${field_id}`);
-      set((state) => ({
-        reportsByFielId: {
-          ...state.reportsByFielId,
-          [field_id]: response.data.length ? response.data : [],
-        },
-        reportsLoading: false,
-      }));
+      await saveLog('Store: Haciendo llamada GET a /reports/byFieldId', {
+        field_id
+      }, 'measurement');
+
+      const response = await axiosInstance.get(`/reports/byFieldId/${field_id}`);
+      
+      await saveLog('Store: Llamada GET exitosa, actualizando estado', {
+        field_id,
+        reportsCount: response.data?.length || 0
+      }, 'measurement');
+
+      set({ reportsByFielId: { [field_id]: response.data }, reportsLoading: false });
+      
+      await saveLog('Store: getAllReportsByField completado exitosamente', {
+        field_id
+      }, 'measurement');
+
     } catch (error: any) {
+      await saveLog('Store: Error en getAllReportsByField', {
+        error: error?.toString(),
+        errorMessage: error?.message,
+        errorResponse: error?.response?.data,
+        errorStatus: error?.response?.status,
+        field_id
+      }, 'error');
+
       set({ reportsLoading: false });
+      
+      await saveLog('Store: Estado reportsLoading establecido en false después del error en getAllReportsByField', {
+        field_id
+      }, 'measurement');
+
       if (
         error.response &&
         error.response.data &&
@@ -182,7 +211,7 @@ const useReportStore = create<ReportState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error fetch report');
+        throw new Error('Error fetching reports by field');
       }
     }
   },
@@ -259,15 +288,55 @@ const useReportStore = create<ReportState>((set) => ({
     data: any,
     field_id: string
   ): Promise<void> => {
+    await saveLog('Store: Iniciando createMeasurementWithReportId', {
+      data,
+      field_id,
+      reportsLoading: useReportStore.getState().reportsLoading
+    }, 'measurement');
+
     set({ reportsLoading: true });
+    
+    await saveLog('Store: Estado reportsLoading establecido en true', {
+      data
+    }, 'measurement');
+
     try {
+      await saveLog('Store: Haciendo llamada POST a /measurements', {
+        data,
+        field_id
+      }, 'measurement');
+
       await axiosInstance.post('/measurements', data);
+      
+      await saveLog('Store: Llamada POST exitosa, actualizando reports', {
+        field_id
+      }, 'measurement');
+
       // const newReport = response.data;
       useReportStore.getState().getAllReportsByField(field_id);
       //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ reportsLoading: false });
+      
+      await saveLog('Store: createMeasurementWithReportId completado exitosamente', {
+        field_id
+      }, 'measurement');
+
     } catch (error: any) {
+      await saveLog('Store: Error en createMeasurementWithReportId', {
+        error: error?.toString(),
+        errorMessage: error?.message,
+        errorResponse: error?.response?.data,
+        errorStatus: error?.response?.status,
+        field_id,
+        data
+      }, 'error');
+
       set({ reportsLoading: false });
+      
+      await saveLog('Store: Estado reportsLoading establecido en false después del error', {
+        field_id
+      }, 'measurement');
+
       if (
         error.response &&
         error.response.data &&
