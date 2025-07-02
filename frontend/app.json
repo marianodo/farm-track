@@ -44,8 +44,10 @@
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.bdmetrics.measureme",
-      "versionCode": 2,
-      "runtimeVersion": "1.0.1"
+      "versionCode": 3,
+      "runtimeVersion": "1.0.1",
+      "compileSdkVersion": 35,
+      "targetSdkVersion": 35
     },
     "web": {
       "bundler": "metro",
@@ -58,7 +60,9 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35
           }
         }
       ],
