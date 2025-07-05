@@ -118,7 +118,8 @@
     "createFieldText": "Create field",
     "goBackText": "Go back",
     "updateFieldText": "Update field",
-    "fieldText": "Field: "
+    "fieldText": "Field: ",
+    "addMeasurementText": "Add Measurement"
   },
   "objectView": {
     "dontObjectMessage": "You haven't created any objects yet. Please add one from the '+' button to get started.",

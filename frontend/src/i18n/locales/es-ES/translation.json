@@ -118,7 +118,8 @@
     "createFieldText": "Crear campo",
     "goBackText": "Volver",
     "updateFieldText": "Actualizar campo",
-    "fieldText": "Campo: "
+    "fieldText": "Campo: ",
+    "addMeasurementText": "Agregar Medición"
   },
   "objectView": {
     "dontObjectMessage": "Aún no has creado ningún objeto. Por favor, añade uno desde el boton'+'para comenzar.",

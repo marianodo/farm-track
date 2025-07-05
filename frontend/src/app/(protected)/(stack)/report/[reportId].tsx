@@ -23,8 +23,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import styles from './styles';
-import PenList from '../../components/penAndReport/PenList';
-import ReportList from '../../components/penAndReport/ReportList';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator } from 'react-native-paper';
 import { rMS, rMV, rS, rV } from '@/styles/responsive';
@@ -122,12 +120,14 @@ export default function PenScreen() {
     reportById,
     getReportById,
     reportsLoading,
+    reportsByFielId,
   } = useReportStore((state) => ({
     getAllReportsByField: state.getAllReportsByField,
     getReportById: state.getReportById,
     reportById: state.reportById,
     reportsLoading: state.reportsLoading,
     resetDetail: state.resetDetail,
+    reportsByFielId: state.reportsByFielId,
   }));
   const { t } = useTranslation();
 
@@ -191,6 +191,12 @@ export default function PenScreen() {
 
   useEffect(() => {
     getReportById(reportId as unknown as number);
+    
+    // Cargar reportes del campo si no están disponibles
+    if (!reportsByFielId || !reportsByFielId[fieldId as string]) {
+      getAllReportsByField(fieldId as string);
+    }
+    
     return () => {
       resetDetail();
     };
@@ -377,6 +383,55 @@ export default function PenScreen() {
         onClose={() => setShowInfoModal(false)}
         stats={modalStatsData}
       />
+      
+      {/* Botón Agregar Medición */}
+      <View style={styles.addMeasurementButtonContainer}>
+        <Button
+          mode="contained"
+          onPress={() => {
+            // Buscar el reporte en reportsByFielId usando reportId
+            const reportFromList = reportsByFielId && reportsByFielId[fieldId as string]
+              ? reportsByFielId[fieldId as string].find((report: any) => report.id === parseInt(reportId as string))
+              : null;
+
+            if (reportFromList) {
+              const reportDisplayName = reportFromList.name
+                ? reportFromList.name.charAt(0).toUpperCase() + reportFromList.name.slice(1).toLowerCase()
+                : `Report ${(reportFromList as any).correlative_id} - ${new Date(reportFromList.created_at).toLocaleDateString('es', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}`;
+              
+              const reportNameFind = reportFromList.name
+                ? reportFromList.name.charAt(0).toUpperCase() + reportFromList.name.slice(1).toLowerCase()
+                : `Report ${reportFromList.id} - ${new Date(reportFromList.created_at).toLocaleDateString('es', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                  })}`;
+              
+              router.push({
+                pathname: `/report/editReport`,
+                params: {
+                  fieldName: fieldName,
+                  reportId: +reportFromList.id,
+                  correlative_id: +(reportFromList as any).correlative_id,
+                  reportName: reportDisplayName,
+                  reportNameFind: reportNameFind,
+                  penName: reportFromList.name,
+                  type_of_objects: JSON.stringify((reportFromList as any).type_of_objects || []),
+                  fieldId: reportFromList.field_id,
+                },
+              });
+            }
+          }}
+          style={styles.addMeasurementButton}
+          labelStyle={styles.addMeasurementButtonText}
+        >
+          {t('detailField.addMeasurementText')}
+        </Button>
+      </View>
     </View>
   );
 }
