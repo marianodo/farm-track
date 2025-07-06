@@ -82,7 +82,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
         useFieldStore.getState().getFieldsByUser(userId);
       }
     } catch (error) {
-      console.log('error onDelete Field', error);
+      
       throw error;
     }
   },
@@ -100,7 +100,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
       set({ fieldLoading: false });
 
       // Maneja los errores
-      console.log('error onUpdate Field:', error);
+      
       if (
         error.response &&
         error.response.data &&
@@ -129,7 +129,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
       }
     } catch (error) {
       set({ fieldLoading: false });
-      console.log('error getFieldByUser:', error);
+      
     }
   },
   getFieldById: async (id: string) => {
@@ -142,7 +142,7 @@ const useFieldStore = create<FieldState>((set: any) => ({
       });
     } catch (error) {
       set({ fieldLoading: false });
-      console.log('error getFieldById:', error);
+      
     }
   },
   setFieldProductionType: (type: string) => {

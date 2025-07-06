@@ -119,7 +119,7 @@
     "goBackText": "Go back",
     "updateFieldText": "Update field",
     "fieldText": "Field: ",
-    "addMeasurementText": "Add Measurement"
+    "addMeasurementText": "Add More Measurements"
   },
   "objectView": {
     "dontObjectMessage": "You haven't created any objects yet. Please add one from the '+' button to get started.",

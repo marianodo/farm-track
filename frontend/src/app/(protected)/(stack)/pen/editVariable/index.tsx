@@ -122,7 +122,7 @@ const EditVariable: React.FC = () => {
     ) as DefaultParameters,
   });
 
-  console.log("CUSTOMS", custom_parameters)
+  
 
   const validateForm = () => {
     const newError: FormDataError = {

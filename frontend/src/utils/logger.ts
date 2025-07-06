@@ -21,7 +21,10 @@ export const saveLog = async (message: string, data?: any, category: string = 'g
     }
     
     await AsyncStorage.setItem('app_logs', JSON.stringify(logs));
-    console.log(`[${category.toUpperCase()}] ${message}`, data);
+    // Solo mostrar en consola si es un error o advertencia
+    if (category === 'error' || category === 'warning') {
+      console.log(`[${category.toUpperCase()}] ${message}`, data);
+    }
   } catch (error) {
     console.error('Error saving log:', error);
   }
@@ -49,7 +52,7 @@ export const getLogs = async (category?: string) => {
 export const clearLogs = async () => {
   try {
     await AsyncStorage.removeItem('app_logs');
-    console.log('Logs cleared successfully');
+;
   } catch (error) {
     console.error('Error clearing logs:', error);
   }

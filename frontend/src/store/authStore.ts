@@ -155,7 +155,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
       }
     } catch (error) {
       set({ token: null, authenticated: false, authLoading: false });
-      console.log(error);
+
     }
   },
 
@@ -226,7 +226,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
         });
       }, 300);
       if (error.response) {
-        console.log(error.response.data);
+
         return alert(`deleted error: ${error.response.data.message}`);
       }
       alert('Error al registrar el usuario');

@@ -44,9 +44,9 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
         error.response.data &&
         error.response.data.message
       ) {
-        console.log(error.response.data.message);
+
       } else {
-        console.log('Error creating object');
+
       }
     }
   },
@@ -76,7 +76,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
-      console.log('error onUpdate Object:', error);
+
       if (
         error.response &&
         error.response.data &&
@@ -105,7 +105,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       });
     } catch (error) {
       set({ typeOfObjectsLoading: false });
-      console.log('error getAllTypeOfObjects:', error);
+
     }
   },
   getTypeOfObjectById: async (id: string | null) => {
@@ -121,7 +121,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       }
     } catch (error) {
       set({ typeOfObjectsLoading: false });
-      console.log('error gettypeOfObjectById:', error);
+
     }
   },
   clearTypeOfObjects: () => {

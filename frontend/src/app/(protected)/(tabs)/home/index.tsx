@@ -388,7 +388,7 @@ export default function HomeScreen() {
               iconColor="#fff"
               size={rMV(24)}
               style={{ marginLeft: rMS(-10) }}
-              onPress={() => console.log('profile')}
+              onPress={() => {}}
             />
             <Menu
               visible={visible}

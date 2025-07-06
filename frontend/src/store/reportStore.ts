@@ -129,7 +129,6 @@ const useReportStore = create<ReportState>((set) => ({
       useReportStore.getState().getReportById(report_id);
       set({ reportsLoading: false });
     } catch (error: any) {
-      console.log(error?.response.message);
       set({ reportsLoading: false });
       if (
         error.response &&
@@ -150,7 +149,6 @@ const useReportStore = create<ReportState>((set) => ({
       useReportStore.getState().getAllReportsByField(field_id);
       set({ reportsLoading: false });
     } catch (error: any) {
-      console.log(error?.response.message);
       set({ reportsLoading: false });
       if (
         error.response &&
@@ -235,7 +233,7 @@ const useReportStore = create<ReportState>((set) => ({
         set({ reportById: response.data, reportsLoading: false });
       }
     } catch (error: any) {
-      console.log(error?.response);
+
       set({ reportsLoading: false });
       if (
         error.response &&
@@ -356,7 +354,7 @@ const useReportStore = create<ReportState>((set) => ({
       );
       set({ measurementEditData: response.data, reportsLoading: false });
     } catch (error: any) {
-      console.log(error?.response);
+
       set({ reportsLoading: false });
       if (
         error.response &&

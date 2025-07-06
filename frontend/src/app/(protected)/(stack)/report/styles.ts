@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   addMeasurementButton: {
     backgroundColor: '#486732',
     borderRadius: 8,
-    paddingVertical: rMV(12),
+    paddingVertical: rMV(8),
     elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
