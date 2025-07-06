@@ -210,6 +210,9 @@
   "reportsView": {
     "reportsText": "List of evaluations",
     "continueText": "Continue",
+    "creatingText": "Creating...",
+    "timeoutError": "The operation took too long. Please try again.",
+    "networkError": "Connection error. Please check your connection and try again.",
     "dontPenMessage": "Remember that to create the first report there must be at least one corral.",
     "reportNameText": "Report name: ",
     "dontReportMessage": "You haven't created any reports yet. Please add one from the '+' button to get started.",

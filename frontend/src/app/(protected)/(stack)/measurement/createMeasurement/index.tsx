@@ -48,7 +48,7 @@ type FormData = {
 };
 
 const CreateMeasurement: React.FC = () => {
-  const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportNameFind } =
+  const { typeOfObjectId, typeOfObjectName, fieldName, penName, reportName, reportNameFind, reportId } =
     useLocalSearchParams();
   const [texts, setTexts] = useState({
     title: '',
@@ -100,11 +100,13 @@ const CreateMeasurement: React.FC = () => {
     reportsLoading,
     createMeasurementWithReportId,
     measurementVariablesData,
+    setCreateReportId,
   } = useReportStore((state: any) => ({
     reportsLoading: state.reportsLoading,
     createReportId: state.createReportId,
     measurementVariablesData: state.measurementVariablesData,
     createMeasurementWithReportId: state.createMeasurementWithReportId,
+    setCreateReportId: state.setCreateReportId,
   }));
 
   const { getStatsByField, statsByField, resetStatsByField, statsLoading } = useMeasurementStatsStore((state: any) => ({
@@ -123,6 +125,16 @@ const CreateMeasurement: React.FC = () => {
     name: null,
   });
 
+  // Establecer createReportId si viene como parámetro
+  useEffect(() => {
+    if (reportId && !createReportId) {
+      setCreateReportId(Number(reportId));
+      saveLog('createReportId establecido desde parámetros', {
+        reportId: Number(reportId)
+      }, 'measurement');
+    }
+  }, [reportId, createReportId, setCreateReportId]);
+
   // Log cuando se carga la pantalla
   useEffect(() => {
     try {
@@ -133,7 +145,9 @@ const CreateMeasurement: React.FC = () => {
         penName,
         reportName,
         reportNameFind,
-        fieldId
+        fieldId,
+        reportId,
+        createReportId
       }, 'measurement');
     } catch (error) {
       saveLog('Error al cargar pantalla de medición', {
@@ -224,14 +238,14 @@ const CreateMeasurement: React.FC = () => {
 
     const newMeasurement = {
       name: formData.name,
-      type_of_object_id: typeOfObjectId,
+      type_of_object_id: Number(typeOfObjectId), // Asegurar que siempre sea un entero
       field_id: fieldId,
       measurements: Object.entries(values)
         .filter(([key, value]) => value !== null)
         .map(([key, value]) => ({
           pen_variable_type_of_object_id: Number(key),
           value: value,
-          report_id: createReportId,
+          report_id: Number(createReportId), // Asegurar que siempre sea un entero
         })),
     };
 
@@ -245,7 +259,7 @@ const CreateMeasurement: React.FC = () => {
       reportsLoading
     }, 'measurement');
 
-    await createMeasurementWithReportId(newMeasurement);
+    await createMeasurementWithReportId(newMeasurement, fieldId as string);
     
     await saveLog('createMeasurementWithReportId completado', {
       measurementCount: measurementCount + 1

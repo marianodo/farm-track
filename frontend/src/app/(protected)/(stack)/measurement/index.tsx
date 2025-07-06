@@ -69,7 +69,7 @@ type FormDataError = {
 };
 
 const CreatePen: React.FC = () => {
-  const { fieldId, fieldName, reportName, reportNameFind } = useLocalSearchParams();
+  const { fieldId, fieldName, reportName, reportNameFind, reportId } = useLocalSearchParams();
   const { pens, pensLoading } = usePenStore((state: any) => ({
     pens: state.pens,
     pensLoading: state.pensLoading,
@@ -144,6 +144,7 @@ const CreatePen: React.FC = () => {
     resetCreateReportId,
     setMeasurementData,
     measurementVariablesData,
+    setCreateReportId,
   } = useReportStore((state: any) => ({
     reportsLoading: state.reportsLoading,
     createReportId: state.createReportId,
@@ -151,6 +152,7 @@ const CreatePen: React.FC = () => {
     setMeasurementData: state.setMeasurementData,
     resetCreateReportId: state.resetCreateReportId,
     measurementVariablesData: state.measurementVariablesData,
+    setCreateReportId: state.setCreateReportId,
   }));
 
   const { t } = useTranslation();
@@ -190,6 +192,13 @@ const CreatePen: React.FC = () => {
       );
     }
   }, [penVariableTypeOfObjectByTypeIdAndPen]);
+
+  // Establecer createReportId cuando se navega desde report detail
+  useEffect(() => {
+    if (reportId) {
+      setCreateReportId(Number(reportId));
+    }
+  }, [reportId, setCreateReportId]);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     if (field === 'penId') {
@@ -258,7 +267,10 @@ const CreatePen: React.FC = () => {
             fieldName: fieldName,
             penName: penName,
             reportName: reportName,
-            reportNameFind: reportNameFind
+            reportNameFind: reportNameFind,
+            // Pasar reportId si está disponible desde params, o createReportId si está en el store
+            ...(reportId && { reportId: reportId }),
+            ...(createReportId && !reportId && { reportId: createReportId }),
           },
         });
         setFormData({

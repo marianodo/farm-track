@@ -412,16 +412,13 @@ export default function PenScreen() {
                   })}`;
               
               router.push({
-                pathname: `/report/editReport`,
+                pathname: `/measurement`,
                 params: {
                   fieldName: fieldName,
-                  reportId: +reportFromList.id,
-                  correlative_id: +(reportFromList as any).correlative_id,
+                  fieldId: fieldId,
                   reportName: reportDisplayName,
                   reportNameFind: reportNameFind,
-                  penName: reportFromList.name,
-                  type_of_objects: JSON.stringify((reportFromList as any).type_of_objects || []),
-                  fieldId: reportFromList.field_id,
+                  reportId: reportFromList.id, // Agregar reportId para establecer createReportId
                 },
               });
             }

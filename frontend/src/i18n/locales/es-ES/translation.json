@@ -210,6 +210,9 @@
   "reportsView": {
     "reportsText": "Lista de evaluaciones",
     "continueText": "Continuar",
+    "creatingText": "Creando...",
+    "timeoutError": "La operación tardó demasiado tiempo. Por favor, intenta de nuevo.",
+    "networkError": "Error de conexión. Por favor, verifica tu conexión y intenta de nuevo.",
     "dontPenMessage": "Recuerda que para crear el primer reporte debe existir al menos un corral.",
     "reportNameText": "Nombre del reporte: ",
     "dontReportMessage": "Aún no has creado ningún reporte. Por favor añade uno desde el botón '+' para comenzar.",

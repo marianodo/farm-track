@@ -60,9 +60,7 @@ type FormData = {
   comment: string | null;
 };
 
-type FormDataError = {
-  name: string | null;
-};
+// FormDataError removido - ya no hay validación obligatoria
 
 type ProductivityData = {
   total_cows: number | null;
@@ -75,10 +73,7 @@ type ProductivityData = {
 
 const CreateReport: React.FC = () => {
   const { fieldId, fieldName } = useLocalSearchParams();
-  const { validateNameInput } = useValidationRules();
-  const [error, setError] = useState<FormDataError>({
-    name: null,
-  });
+  // Validación removida - campos son opcionales
   const [editObjects, setEditObjects] = useState<boolean>(false);
   const router = useRouter();
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
@@ -138,26 +133,16 @@ const CreateReport: React.FC = () => {
   };
 
   const validateForm = () => {
-    const newError: FormDataError = {
-      name: validateNameInput(formData.name ?? '', t),
-    };
-
-    setError(newError);
-    return newError.name;
+    // Removida validación obligatoria - nombre y observación son opcionales
+    return null;
   };
 
   const onChange = (field: keyof FormData, inputValue: any) => {
-    // const updatedFormData = { ...formData, [field]: inputValue };
-    // switch (field) {
-    //   default:
-    //     setError((prevError) => ({
-    //       ...prevError,
-    //       name: validateNameInput(inputValue, t),
-    //     }));
-    // }
     setFormData({ ...formData, [field]: inputValue });
+    // Removida validación en tiempo real - campos son opcionales
   };
   const handleSubmit = async () => {
+
     const hasProductivityData = Object.values(productivityData).some(
       (value) => value !== null
     );
@@ -170,37 +155,57 @@ const CreateReport: React.FC = () => {
     };
 
     try {
-      // await createReport(data, fieldId);
-      const newReport = await createReport(data, fieldId); // Get the new report
-      const reportId = newReport.correlative_id; // Use the ID from the new report
+      const newReport = await createReport(data, fieldId);
+      
+      // Verificar que el reporte se creó correctamente
+      if (!newReport || !newReport.id) {
+        throw new Error('Failed to create report');
+      }
+
+      const reportId = newReport.correlative_id;
       const reportRealId = newReport.id;
-      const reportName = createReportName && createReportName.trim() !== ''
-        ? createReportName
-        : `Report ${reportId} - ${new Date().toLocaleDateString('es', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })}`;
-      const reportNameFind = createReportName && createReportName.trim() !== ''
-        ? createReportName
+      
+      // Usar el nombre del formulario si existe, sino usar createReportName del store, sino usar formato por defecto
+      const reportName = formData.name && formData.name.trim() !== ''
+        ? formData.name
+        : (createReportName && createReportName.trim() !== ''
+          ? createReportName
+          : `Report ${reportId} - ${new Date().toLocaleDateString('es', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })}`);
+      
+      const reportNameFind = formData.name && formData.name.trim() !== ''
+        ? formData.name
         : `Report ${reportRealId} - ${new Date().toLocaleDateString('es', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })}`;
-      console.log(reportNameFind)
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          })}`;
+
+      // Navegar solo después de que todo esté correcto
       router.push({
         pathname: `/measurement`,
         params: {
           fieldName: fieldName,
           fieldId: fieldId,
-          reportName: formData.name ? formData.name : reportName,
-          reportNameFind: reportNameFind
+          reportName: reportName,
+          reportNameFind: reportNameFind,
+          reportId: reportRealId.toString() // Pasar el reportId para establecer createReportId
         },
       });
     } catch (error) {
-      console.log(error);
-      alert(t('attributeView.formErrorText'));
+      console.error('Error creating report:', error);
+      
+      // Mostrar mensaje de error más específico
+      if (error?.message?.includes('timeout') || error?.message?.includes('expired')) {
+        alert(t('reportsView.timeoutError') || 'Database operation timed out. Please try again.');
+      } else if (error?.message?.includes('network') || error?.message?.includes('connection')) {
+        alert(t('reportsView.networkError') || 'Network error. Please check your connection and try again.');
+      } else {
+        alert(t('attributeView.formErrorText'));
+      }
     }
   };
 
@@ -216,8 +221,9 @@ const CreateReport: React.FC = () => {
           percentage_of_fat: null,
           percentage_of_protein: null,
         });
+        resetCreateReportId();
       };
-    }, [])
+    }, [resetCreateReportId])
   );
 
   useFocusEffect(
@@ -427,9 +433,6 @@ const CreateReport: React.FC = () => {
                 selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                 style={styles.input}
               />
-              {error?.name && (
-                <Text style={styles.errorText}>{error?.name}</Text>
-              )}
 
               <TextInput
                 mode="outlined"
@@ -444,9 +447,6 @@ const CreateReport: React.FC = () => {
                 selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
                 style={styles.input}
               />
-              {error?.name && (
-                <Text style={styles.errorText}>{error?.name}</Text>
-              )}
               {fieldProductionType === 'bovine_of_milk' && (
                 <>
                   <View
@@ -553,9 +553,16 @@ const CreateReport: React.FC = () => {
             </View>
           </KeyboardAwareScrollView>
           <View style={styles.fixedButtonContainer}>
-            <Pressable onPress={handleSubmit} style={styles.button}>
+            <Pressable 
+              onPress={handleSubmit} 
+              style={[
+                styles.button,
+                reportsLoading && { opacity: 0.6 }
+              ]}
+              disabled={reportsLoading}
+            >
               <Text style={styles.buttonText}>
-                {t('reportsView.continueText')}
+                {reportsLoading ? t('reportsView.creatingText') || 'Creating...' : t('reportsView.continueText')}
               </Text>
             </Pressable>
           </View>
