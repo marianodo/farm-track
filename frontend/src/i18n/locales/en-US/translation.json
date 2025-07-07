@@ -216,6 +216,7 @@
     "dontPenMessage": "Remember that to create the first report there must be at least one corral.",
     "reportNameText": "Report name: ",
     "dontReportMessage": "You haven't created any reports yet. Please add one from the '+' button to get started.",
+    "loadingReports": "Loading evaluations...",
     "dontReportAndPenMessage": "Remember that to create the first report there must be at least one corral.",
     "title": "Manage evaluations",
     "deleteAlertTitle": "¿Do you want to delete the report",

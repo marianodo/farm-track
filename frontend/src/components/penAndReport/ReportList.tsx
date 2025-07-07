@@ -267,136 +267,155 @@ const ReportList: React.FC<PenListProps> = ({
     );
   };
 
-  return !pens?.length ? (
-    <View
-      style={{
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+  // Mostrar mensaje si no hay corrales
+  if (!pens?.length) {
+    return (
       <View
         style={{
-          width: '90%',
-          backgroundColor: '#f5ead2',
-          height: rMV(44),
-          borderRadius: rMS(6),
+          width: '100%',
           alignItems: 'center',
           justifyContent: 'center',
-          marginTop: rMV(20),
-          display: 'flex',
-          flexDirection: 'row',
-          paddingRight: rMS(12),
         }}
       >
-        <IconButton
-          icon={'alert-circle-outline'}
-          iconColor="#d9a220"
-          size={rMS(20)}
-          style={{ margin: 0 }}
-        />
-        <Text
-          style={{
-            color: '#d9a220',
-            fontFamily: 'Pro-Regular',
-            fontSize: rMS(10),
-            flexShrink: 1,
-            flexWrap: 'wrap',
-            textAlign: 'center',
-          }}
-        >
-          {t('reportsView.dontPenMessage')}
-        </Text>
-      </View>
-    </View>
-  ) : !reports?.length ? (
-    <View
-      style={{
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <View
-        style={{
-          width: '90%',
-          backgroundColor: '#ebf2ed',
-          height: rMV(44),
-          borderRadius: rMS(6),
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: rMV(20),
-          display: 'flex',
-          flexDirection: 'row',
-          paddingRight: rMS(12),
-        }}
-      >
-        <IconButton
-          icon={'alert-circle-outline'}
-          iconColor="#487632"
-          size={rMS(20)}
-          style={{ margin: 0 }}
-        />
-        <Text
-          style={{
-            color: '#487632',
-            fontFamily: 'Pro-Regular',
-            fontSize: rMS(10),
-            flexShrink: 1,
-            flexWrap: 'wrap',
-            textAlign: 'center',
-          }}
-        >
-          {t('reportsView.dontReportMessage')}
-        </Text>
-      </View>
-    </View>
-  ) : (
-    <View style={styles.spacer}>
-      {reportsLoading ? (
         <View
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            justifyContent: 'center',
+            width: '90%',
+            backgroundColor: '#f5ead2',
+            height: rMV(44),
+            borderRadius: rMS(6),
             alignItems: 'center',
-            zIndex: 1000,
+            justifyContent: 'center',
+            marginTop: rMV(20),
+            display: 'flex',
+            flexDirection: 'row',
+            paddingRight: rMS(12),
           }}
         >
-          <ActivityIndicator
-            style={{
-              marginTop: '0%',
-            }}
-            animating={true}
-            color="#486732"
+          <IconButton
+            icon={'alert-circle-outline'}
+            iconColor="#d9a220"
+            size={rMS(20)}
+            style={{ margin: 0 }}
           />
+          <Text
+            style={{
+              color: '#d9a220',
+              fontFamily: 'Pro-Regular',
+              fontSize: rMS(10),
+              flexShrink: 1,
+              flexWrap: 'wrap',
+              textAlign: 'center',
+            }}
+          >
+            {t('reportsView.dontPenMessage')}
+          </Text>
         </View>
-      ) : (
-        <FlatList
-          ListFooterComponentStyle={{
-            marginBottom: Platform.OS === 'android' ? rMS(58) : rMS(50),
-          }}
-          ListFooterComponent={<View></View>}
-          style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
-          data={reports}
-          keyExtractor={(item, index) => `${item.name}${index}`}
-          renderItem={({ item, index }) => {
-            const isExpanded = expandedItems.includes(index);
-            return (
-              <ListItem
-                item={item}
-                index={index}
-                isExpanded={isExpanded}
-                toggleExpand={toggleExpand}
-                setExpandedItems={setExpandedItems}
-              />
-            );
-          }}
+      </View>
+    );
+  }
+
+  // Mostrar indicador de carga
+  if (reportsLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginTop: '30%',
+        }}
+      >
+        <ActivityIndicator
+          animating={true}
+          color="#486732"
+          size="large"
         />
-      )}
+        <Text
+          style={{
+            color: '#486732',
+            fontFamily: 'Pro-Regular',
+            fontSize: rMS(14),
+            marginTop: rMS(10),
+            textAlign: 'center',
+          }}
+        >
+          {t('reportsView.loadingReports')}
+        </Text>
+      </View>
+    );
+  }
+
+  // Mostrar mensaje si no hay reportes
+  if (!reports || reports.length === 0) {
+    return (
+      <View
+        style={{
+          width: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <View
+          style={{
+            width: '90%',
+            backgroundColor: '#ebf2ed',
+            height: rMV(44),
+            borderRadius: rMS(6),
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: rMV(20),
+            display: 'flex',
+            flexDirection: 'row',
+            paddingRight: rMS(12),
+          }}
+        >
+          <IconButton
+            icon={'alert-circle-outline'}
+            iconColor="#487632"
+            size={rMS(20)}
+            style={{ margin: 0 }}
+          />
+          <Text
+            style={{
+              color: '#487632',
+              fontFamily: 'Pro-Regular',
+              fontSize: rMS(10),
+              flexShrink: 1,
+              flexWrap: 'wrap',
+              textAlign: 'center',
+            }}
+          >
+            {t('reportsView.dontReportMessage')}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Mostrar lista de reportes
+  return (
+    <View style={styles.spacer}>
+      <FlatList
+        ListFooterComponentStyle={{
+          marginBottom: Platform.OS === 'android' ? rMS(58) : rMS(50),
+        }}
+        ListFooterComponent={<View></View>}
+        style={{ paddingHorizontal: rMS(20), paddingTop: rMS(10) }}
+        data={reports}
+        keyExtractor={(item, index) => `${item.name}${index}`}
+        renderItem={({ item, index }) => {
+          const isExpanded = expandedItems.includes(index);
+          return (
+            <ListItem
+              item={item}
+              index={index}
+              isExpanded={isExpanded}
+              toggleExpand={toggleExpand}
+              setExpandedItems={setExpandedItems}
+            />
+          );
+        }}
+      />
     </View>
   );
 };
