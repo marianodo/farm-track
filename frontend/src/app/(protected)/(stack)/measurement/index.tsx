@@ -611,7 +611,10 @@ const CreatePen: React.FC = () => {
                 onClose={() => setOpenDropdown(null)}
                 ListEmptyComponent={() => (
                   <Text style={{ textAlign: 'center', padding: 10 }}>
-                    {t('measurementView.dropDownDontInfo')}
+                    {penVariableTypeOfObjectsLoading 
+                      ? t('measurementView.loadingVariables') 
+                      : t('measurementView.dropDownDontInfo')
+                    }
                   </Text>
                 )}
               />

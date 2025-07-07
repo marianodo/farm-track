@@ -388,7 +388,7 @@ export default function HomeScreen() {
               iconColor="#fff"
               size={rMV(24)}
               style={{ marginLeft: rMS(-10) }}
-              onPress={() => {}}
+              onPress={() => router.push('/cache-test')}
             />
             <Menu
               visible={visible}
@@ -730,6 +730,18 @@ export default function HomeScreen() {
         isVisible={showChangePasswordModal}
         onClose={() => setShowChangePasswordModal(false)}
       />
+      
+      {/* Botón flotante temporal para testing de cache */}
+      <View style={styles.cacheTestButton}>
+        <Button
+          mode="contained"
+          onPress={() => router.push('/cache-test')}
+          style={{ backgroundColor: '#FF6B35', borderRadius: 25 }}
+          labelStyle={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}
+        >
+          🚀 Cache Test
+        </Button>
+      </View>
     </View>
     // <View style={styles.titleContainer}>
     //   <Portal>
@@ -1372,5 +1384,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 3.5,
     borderRadius: 8,
+  },
+  cacheTestButton: {
+    position: 'absolute',
+    bottom: 80,
+    right: 20,
+    zIndex: 99999,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
   },
 });

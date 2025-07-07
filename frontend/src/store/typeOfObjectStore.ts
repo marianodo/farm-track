@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import useAuthStore, { axiosInstance } from './authStore';
+import { cacheManager, CACHE_CONFIGS } from '../utils/cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Renombrar 'Object' a 'MyTypeOfObject' para evitar conflictos
@@ -21,7 +22,7 @@ interface TypeOfObjectState {
   createTypeOfObject: (object: MyTypeOfObject) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, object: Partial<MyTypeOfObject>) => Promise<void>;
-  getAllTypeOfObjects: () => void;
+  getAllTypeOfObjects: (forceRefresh?: boolean) => void;
   getTypeOfObjectById: (id: string | null) => Promise<void>;
   clearTypeOfObjects: () => void;
 }
@@ -35,7 +36,11 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
     try {
       const userId = useAuthStore.getState().userId;
       await axiosInstance.post(`/type-of-objects/${userId}`, object);
-      useTypeOfObjectStore.getState().getAllTypeOfObjects();
+      
+      // Invalidar caché
+      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      
+      useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
@@ -52,8 +57,16 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   },
   onDelete: async (id: string) => {
     try {
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const userId = user?.userId;
+      
       await axiosInstance.delete(`/type-of-objects/${id}`);
-      useTypeOfObjectStore.getState().getAllTypeOfObjects();
+      
+      // Invalidar caché
+      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      
+      useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
       if (
@@ -70,9 +83,16 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   onUpdate: async (id: string, object: Partial<MyTypeOfObject>) => {
     set({ typeOfObjectsLoading: true });
     try {
+      const userString = await AsyncStorage.getItem('user');
+      const user = userString ? JSON.parse(userString) : null;
+      const userId = user?.userId;
+      
       await axiosInstance.patch(`/type-of-objects/${id}`, object);
-      useTypeOfObjectStore.getState().getAllTypeOfObjects();
-
+      
+      // Invalidar caché
+      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      
+      useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
     } catch (error: any) {
       set({ typeOfObjectsLoading: false });
@@ -88,24 +108,34 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       }
     }
   },
-  getAllTypeOfObjects: async () => {
+  getAllTypeOfObjects: async (forceRefresh: boolean = false) => {
     set({ typeOfObjectsLoading: true });
     try {
       const userString = await AsyncStorage.getItem('user');
       const user = userString ? JSON.parse(userString) : null;
-      const response = await axiosInstance.get(
-        `/type-of-objects/byUser/${user.userId}`
-      );
+      const userId = user?.userId;
+      
+      // Intentar obtener del caché primero
+      if (!forceRefresh) {
+        const cachedTypeOfObjects = await cacheManager.get(CACHE_CONFIGS.typeOfObjects, userId);
+        if (cachedTypeOfObjects) {
+          set({ typeOfObjects: cachedTypeOfObjects, typeOfObjectsLoading: false });
+          return;
+        }
+      }
+      
+      const response = await axiosInstance.get(`/type-of-objects/byUser/${userId}`);
       const sortedData = response.data.sort(
         (a: MyTypeOfObject, b: MyTypeOfObject) => a.name.localeCompare(b.name)
       );
-      set({
-        typeOfObjects: sortedData.length ? sortedData : [],
-        typeOfObjectsLoading: false,
-      });
+      const typeOfObjects = sortedData.length ? sortedData : [];
+      
+      // Guardar en caché
+      await cacheManager.set(CACHE_CONFIGS.typeOfObjects, typeOfObjects, userId);
+      
+      set({ typeOfObjects, typeOfObjectsLoading: false });
     } catch (error) {
       set({ typeOfObjectsLoading: false });
-
     }
   },
   getTypeOfObjectById: async (id: string | null) => {

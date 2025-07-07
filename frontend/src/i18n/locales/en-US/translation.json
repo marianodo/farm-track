@@ -267,6 +267,7 @@
     "continueButtonTEXT": "Continue",
     "objectTextIdentification": "Identification (optional)",
     "dropDownDontInfo": "¡don't information available!",
+    "loadingVariables": "Loading variables...",
     "exitReportText": "Exit Report",
     "saveText": "Save measurement"
   },
