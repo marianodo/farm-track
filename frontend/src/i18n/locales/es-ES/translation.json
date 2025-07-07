@@ -324,5 +324,11 @@
   "modal": {
     "successMessage": "Operación exitosa",
     "errorMessage": "Ops.. se ha producido un error"
+  },
+  "network": {
+    "noConnection": "Sin conexión a internet",
+    "noInternet": "Conexión limitada - Sin acceso a internet",
+    "reconnected": "Conexión a internet restaurada",
+    "dismiss": "Cerrar"
   }
 }
