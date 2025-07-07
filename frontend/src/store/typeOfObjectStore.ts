@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import useAuthStore, { axiosInstance } from './authStore';
 import { cacheManager, CACHE_CONFIGS } from '../utils/cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCacheData, setCacheData, invalidateCachePattern } from '../utils/cache';
 
 // Renombrar 'Object' a 'MyTypeOfObject' para evitar conflictos
 export interface Variable {
@@ -19,11 +20,12 @@ interface TypeOfObjectState {
   typeOfObjects: MyTypeOfObject[] | null;
   typeOfObjectById: MyTypeOfObject | null; // Cambiar a objeto en lugar de array
   typeOfObjectsLoading: boolean; // Cambiar de null a boolean
+  isFromCache: boolean;
   createTypeOfObject: (object: MyTypeOfObject) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
   onUpdate: (id: string, object: Partial<MyTypeOfObject>) => Promise<void>;
   getAllTypeOfObjects: (forceRefresh?: boolean) => void;
-  getTypeOfObjectById: (id: string | null) => Promise<void>;
+  getTypeOfObjectById: (id: string | null, forceRefresh?: boolean) => Promise<void>;
   clearTypeOfObjects: () => void;
 }
 
@@ -31,6 +33,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
   typeOfObjects: null,
   typeOfObjectById: null,
   typeOfObjectsLoading: false, // Cambiar de null a false
+  isFromCache: false,
   createTypeOfObject: async (object: MyTypeOfObject): Promise<void> => {
     set({ typeOfObjectsLoading: true });
     try {
@@ -38,7 +41,7 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       await axiosInstance.post(`/type-of-objects/${userId}`, object);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
       
       useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
@@ -64,7 +67,8 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       await axiosInstance.delete(`/type-of-objects/${id}`);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+      await invalidateCachePattern(`${CACHE_CONFIGS.typeOfObjectById.key}_${id}`);
       
       useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
     } catch (error: any) {
@@ -90,7 +94,8 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       await axiosInstance.patch(`/type-of-objects/${id}`, object);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+      await invalidateCachePattern(`${CACHE_CONFIGS.typeOfObjectById.key}_${id}`);
       
       useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
       set({ typeOfObjects: null, typeOfObjectsLoading: false });
@@ -138,20 +143,39 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       set({ typeOfObjectsLoading: false });
     }
   },
-  getTypeOfObjectById: async (id: string | null) => {
+  getTypeOfObjectById: async (id: string | null, forceRefresh: boolean = false) => {
     set({ typeOfObjectsLoading: true });
     try {
       if (id) {
+        // Intentar obtener del caché primero
+        if (!forceRefresh) {
+          const cacheKey = `${CACHE_CONFIGS.typeOfObjectById.key}_${id}`;
+          const cachedTypeOfObject = await getCacheData<MyTypeOfObject>(cacheKey);
+          if (cachedTypeOfObject) {
+            set({
+              typeOfObjectById: cachedTypeOfObject,
+              typeOfObjectsLoading: false,
+              isFromCache: true,
+            });
+            return;
+          }
+        }
+
+        // Si no hay caché o se fuerza refresh, hacer llamada al backend
         const response = await axiosInstance.get(`/type-of-objects/${id}`);
+        
+        // Guardar en caché
+        const cacheKey = `${CACHE_CONFIGS.typeOfObjectById.key}_${id}`;
+        await setCacheData(cacheKey, response.data, CACHE_CONFIGS.typeOfObjectById.ttl);
 
         set({
           typeOfObjectById: response.data ? response.data : null, // Cambiado 'objectsByUserId' por 'typeOfObjectById'
           typeOfObjectsLoading: false,
+          isFromCache: false,
         });
       }
     } catch (error) {
       set({ typeOfObjectsLoading: false });
-
     }
   },
   clearTypeOfObjects: () => {

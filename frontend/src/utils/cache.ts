@@ -13,14 +13,21 @@ interface CacheConfig {
 
 // Configuraciones de caché por tipo de dato
 export const CACHE_CONFIGS = {
-  variables: { ttl: 30 * 60 * 1000, key: 'cache_variables' }, // 30 minutos
-  typeOfObjects: { ttl: 30 * 60 * 1000, key: 'cache_type_objects' }, // 30 minutos
-  pens: { ttl: 15 * 60 * 1000, key: 'cache_pens' }, // 15 minutos
+  variables: { ttl: 10 * 60 * 1000, key: 'cache_variables' }, // 10 minutos
+  typeOfObjects: { ttl: 10 * 60 * 1000, key: 'cache_type_of_objects' }, // 10 minutos
+  pens: { ttl: 10 * 60 * 1000, key: 'cache_pens' }, // 10 minutos
   reports: { ttl: 5 * 60 * 1000, key: 'cache_reports' }, // 5 minutos
-  reportById: { ttl: 10 * 60 * 1000, key: 'cache_report_by_id' }, // 10 minutos
-  fields: { ttl: 60 * 60 * 1000, key: 'cache_fields' }, // 1 hora
-  penVariables: { ttl: 20 * 60 * 1000, key: 'cache_pen_variables' }, // 20 minutos
-  measurementStats: { ttl: 2 * 60 * 1000, key: 'cache_measurement_stats' }, // 2 minutos
+  reportById: { ttl: 5 * 60 * 1000, key: 'cache_report_by_id' }, // 5 minutos
+  fields: { ttl: 15 * 60 * 1000, key: 'cache_fields' }, // 15 minutos
+  penVariables: { ttl: 5 * 60 * 1000, key: 'cache_pen_variables' }, // 5 minutos
+  measurementStats: { ttl: 3 * 60 * 1000, key: 'cache_measurement_stats' }, // 3 minutos
+  fieldById: { ttl: 15 * 60 * 1000, key: 'cache_field_by_id' }, // 15 minutos
+  penById: { ttl: 10 * 60 * 1000, key: 'cache_pen_by_id' }, // 10 minutos
+  variableById: { ttl: 10 * 60 * 1000, key: 'cache_variable_by_id' }, // 10 minutos
+  typeOfObjectById: { ttl: 10 * 60 * 1000, key: 'cache_type_of_object_by_id' }, // 10 minutos
+  measurementStatsByUser: { ttl: 3 * 60 * 1000, key: 'cache_measurement_stats_user' }, // 3 minutos
+  measurementStatsByField: { ttl: 3 * 60 * 1000, key: 'cache_measurement_stats_field' }, // 3 minutos
+  measurementStatsByReport: { ttl: 3 * 60 * 1000, key: 'cache_measurement_stats_report' }, // 3 minutos
 } as const;
 
 class CacheManager {

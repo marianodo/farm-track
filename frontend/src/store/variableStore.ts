@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { axiosInstance } from './authStore';
-import { cacheManager, CACHE_CONFIGS } from '../utils/cache';
+import useAuthStore, { axiosInstance } from './authStore';
 import useTypeOfObjectStore from './typeOfObjectStore';
-import useAuthStore from './authStore';
+import { cacheManager, CACHE_CONFIGS, getCacheData, setCacheData, invalidateCachePattern } from '../utils/cache';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export interface TypeOfObject {
   id: number;
   name: string;
@@ -31,8 +31,8 @@ interface VariableState {
   onDelete: (id: number) => Promise<void>;
   onUpdate: (id: number, variable: Partial<VariableWithIds>) => Promise<void>;
   getAllVariables: (forceRefresh?: boolean) => void;
-  getVariableById: (id: number | null) => Promise<void>;
-  getVariablesByObjectId: (id: number) => Promise<void>;
+  getVariableById: (id: number | null, forceRefresh?: boolean) => Promise<void>;
+  getVariablesByObjectId: (id: number, forceRefresh?: boolean) => Promise<void>;
   resetDetail: () => void;
   clearVariables: () => void;
 }
@@ -49,8 +49,8 @@ const useVariableStore = create<VariableState>((set) => ({
       await axiosInstance.post(`/variables/${userId}`, variable);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.variables, userId);
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.variables.key);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
       
       useVariableStore.getState().getAllVariables(true);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
@@ -70,8 +70,9 @@ const useVariableStore = create<VariableState>((set) => ({
       await axiosInstance.delete(`/variables/${id}`);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.variables, userId);
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.variables.key);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+      await invalidateCachePattern(`${CACHE_CONFIGS.variableById.key}_${id}`);
       
       useVariableStore.getState().getAllVariables(true);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
@@ -98,8 +99,9 @@ const useVariableStore = create<VariableState>((set) => ({
       await axiosInstance.patch(`/variables/${id}`, variable);
       
       // Invalidar caché
-      await cacheManager.remove(CACHE_CONFIGS.variables, userId);
-      await cacheManager.remove(CACHE_CONFIGS.typeOfObjects, userId);
+      await invalidateCachePattern(CACHE_CONFIGS.variables.key);
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+      await invalidateCachePattern(`${CACHE_CONFIGS.variableById.key}_${id}`);
       
       useVariableStore.getState().getAllVariables(true);
       useTypeOfObjectStore.getState().getAllTypeOfObjects();
@@ -119,7 +121,8 @@ const useVariableStore = create<VariableState>((set) => ({
         
         // Intentar obtener del caché primero
         if (!forceRefresh) {
-          const cachedVariables = await cacheManager.get(CACHE_CONFIGS.variables, userId);
+          const cacheKey = `${CACHE_CONFIGS.variables.key}_${userId}`;
+          const cachedVariables = await getCacheData<Variable[]>(cacheKey);
           if (cachedVariables) {
             set({ variables: cachedVariables, variablesLoading: false, isFromCache: true });
             return;
@@ -131,7 +134,8 @@ const useVariableStore = create<VariableState>((set) => ({
         const variables = response.data.length ? response.data : [];
         
         // Guardar en caché
-        await cacheManager.set(CACHE_CONFIGS.variables, variables, userId);
+        const cacheKey = `${CACHE_CONFIGS.variables.key}_${userId}`;
+        await setCacheData(cacheKey, variables, CACHE_CONFIGS.variables.ttl);
         
         set({ variables, variablesLoading: false, isFromCache: false });
       }
@@ -140,14 +144,35 @@ const useVariableStore = create<VariableState>((set) => ({
       console.error('Error fetching variables:', error);
     }
   },
-  getVariableById: async (id: number | null) => {
+  getVariableById: async (id: number | null, forceRefresh: boolean = false) => {
     set({ variablesLoading: true });
     try {
       if (id) {
+        // Intentar obtener del caché primero
+        if (!forceRefresh) {
+          const cacheKey = `${CACHE_CONFIGS.variableById.key}_${id}`;
+          const cachedVariable = await getCacheData<Variable>(cacheKey);
+          if (cachedVariable) {
+            set({
+              variableById: cachedVariable,
+              variablesLoading: false,
+              isFromCache: true,
+            });
+            return;
+          }
+        }
+
+        // Si no hay caché o se fuerza refresh, hacer llamada al backend
         const response = await axiosInstance.get(`/variables/${id}`);
+        
+        // Guardar en caché
+        const cacheKey = `${CACHE_CONFIGS.variableById.key}_${id}`;
+        await setCacheData(cacheKey, response.data, CACHE_CONFIGS.variableById.ttl);
+        
         set({
           variableById: response.data ? response.data : null,
           variablesLoading: false,
+          isFromCache: false,
         });
       }
     } catch (error) {
@@ -155,13 +180,35 @@ const useVariableStore = create<VariableState>((set) => ({
       console.error('Error fetching variable by ID:', error);
     }
   },
-  getVariablesByObjectId: async (id: number) => {
+  getVariablesByObjectId: async (id: number, forceRefresh: boolean = false) => {
     set({ variablesLoading: true });
     try {
+      // Intentar obtener del caché primero
+      if (!forceRefresh) {
+        const cacheKey = `${CACHE_CONFIGS.variables.key}_object_${id}`;
+        const cachedVariables = await getCacheData<Variable[]>(cacheKey);
+        if (cachedVariables) {
+          set({
+            variables: cachedVariables,
+            variablesLoading: false,
+            isFromCache: true,
+          });
+          return;
+        }
+      }
+
+      // Si no hay caché o se fuerza refresh, hacer llamada al backend
       const response = await axiosInstance.get(`/variables/byObjectId/${id}`);
+      const variables = response.data.length ? response.data : [];
+      
+      // Guardar en caché
+      const cacheKey = `${CACHE_CONFIGS.variables.key}_object_${id}`;
+      await setCacheData(cacheKey, variables, CACHE_CONFIGS.variables.ttl);
+      
       set({
-        variables: response.data.length ? response.data : [],
+        variables: variables,
         variablesLoading: false,
+        isFromCache: false,
       });
     } catch (error) {
       set({ variablesLoading: false });
