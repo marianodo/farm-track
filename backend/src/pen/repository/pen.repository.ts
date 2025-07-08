@@ -21,8 +21,37 @@ export class PenRepository {
 
   async create(createPenDto: CreatePenDto) {
     const { type_of_object_ids, ...penData } = createPenDto;
+    
+    console.log('🔧 Creating pen with data:', { penData, type_of_object_ids });
+    
     try {
       const result = await this.db.$transaction(async (prisma) => {
+        // VALIDACIÓN: Verificar que todos los typeOfObjectId existan antes de crear
+        if (type_of_object_ids?.length) {
+          console.log('🔍 Validating TypeOfObject IDs:', type_of_object_ids);
+          
+          const existingTypeOfObjects = await prisma.typeOfObject.findMany({
+            where: {
+              id: {
+                in: type_of_object_ids
+              }
+            },
+            select: { id: true, name: true, userId: true }
+          });
+          
+          console.log('✅ Found existing TypeOfObjects:', existingTypeOfObjects);
+          
+          const existingIds = existingTypeOfObjects.map(obj => obj.id);
+          const missingIds = type_of_object_ids.filter(id => !existingIds.includes(id));
+          
+          if (missingIds.length > 0) {
+            console.error('❌ Missing TypeOfObject IDs:', missingIds);
+            throw new BadRequestException(
+              `The following TypeOfObject IDs do not exist: ${missingIds.join(', ')}. Please verify that all objects exist before creating the pen.`
+            );
+          }
+        }
+
         // Crear el Pen
         const newPen = await prisma.pen.create({
           data: {
@@ -84,16 +113,23 @@ export class PenRepository {
           }
         }
         if (error.code === 'P2003') {
-          console.log('2033333:', error);
-          if (
-            error.code === 'P2003' &&
-            error.meta?.modelName === 'PenTypeOfObject'
-          ) {
+          console.log('❌ P2003 Foreign Key Constraint Error:', error);
+          
+          const fieldName = error.meta?.field_name as string;
+          
+          if (fieldName?.includes('PenTypeOfObject_typeOfObjectId_fkey')) {
             throw new BadRequestException(
-              `The TypeOfObject you're trying to associate does not exist. Please verify that the object exists before making the association.`,
+              `One or more TypeOfObject IDs do not exist in the database. Please verify that all object types exist before creating the pen.`
             );
           }
-          throw new BadRequestException('Field Id not found.');
+          
+          if (fieldName?.includes('fieldId')) {
+            throw new BadRequestException('The specified Field ID does not exist.');
+          }
+          
+          throw new BadRequestException(
+            `Foreign key constraint violation: ${fieldName || 'Unknown relation'}`
+          );
         }
       }
       throw new Error(`Failed to create pen: ${error.message}`);

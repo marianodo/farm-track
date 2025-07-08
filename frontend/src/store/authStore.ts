@@ -165,6 +165,24 @@ const useAuthStore = create<AuthState>((set: any) => ({
       await axiosInstance.delete(
         `${process.env.EXPO_PUBLIC_API_URL}/database/userData/${userId}`
       );
+      
+      // Limpiar todo el cache después de borrar los datos del usuario
+      const { cacheManager } = await import('../utils/cache');
+      await cacheManager.clearAll();
+      
+      // También limpiar los stores para forzar refresh en la próxima consulta
+      const { default: useTypeOfObjectStore } = await import('./typeOfObjectStore');
+      const { default: useVariableStore } = await import('./variableStore');
+      const { default: usePenStore } = await import('./penStore');
+      const { default: useReportStore } = await import('./reportStore');
+      const { default: useFieldStore } = await import('./fieldStore');
+      
+      useTypeOfObjectStore.getState().clearTypeOfObjects();
+      useVariableStore.getState().clearVariables();
+      usePenStore.getState().clearPens();
+      useReportStore.getState().clearReports();
+      useFieldStore.getState().clearFields();
+      
       set({
         authLoading: false,
       });

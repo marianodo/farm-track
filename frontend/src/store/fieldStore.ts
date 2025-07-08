@@ -63,6 +63,21 @@ const useFieldStore = create<FieldState>((set: any) => ({
       // Invalidar caché de campos
       await invalidateCachePattern(CACHE_CONFIGS.fields.key);
       
+      // Si es bovino de leche o carne, también refrescar tipos de objetos y variables
+      // ya que se crean automáticamente
+      if (field.production_type === 'bovine_of_milk' || field.production_type === 'bovine_of_meat') {
+        const { default: useTypeOfObjectStore } = await import('./typeOfObjectStore');
+        const { default: useVariableStore } = await import('./variableStore');
+        
+        // Invalidar caché de tipos de objetos y variables
+        await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+        await invalidateCachePattern(CACHE_CONFIGS.variables.key);
+        
+        // Forzar refresh de los datos
+        useTypeOfObjectStore.getState().getAllTypeOfObjects(true);
+        useVariableStore.getState().getAllVariables(true);
+      }
+      
       set({ fieldLoading: false });
       useFieldStore.getState().getFieldsByUser(userId, true);
     } catch (error: any) {

@@ -184,6 +184,42 @@ const useTypeOfObjectStore = create<TypeOfObjectState>((set) => ({
       typeOfObjectById: null,
     });
   },
+  clearCache: () => {
+    set({
+      typeOfObjects: [],
+      typeOfObjectById: null,
+    });
+  },
+
+  forceRefreshTypeOfObjects: async () => {
+    set({ typeOfObjectsLoading: true });
+    try {
+      // Limpiar cache primero
+      await invalidateCachePattern(CACHE_CONFIGS.typeOfObjects.key);
+      
+      // Forzar refetch
+      const response = await axiosInstance.get('/type-of-objects');
+      const typeOfObjects = response.data;
+      
+      // Guardar en cache nuevamente
+      await setCacheData(
+        CACHE_CONFIGS.typeOfObjects.key,
+        typeOfObjects,
+        CACHE_CONFIGS.typeOfObjects.ttl
+      );
+      
+      console.log('🔄 Force refreshed TypeOfObjects:', typeOfObjects);
+      
+      set({
+        typeOfObjects,
+        typeOfObjectsLoading: false,
+        isFromCache: false,
+      });
+    } catch (error) {
+      set({ typeOfObjectsLoading: false });
+      console.error('Error force refreshing TypeOfObjects:', error);
+    }
+  },
 }));
 
 export default useTypeOfObjectStore;

@@ -9,7 +9,7 @@ interface PenState {
   penById: Pen | null;
   pensLoading: boolean;
   isFromCache: boolean;
-  createPen: (pen: CreatePen, fieldId: string) => Promise<void>;
+  createPen: (pen: CreatePen) => Promise<void>;
   onDelete: (id: number, fieldId: string) => Promise<void>;
   onUpdate: (
     id: number,
@@ -36,7 +36,9 @@ const usePenStore = create<PenState>((set) => ({
   createPen: async (pen: CreatePen): Promise<void> => {
     set({ pensLoading: true });
     try {
-      await axiosInstance.post('/pens', pen);
+      console.log('📱 Frontend: Sending pen data to backend:', pen);
+      const response = await axiosInstance.post('/pens', pen);
+      console.log('✅ Frontend: Pen created successfully:', response.data);
       
       // Invalidar caché de pens
       await invalidateCachePattern(CACHE_CONFIGS.pens.key);
@@ -46,6 +48,7 @@ const usePenStore = create<PenState>((set) => ({
       set({ pensLoading: false });
     } catch (error: any) {
       set({ pensLoading: false });
+      console.error('❌ Frontend: Error creating pen:', error.response?.data || error.message);
       if (
         error.response &&
         error.response.data &&
@@ -53,7 +56,7 @@ const usePenStore = create<PenState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error deleting object');
+        throw new Error('Error creating pen');
       }
     }
   },

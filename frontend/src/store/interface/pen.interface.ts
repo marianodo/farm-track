@@ -25,6 +25,10 @@ interface Pen {
   field?: Field;
 }
 
-type CreatePen = Pick<Pen, 'name' | 'type_of_objects' | 'fieldId'>;
+interface CreatePen {
+  name: string;
+  fieldId: string;
+  type_of_object_ids: number[];
+}
 
 export { Field, TypeOfObject, Pen, CreatePen };
