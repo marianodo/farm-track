@@ -119,8 +119,17 @@ const useFieldStore = create<FieldState>((set: any) => ({
           },
         }
       );
-      set({ numericalMeasurementsByFieldId: response.data, fieldLoading: false });
-      return response.data;
+      
+      // Ensure the response includes min and max values
+      const dataWithRanges = response.data.map((item: any) => ({
+        ...item,
+        min: item.min_value !== undefined ? item.min_value : undefined,
+        max: item.max_value !== undefined ? item.max_value : undefined,
+      }));
+      
+      console.log('Numerical measurements with ranges:', dataWithRanges);
+      set({ numericalMeasurementsByFieldId: dataWithRanges, fieldLoading: false });
+      return dataWithRanges;
     } catch (error) {
       set({ fieldLoading: false });
       console.error('Error fetching numerical measurements:', error);

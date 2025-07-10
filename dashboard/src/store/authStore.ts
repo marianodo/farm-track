@@ -2,10 +2,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
+import useFieldStore from './fieldStore';
 
 interface User {
   id: string;
-  name: string;
+  name?: string;
+  username?: string;
   email: string;
 }
 
@@ -118,6 +120,11 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
         document.cookie = 'user-role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+        
+        // Clear all field data to prevent previous user data from persisting
+        const fieldStore = useFieldStore.getState();
+        fieldStore.clearFields();
+        
         set({
           token: null,
           user: null,
