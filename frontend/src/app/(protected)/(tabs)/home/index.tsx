@@ -388,7 +388,9 @@ export default function HomeScreen() {
               iconColor="#fff"
               size={rMV(24)}
               style={{ marginLeft: rMS(-10) }}
-              onPress={() => console.log('profile')}
+              onPress={() => {
+                // Acción del perfil - por ahora sin funcionalidad
+              }}
             />
             <Menu
               visible={visible}
@@ -730,6 +732,8 @@ export default function HomeScreen() {
         isVisible={showChangePasswordModal}
         onClose={() => setShowChangePasswordModal(false)}
       />
+      
+
     </View>
     // <View style={styles.titleContainer}>
     //   <Portal>
@@ -1373,4 +1377,5 @@ const styles = StyleSheet.create({
     shadowRadius: 3.5,
     borderRadius: 8,
   },
+
 });

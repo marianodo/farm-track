@@ -23,6 +23,7 @@ export class SubjectRepository {
         const lastSubject = await prisma.subject.findFirst({
           where: { field_id: field_id },
           orderBy: { correlative_id: 'desc' },
+          select: { correlative_id: true },
         });
         // Calcular el siguiente ID
         const nextId = lastSubject ? lastSubject.correlative_id + 1 : 1;
@@ -31,9 +32,12 @@ export class SubjectRepository {
           correlative_id: nextId,
           field_id: field_id,
         };
-        return await this.db.subject.create({
+        return await prisma.subject.create({
           data: newSubject,
         });
+      }, {
+        maxWait: 10000, // Esperar hasta 10 segundos para obtener una transacción
+        timeout: 15000, // Timeout de 15 segundos para la transacción
       });
     } catch (error) {
       console.log('ERROR:', error);
@@ -41,13 +45,19 @@ export class SubjectRepository {
         if (error.code === 'P2002') {
           // Código de error para violaciones de restricciones únicas
           throw new BadRequestException(
-            'A report with this ID already exists for the field.',
+            'A subject with this ID already exists for the field.',
+          );
+        }
+        if (error.code === 'P2028') {
+          // Error de timeout de transacción
+          throw new InternalServerErrorException(
+            'Database operation timed out. Please try again.',
           );
         }
       }
 
       throw new InternalServerErrorException(
-        'An unexpected error occurred while creating the report.',
+        'An unexpected error occurred while creating the subject.',
       );
     }
   }

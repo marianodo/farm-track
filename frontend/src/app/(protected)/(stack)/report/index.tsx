@@ -52,6 +52,7 @@ import TwoButtonsModal from '@/components/modal/TwoButtonsModal';
 import PenList from '@/components/penAndReport/PenList';
 import ReportList from '@/components/penAndReport/ReportList';
 
+
 interface ListItemProps {
   item: any;
   index: number;
@@ -197,6 +198,8 @@ export default function PenScreen() {
   }));
   const { t } = useTranslation();
 
+
+
   useEffect(() => {
     const getLanguage = async () => {
       const language = await AsyncStorage.getItem('language');
@@ -207,13 +210,16 @@ export default function PenScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
+      // Cargar reportes (con caché)
       if (
         !reportsByFielId ||
         reportsByFielId[`${fieldId}`] === undefined ||
         reportsByFielId[`${fieldId}`] === null
       ) {
-        getAllReportsByField(fieldId as string);
+        getAllReportsByField(fieldId as string, false); // false = usar caché (con delay para mostrar loading)
       }
+      
+      // Cargar corrales (con caché)
       if (
         !pens ||
         pens[`${fieldId}`] === undefined ||
@@ -221,9 +227,12 @@ export default function PenScreen() {
       ) {
         getAllPens(fieldId as string, false, true);
       }
+      
+      // Cargar tipos de objetos (con caché)
       if (typeOfObjects === null) {
-        getAllTypeOfObjects();
+        getAllTypeOfObjects(false); // false = usar caché
       }
+      
       return () => { };
     }, [
       getAllTypeOfObjects,
@@ -343,7 +352,7 @@ export default function PenScreen() {
             display: 'flex',
             flexDirection: 'row',
             justifyContent: 'center',
-            gap: rMS(60),
+            alignItems: 'center',
             marginHorizontal: rMS(22),
             marginVertical: rMS(10),
           }}
@@ -360,14 +369,28 @@ export default function PenScreen() {
             {t('reportsView.reportsText')}
           </Text>
         </View>
+        
         {reportsLoading ? (
-          <ActivityIndicator
-            style={{
-              marginTop: '60%',
-            }}
-            animating={true}
-            color="#486732"
-          />
+          <View style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '20%'
+          }}>
+            <ActivityIndicator 
+              size="large" 
+              color="#486732" 
+              style={{ marginBottom: rMS(10) }}
+            />
+            <Text style={{
+              color: '#486732',
+              fontSize: rMS(16),
+              fontWeight: '500',
+              textAlign: 'center',
+            }}>
+              {t('reportsView.loadingReports')}
+            </Text>
+          </View>
         ) : (
           <ReportList
             reports={reportsByFielId && reportsByFielId[`${fieldId}`]}

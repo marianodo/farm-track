@@ -292,7 +292,7 @@ export default function CreateField() {
           inputLocation: { latitude, longitude, direction: 'falta' },
         }));
       } else {
-        console.log('Permiso de ubicación denegado');
+
       }
     } catch (error) {
       console.error('Error obteniendo la ubicación:', error);

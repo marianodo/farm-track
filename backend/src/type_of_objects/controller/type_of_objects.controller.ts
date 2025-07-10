@@ -49,6 +49,20 @@ export class TypeOfObjectsController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Get('debug/all')
+  async debugFindAll() {
+    try {
+      console.log('🔍 Debug: Getting all TypeOfObjects');
+      const result = await this.typeOfObjectsService.findAll();
+      console.log('📋 Found TypeOfObjects:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error in debug findAll:', error);
+      throw error;
+    }
+  }
+
+  @HttpCode(HttpStatus.OK)
   @UserResource('byUserId')
   @Get('byUser/:byUserId')
   async findAllByUserId(@Param('byUserId') byUserId: string) {

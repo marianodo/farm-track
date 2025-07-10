@@ -61,7 +61,8 @@
     "react-native-size-matters": "^0.4.2",
     "react-native-web": "^0.20.0",
     "react-navigation": "^5.0.0",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "@react-native-community/netinfo": "11.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

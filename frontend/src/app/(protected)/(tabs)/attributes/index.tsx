@@ -503,7 +503,7 @@ export default function AttributeScreen() {
               icon="dots-vertical"
               iconColor="#fff"
               size={rMV(24)}
-              onPress={() => console.log('Pressed')}
+              onPress={() => {}}
               style={{ marginRight: rMS(-12) }}
             />
           </View>

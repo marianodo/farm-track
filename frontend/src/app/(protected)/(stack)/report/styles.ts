@@ -285,6 +285,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: rMS(11),
   },
+  addMeasurementButtonContainer: {
+    position: 'absolute',
+    bottom: rMV(20),
+    left: rMS(20),
+    right: rMS(20),
+    zIndex: 1000,
+  },
+  addMeasurementButton: {
+    backgroundColor: '#486732',
+    borderRadius: 8,
+    paddingVertical: rMV(8),
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.5,
+  },
+  addMeasurementButtonText: {
+    fontFamily: 'Pro-Regular',
+    fontSize: rMS(16),
+    fontWeight: '600',
+    color: '#fff',
+  },
 });
 
 export default styles;
