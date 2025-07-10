@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.5,
   },
   floatingButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', 
     fontSize: 30,
     fontWeight: 'bold',
   },
@@ -217,14 +217,14 @@ const styles = StyleSheet.create({
   pressableButton: {
     width: 48,
     height: 48,
-    backgroundColor: '#486732',
+    backgroundColor: '#486732', // Green background - needs white text for dark mode
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 4,
     marginLeft: 4,
   },
   pressableButtonText: {
-    color: '#fff',
+    color: '#FFFFFF', // Explicit white for better dark mode contrast
     fontSize: rMS(32),
     paddingBottom: 2,
   },
@@ -262,7 +262,8 @@ const styles = StyleSheet.create({
   definedValueText: {
     textAlign: 'center',
     paddingHorizontal: 4,
-    color: '#486732',
+    color: '#486732', // Keep green for light mode as it has good contrast with the light background
+    // Note: When a green background is used, the color should be explicitly set to #FFFFFF in the JSX
   },
   definedValueSeparator: {
     height: '60%',
@@ -272,13 +273,14 @@ const styles = StyleSheet.create({
   },
   definedValueDeleteText: {
     fontSize: 16,
-    color: '#486732',
+    color: '#486732', // Default color for light mode
     textAlign: 'center',
     justifyContent: 'center',
     textAlignVertical: 'center',
     alignSelf: 'center',
     paddingHorizontal: 4,
     paddingBottom: 2,
+    // Note: When a green background is used, the color should be explicitly set to #FFFFFF in the JSX
   },
   errorText: {
     color: 'red',

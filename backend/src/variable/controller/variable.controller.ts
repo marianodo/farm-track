@@ -12,6 +12,9 @@ import {
 import { VariableService } from '../service/variable.service';
 import { CreateVariableDto } from '../dto/create-variable.dto';
 import { UpdateVariableDto } from '../dto/update-variable.dto';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { OwnedResource } from 'src/auth/decorator/owned-resource.decorator';
+import { UserResource } from 'src/auth/decorator/user-resource.decorator';
 
 @Controller('variables')
 export class VariableController {
@@ -19,6 +22,7 @@ export class VariableController {
 
   @HttpCode(HttpStatus.CREATED)
   @Post(':userId')
+  @UserResource('userId')
   async create(
     @Param('userId') userId: string,
     @Body() createVariableDto: CreateVariableDto,
@@ -46,6 +50,7 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   @Get()
   async findAll() {
     try {
@@ -66,6 +71,7 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('type_of_object', 'id')
   @Get('byObjectId/:id')
   async findVariablesByTypeObjectId(@Param('id') id: string) {
     try {
@@ -76,6 +82,7 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('variable', 'id')
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
@@ -87,6 +94,7 @@ export class VariableController {
 
   @HttpCode(HttpStatus.OK)
   @Patch(':id')
+  @OwnedResource('variable', 'id')
   async update(
     @Param('id') id: string,
     @Body() updateVariableDto: UpdateVariableDto,
@@ -99,6 +107,7 @@ export class VariableController {
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
+  @OwnedResource('variable', 'id')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {

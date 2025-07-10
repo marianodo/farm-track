@@ -31,7 +31,7 @@ const Page = () => {
   }, []);
 
   const onPlaceSelected = React.useCallback((place: PlaceDetails) => {
-    console.log(place);
+    
   }, []);
   return (
     <KeyboardAwareScrollView
@@ -48,7 +48,7 @@ const Page = () => {
         disableScroll={true}
         // listViewDisplayed=""
         onPress={(data, details = true) => {
-          console.log('data: ', data, details);
+  
         }}
         query={{
           key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,

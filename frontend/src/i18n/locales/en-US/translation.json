@@ -118,7 +118,8 @@
     "createFieldText": "Create field",
     "goBackText": "Go back",
     "updateFieldText": "Update field",
-    "fieldText": "Field: "
+    "fieldText": "Field: ",
+    "addMeasurementText": "Add More Measurements"
   },
   "objectView": {
     "dontObjectMessage": "You haven't created any objects yet. Please add one from the '+' button to get started.",
@@ -209,9 +210,13 @@
   "reportsView": {
     "reportsText": "List of evaluations",
     "continueText": "Continue",
+    "creatingText": "Creating...",
+    "timeoutError": "The operation took too long. Please try again.",
+    "networkError": "Connection error. Please check your connection and try again.",
     "dontPenMessage": "Remember that to create the first report there must be at least one corral.",
     "reportNameText": "Report name: ",
     "dontReportMessage": "You haven't created any reports yet. Please add one from the '+' button to get started.",
+    "loadingReports": "Loading evaluations...",
     "dontReportAndPenMessage": "Remember that to create the first report there must be at least one corral.",
     "title": "Manage evaluations",
     "deleteAlertTitle": "¿Do you want to delete the report",
@@ -263,6 +268,7 @@
     "continueButtonTEXT": "Continue",
     "objectTextIdentification": "Identification (optional)",
     "dropDownDontInfo": "¡don't information available!",
+    "loadingVariables": "Loading variables...",
     "exitReportText": "Exit Report",
     "saveText": "Save measurement"
   },
@@ -318,5 +324,11 @@
   "modal": {
     "successMessage": "Successful Operation",
     "errorMessage": "Ops.. an error occurred"
+  },
+  "network": {
+    "noConnection": "No internet connection",
+    "noInternet": "Limited connection - No internet access",
+    "reconnected": "Internet connection restored",
+    "dismiss": "Dismiss"
   }
 }

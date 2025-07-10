@@ -25,6 +25,7 @@ export class ReportRepository {
         const lastReport = await prisma.report.findFirst({
           where: { field_id: field_id },
           orderBy: { correlative_id: 'desc' },
+          select: { correlative_id: true },
         });
         // Calcular el siguiente ID
         const nextId = lastReport ? lastReport.correlative_id + 1 : 1;
@@ -34,7 +35,7 @@ export class ReportRepository {
           field_id: field_id,
         };
 
-        const newReport = await this.db.report.create({
+        const newReport = await prisma.report.create({
           data: newReportInfo,
         });
 
@@ -60,6 +61,9 @@ export class ReportRepository {
         }
 
         return newReport;
+      }, {
+        maxWait: 10000, // Esperar hasta 10 segundos para obtener una transacción
+        timeout: 15000, // Timeout de 15 segundos para la transacción
       });
     } catch (error) {
       console.log(error);
@@ -68,6 +72,12 @@ export class ReportRepository {
           // Código de error para violaciones de restricciones únicas
           throw new BadRequestException(
             'A report with this ID already exists for the field.',
+          );
+        }
+        if (error.code === 'P2028') {
+          // Error de timeout de transacción
+          throw new InternalServerErrorException(
+            'Database operation timed out. Please try again.',
           );
         }
       }

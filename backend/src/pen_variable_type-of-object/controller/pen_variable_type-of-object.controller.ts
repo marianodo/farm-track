@@ -13,6 +13,8 @@ import {
 import { PenVariableTypeOfObjectService } from '../service/pen_variable_type-of-object.service';
 import { CreatePenVariableTypeOfObjectDto } from '../dto/create-pen_variable_type-of-object.dto';
 import { UpdatePenVariableTypeOfObjectDto } from '../dto/update-pen_variable_type-of-object.dto';
+import { Roles } from 'src/auth/decorator/roles.decorator';
+import { OwnedResource } from 'src/auth/decorator/owned-resource.decorator';
 
 @Controller('pens-variables-type-of-objects')
 export class PenVariableTypeOfObjectController {
@@ -21,6 +23,7 @@ export class PenVariableTypeOfObjectController {
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
+  @OwnedResource('pen', 'penId', null, false)
   @Post()
   async create(
     @Body() createPenVariableTypeOfObjectDto: CreatePenVariableTypeOfObjectDto,
@@ -35,6 +38,7 @@ export class PenVariableTypeOfObjectController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   @Get()
   async findAll() {
     try {
@@ -44,6 +48,7 @@ export class PenVariableTypeOfObjectController {
     }
   }
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('pen', 'penId', null, true)
   @Get('type-of-object/:typeOfObjectId/:penId')
   async findByTypeOfObjectIdAndPen(
     @Param('typeOfObjectId') typeOfObjectId: string,
@@ -63,6 +68,7 @@ export class PenVariableTypeOfObjectController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('pen', 'penId', null, true)
   @Get(':penId/:variableId/:typeOfObjectId')
   async findOne(
     @Param('penId') penId: string,
@@ -81,6 +87,7 @@ export class PenVariableTypeOfObjectController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @OwnedResource('pen', 'penId', null, true)
   @Patch(':penId/:variableId/:typeOfObjectId')
   async update(
     @Param('penId') penId: string,
@@ -101,6 +108,7 @@ export class PenVariableTypeOfObjectController {
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
+  @OwnedResource('pen', 'penId', null, true)
   @Delete(':penId/:variableId/:typeOfObjectId')
   async remove(
     @Param('penId') penId: string,
@@ -119,6 +127,7 @@ export class PenVariableTypeOfObjectController {
   }
 
   @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
   @Get('type-of-object/:typeOfObjectId')
   async findByTypeOfObjectId(
     @Param('typeOfObjectId') typeOfObjectId: string,

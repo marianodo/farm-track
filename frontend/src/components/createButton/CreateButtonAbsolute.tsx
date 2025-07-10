@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { rMS, rS } from '@/styles/responsive';
 
 const CreateButtonAbsolute = () => {
-  console.log(Platform.OS);
+  
   return Platform.OS === 'ios' ? (
     <IconButton
       icon="plus"

@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.04,
     fontFamily: 'Pro-Regular',
     color: '#292929',
+    fontWeight: '600',
   },
   selectedLabel: {
     fontSize: 14,

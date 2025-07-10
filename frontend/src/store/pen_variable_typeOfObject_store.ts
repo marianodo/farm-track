@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { axiosInstance } from './authStore';
+import { CACHE_CONFIGS, getCacheData, setCacheData, invalidateCachePattern } from '../utils/cache';
 import useTypeOfObjectStore from './typeOfObjectStore';
 import {
   PenVariableTypeOfObject,
@@ -12,6 +13,7 @@ interface PenVariableTypeOfObjectState {
   penVariableTypeOfObjectByTypeId: PenVariableTypeOfObject | null;
   penVariableTypeOfObjectByTypeIdAndPen: ExtendedPenVariableTypeOfObject | null;
   penVariableTypeOfObjectsLoading: boolean;
+  isFromCache: boolean;
   createPenVariableTypeOfObject: (
     penVariableTypeOfObject: CreatePenVariableTypeOfObject
   ) => Promise<void>;
@@ -36,7 +38,8 @@ interface PenVariableTypeOfObjectState {
   ) => Promise<void>;
   getPenVariableTypeOfObjectsByObjectIdAndPen: (
     typeId: number,
-    penId: number
+    penId: number,
+    forceRefresh?: boolean
   ) => Promise<void>;
   resetDetail: () => void;
   clearPenVariableTypeOfObjects: () => void;
@@ -48,6 +51,7 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
     penVariableTypeOfObjectByTypeId: null,
     penVariableTypeOfObjectByTypeIdAndPen: null,
     penVariableTypeOfObjectsLoading: false,
+    isFromCache: false,
     createPenVariableTypeOfObject: async (
       penVariableTypeOfObject: CreatePenVariableTypeOfObject
     ): Promise<void> => {
@@ -57,6 +61,10 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
           '/pens-variables-type-of-objects',
           penVariableTypeOfObject
         );
+        
+        // Invalidar caché relacionado
+        await invalidateCachePattern('cache_pen_variables');
+        
         usePenVariableTypeOfObjectStore
           .getState()
           .getAllPenVariableTypeOfObjects();
@@ -76,6 +84,10 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
         await axiosInstance.delete(
           `/pens-variables-type-of-objects/${corralId}/${variableId}/${typeOfObjectId}`
         );
+        
+        // Invalidar caché relacionado
+        await invalidateCachePattern('cache_pen_variables');
+        
         usePenVariableTypeOfObjectStore
           .getState()
           .getAllPenVariableTypeOfObjects();
@@ -97,9 +109,13 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
           `/pens-variables-type-of-objects/${penId}/${variableId}/${typeOfObjectId}`,
           penVariableTypeOfObject
         );
+        
+        // Invalidar caché relacionado
+        await invalidateCachePattern('cache_pen_variables');
+        
         usePenVariableTypeOfObjectStore
           .getState()
-          .getPenVariableTypeOfObjectsByObjectIdAndPen(typeOfObjectId, penId);
+          .getPenVariableTypeOfObjectsByObjectIdAndPen(typeOfObjectId, penId, true);
         // useTypeOfObjectStore.getState().getAllTypeOfObjects();
         set({ penVariableTypeOfObjectsLoading: false });
       } catch (error: any) {
@@ -146,18 +162,41 @@ const usePenVariableTypeOfObjectStore = create<PenVariableTypeOfObjectState>(
     },
     getPenVariableTypeOfObjectsByObjectIdAndPen: async (
       type: number,
-      penId: number
+      penId: number,
+      forceRefresh: boolean = false
     ) => {
       set({ penVariableTypeOfObjectsLoading: true });
+      
       try {
+        const cacheKey = `${CACHE_CONFIGS.penVariables.key}_${type}_${penId}`;
+        
+        // Intentar obtener desde caché primero
+        if (!forceRefresh) {
+          const cachedData = await getCacheData<ExtendedPenVariableTypeOfObject>(cacheKey);
+          if (cachedData) {
+            set({
+              penVariableTypeOfObjectByTypeIdAndPen: cachedData,
+              penVariableTypeOfObjectsLoading: false,
+              isFromCache: true,
+            });
+            return;
+          }
+        }
+        
+        // Si no hay caché o se fuerza refresh, hacer llamada al backend
         const response = await axiosInstance.get(
           `/pens-variables-type-of-objects/type-of-object/${type}/${penId}`
         );
+        
+        const data = response.data ? response.data : [];
+        
+        // Guardar en caché
+        await setCacheData(cacheKey, data, CACHE_CONFIGS.penVariables.ttl);
+        
         set({
-          penVariableTypeOfObjectByTypeIdAndPen: response.data
-            ? response.data
-            : [],
+          penVariableTypeOfObjectByTypeIdAndPen: data,
           penVariableTypeOfObjectsLoading: false,
+          isFromCache: false,
         });
       } catch (error) {
         set({ penVariableTypeOfObjectsLoading: false });

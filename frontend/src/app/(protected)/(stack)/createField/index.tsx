@@ -18,7 +18,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { useColorScheme } from 'react-native';
 import { IconButton, Text, TextInput } from 'react-native-paper';
 import MapView, { Marker } from 'react-native-maps';
 // import * as Localization from 'expo-localization';
@@ -59,6 +60,8 @@ export default function CreateField() {
     fieldLoading: state.fieldLoading,
   }));
   const { t } = useTranslation();
+  // Usar 'light' como valor predeterminado si colorScheme es undefined
+  const colorScheme = useColorScheme() || 'light';
   const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
   const [openInstallation, setOpenInstallation] = useState<boolean>(false);
@@ -289,7 +292,7 @@ export default function CreateField() {
           inputLocation: { latitude, longitude, direction: 'falta' },
         }));
       } else {
-        console.log('Permiso de ubicación denegado');
+
       }
     } catch (error) {
       console.error('Error obteniendo la ubicación:', error);
@@ -473,6 +476,9 @@ export default function CreateField() {
               contentContainerStyle={styles.scrollContent}
             >
               <View style={styles.formContainer}>
+                {/* Título de sección para los detalles básicos */}
+                <Text style={styles.sectionTitle}>{t('detailField.detailFieldText')}</Text>
+                
                 {/* TextInputs */}
                 {Object.keys(inputsData).map((key: string, index: number) => {
                   const input = inputsData[key];
@@ -598,52 +604,99 @@ export default function CreateField() {
                   }
 
                   if (key === "installation") {
-                    return
+                    return (
+                      <View key={`installation-${index}`}>
+                        {/* Installation component is handled elsewhere */}
+                      </View>
+                    )
                   }
 
                   if (key === "breed") {
-                    return
+                    return (
+                      <View key={`breed-${index}`}>
+                        {/* Add your breed component here */}
+                      </View>
+                    )
                   }
 
                   if (key === 'number_of_animals') {
                     return (
-                      <TextInput
-                        key={key + index}
-                        mode="outlined"
-                        placeholder={input.placeholder}
-                        value={input.value}
-                        onChangeText={(value) => {
-                          const sanitizedValue = value.replace(/[^0-9]/g, '');
-                          handleInputChange(key, sanitizedValue);
-                        }}
-                        keyboardType="numeric"
-                        cursorColor="#486732"
-                        selectionColor={
-                          Platform.OS == 'ios' ? '#486732' : '#486732'
-                        }
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
-                        style={styles.input}
-                      />
+                      <View key={`number-animals-${index}`}>
+                        <Text style={styles.inputLabel}>{input.placeholder}</Text>
+                        <View style={{
+                          backgroundColor: colorScheme === 'dark' ? '#444444' : '#F1F1F1',
+                          borderRadius: 5,
+                          borderWidth: 1,
+                          borderColor: colorScheme === 'dark' ? '#555555' : '#EAEAEA',
+                          marginBottom: 10,
+                          padding: 2
+                        }}>
+                          <TextInput
+                            /* Eliminamos el key del TextInput ya que el View padre ya tiene key */
+                            mode="flat"
+                            placeholder={input.placeholder}
+                            placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+                            value={input.value}
+                            onChangeText={(value) => {
+                              const sanitizedValue = value.replace(/[^0-9]/g, '');
+                              handleInputChange(key, sanitizedValue);
+                            }}
+                            keyboardType="numeric"
+                            style={{
+                              fontFamily: 'Pro-Regular',
+                              color: colorScheme === 'dark' ? '#FFFFFF' : '#292929',
+                              backgroundColor: 'transparent',
+                              fontSize: 16,
+                              height: 40,
+                              paddingHorizontal: 8
+                            }}
+                            underlineColor="transparent"
+                            activeUnderlineColor="transparent"
+                            textColor={colorScheme === 'dark' ? '#FFFFFF' : '#292929'}
+                            cursorColor="#486732"
+                            selectionColor="#486732"
+                          />
+                        </View>
+                      </View>
                     );
                   }
 
                   return (
                     <View key={key + index}>
-                      <TextInput
-                        key={key + index}
-                        mode="outlined"
-                        placeholderTextColor="#292929"
-                        placeholder={input.placeholder}
-                        value={input.value}
-                        onChangeText={(value) => handleInputChange(key, value)}
-                        autoCapitalize="words"
-                        activeOutlineColor="transparent"
-                        outlineColor="#F1F1F1"
-                        cursorColor="#486732"
-                        selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
-                        style={styles.input}
-                      />
+                      <View>
+                        <Text style={styles.inputLabel}>{input.placeholder}</Text>
+                        <View style={{
+                          backgroundColor: colorScheme === 'dark' ? '#444444' : '#F1F1F1',
+                          borderRadius: 5,
+                          borderWidth: 1,
+                          borderColor: colorScheme === 'dark' ? '#555555' : '#EAEAEA',
+                          marginBottom: 10,
+                          padding: 2
+                        }}>
+                          <TextInput
+                            /* Eliminamos el key del TextInput ya que el View padre ya tiene key */
+                            mode="flat"
+                            placeholderTextColor={colorScheme === 'dark' ? '#CCCCCC' : '#666666'}
+                            placeholder={input.placeholder}
+                            value={input.value}
+                            onChangeText={(value) => handleInputChange(key, value)}
+                            autoCapitalize="words"
+                            style={{
+                              fontFamily: 'Pro-Regular',
+                              color: colorScheme === 'dark' ? '#FFFFFF' : '#292929',
+                              backgroundColor: 'transparent',
+                              fontSize: 16,
+                              height: 40,
+                              paddingHorizontal: 8
+                            }}
+                            underlineColor="transparent"
+                            activeUnderlineColor="transparent"
+                            textColor={colorScheme === 'dark' ? '#FFFFFF' : '#292929'}
+                            cursorColor="#486732"
+                            selectionColor="#486732"
+                          />
+                        </View>
+                      </View>
                     </View>
                   );
                 })}
@@ -694,7 +747,7 @@ export default function CreateField() {
 }
 
 const styles = StyleSheet.create({
-  modalBackground: {
+  modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -705,6 +758,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#292929', // Color oscuro para asegurar contraste
+    marginVertical: 8,
+    fontFamily: 'Pro-Regular',
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#292929', // Color oscuro para asegurar contraste
+    marginBottom: 4,
+    marginLeft: 4,
+    fontFamily: 'Pro-Regular',
   },
   container: {
     flex: 1,
@@ -744,6 +812,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     fontFamily: 'Pro-Regular',
+    color: '#292929', // Color oscuro para asegurar contraste
   },
   scrollContent: {
     flexGrow: 1,
@@ -762,9 +831,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     fontSize: width * 0.04,
     fontFamily: 'Pro-Regular',
-    color: '#292929',
-    borderColor: '#F1F1F1',
     backgroundColor: '#F1F1F1',
+    marginBottom: 10,
+    borderColor: 'transparent',
+    color: '#292929',
     borderRadius: 8,
   },
   inputText: {

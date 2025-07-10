@@ -27,10 +27,10 @@ export default function TabLayout() {
     <>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+          tabBarActiveTintColor: colorScheme === 'dark' ? '#FFFFFF' : '#486732',
+          tabBarInactiveTintColor: colorScheme === 'dark' ? '#AAAAAA' : '#486732',
           headerShown: false,
           tabBarLabelStyle: {
-            color: '#486732',
             fontSize: rMV(10), // Tamaño del texto
             fontFamily: 'Pro-Regular',
             fontWeight: 500, // Peso del texto
@@ -39,6 +39,7 @@ export default function TabLayout() {
             height: rMV(66), // Aquí defines la altura deseada
             paddingBottom: rMS(5), // Ajusta el relleno para centrar el ícono si es necesario
             paddingTop: rMS(6),
+            backgroundColor: colorScheme === 'dark' ? '#121212' : '#FFFFFF',
           },
         }}
       >
@@ -53,7 +54,11 @@ export default function TabLayout() {
                     ? require('../../../../assets/images/tabs/field-selected.png')
                     : require('../../../../assets/images/tabs/field-unselected.png')
                 }
-                style={{ width: rMS(24), height: rMV(23) }}
+                style={{ 
+                  width: rMS(24), 
+                  height: rMV(23),
+                  tintColor: colorScheme === 'dark' && focused ? '#FFFFFF' : undefined
+                }}
                 resizeMode="contain"
               />
             ),
@@ -89,7 +94,11 @@ export default function TabLayout() {
                     ? require('../../../../assets/images/tabs/object-selected.png')
                     : require('../../../../assets/images/tabs/object-unselected.png')
                 }
-                style={{ width: rMS(24), height: rMV(23) }}
+                style={{ 
+                  width: rMS(24), 
+                  height: rMV(23),
+                  tintColor: colorScheme === 'dark' && focused ? '#FFFFFF' : undefined
+                }}
                 resizeMode="contain"
               />
             ),
@@ -107,7 +116,11 @@ export default function TabLayout() {
                     ? require('../../../../assets/images/tabs/variables-selected.png')
                     : require('../../../../assets/images/tabs/variables-unselected.png')
                 }
-                style={{ width: rMS(24), height: rMV(23) }}
+                style={{ 
+                  width: rMS(24), 
+                  height: rMV(23),
+                  tintColor: colorScheme === 'dark' && focused ? '#FFFFFF' : undefined
+                }}
                 resizeMode="contain"
               />
             ),

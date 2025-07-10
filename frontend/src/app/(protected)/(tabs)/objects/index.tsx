@@ -33,6 +33,7 @@ import {
 } from 'react-native-gesture-handler';
 import useFieldStore from '@/store/fieldStore';
 import { useEffect, useState, useRef } from 'react';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 import useTypeOfObjectStore from '@/store/typeOfObjectStore';
 import Animated, {
@@ -57,6 +58,7 @@ interface ListItemProps {
 }
 
 export default function ObjectScreen() {
+  const colorScheme = useColorScheme();
   const { variables, variableLoading } = useVariableStore((state: any) => ({
     variables: state.variables,
     variableLoading: state.variableLoading,
@@ -352,6 +354,7 @@ export default function ObjectScreen() {
                 paddingLeft: 6,
                 fontWeight: 'bold',
                 fontFamily: 'Pro-Regular',
+                color: '#000000',
               }}
             >
               {item?.name}
@@ -406,18 +409,30 @@ export default function ObjectScreen() {
           >
             {item.variables.map((variable: any, index: number) => {
               return (
-                <Badge
+                <View
                   key={index}
                   style={{
-                    paddingHorizontal: rMS(7),
+                    paddingHorizontal: rMS(10),
                     height: rMS(24),
                     backgroundColor: '#486732',
-                    fontFamily: 'Pro-Regular',
-                    fontSize: rMS(12),
+                    marginRight: rMS(4),
+                    marginBottom: rMS(4),
+                    borderRadius: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center',
                   }}
                 >
-                  {variable.name}
-                </Badge>
+                  <Text
+                    style={{
+                      color: '#FFFFFF', // Explicit white text for visibility on dark green
+                      fontFamily: 'Pro-Regular',
+                      fontSize: rMS(12),
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {variable.name}
+                  </Text>
+                </View>
               );
             })}
           </View>
@@ -490,7 +505,7 @@ export default function ObjectScreen() {
               icon="dots-vertical"
               iconColor="#fff"
               size={rMV(24)}
-              onPress={() => console.log('Pressed')}
+              onPress={() => {}}
               style={{ marginRight: rMS(-12) }}
             />
           </View>
@@ -531,6 +546,7 @@ export default function ObjectScreen() {
             fontSize: 18,
             fontWeight: 'bold',
             fontFamily: 'Pro-Regular',
+            color: '#000000',
           }}
         >
           {t('objectView.objectText')}

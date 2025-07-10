@@ -13,6 +13,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  useColorScheme,
 } from 'react-native';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
@@ -47,6 +48,7 @@ export default function EditField() {
     }));
 
   const { t } = useTranslation();
+  const colorScheme = useColorScheme() || 'light';
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(true);
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
@@ -309,7 +311,7 @@ export default function EditField() {
 
           {/* contenedor contenido campo */}
           <View style={styles.contentContainer}>
-            <Text style={styles.fieldTitle}>
+            <Text style={[styles.fieldTitle, {color: colorScheme === 'dark' ? 'black' : '#000000'}]}>
               {t('detailField.detailFieldText')}
             </Text>
 
@@ -327,21 +329,22 @@ export default function EditField() {
                 {/* name */}
                 <TextInput
                   mode="outlined"
-                  placeholderTextColor="#292929"
+                  placeholderTextColor={colorScheme === 'dark' ? '#A0A0A0' : '#292929'}
                   placeholder={t('detailField.fieldNamePlaceHolder')}
                   value={fieldData.name}
                   onChangeText={(value) => handleInputChange('name', value)}
                   autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                  cursorColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  selectionColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  textColor={colorScheme === 'dark' ? '#black' : '#292929'}
                   style={styles.input}
                 />
                 {/* description */}
                 <TextInput
                   mode="outlined"
-                  placeholderTextColor="#292929"
+                  placeholderTextColor={colorScheme === 'dark' ? '#A0A0A0' : '#292929'}
                   placeholder={t('detailField.fieldDescriptionPlaceHolder')}
                   value={fieldData.description}
                   onChangeText={(value) =>
@@ -350,22 +353,24 @@ export default function EditField() {
                   autoCapitalize="sentences"
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                  cursorColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  selectionColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  textColor={colorScheme === 'dark' ? '#black' : '#292929'}
                   style={styles.input}
                 />
                 {/* ubication */}
                 <TextInput
                   mode="outlined"
-                  placeholderTextColor="#292929"
+                  placeholderTextColor={colorScheme === 'dark' ? '#A0A0A0' : '#292929'}
                   placeholder={t('detailField.fieldUbicationPlaceHolder')}
                   value={fieldData.location}
                   onChangeText={(value) => handleInputChange('location', value)}
                   editable={false}
                   activeOutlineColor="transparent"
                   outlineColor="#F1F1F1"
-                  cursorColor="#486732"
-                  selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                  cursorColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  selectionColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                  textColor={colorScheme === 'dark' ? 'black' : '#292929'}
                   selection={{ start: 0, end: 0 }}
                   style={styles.input}
                 />
@@ -416,6 +421,7 @@ export default function EditField() {
               {/* number of animals*/}
               <TextInput
                 mode="outlined"
+                placeholderTextColor={colorScheme === 'dark' ? '#A0A0A0' : '#292929'}
                 placeholder={t('detailField.fieldNumberOfAnimalsPlaceHolder')}
                 value={fieldData.number_of_animals?.toString()}
                 onChangeText={(value) => {
@@ -423,8 +429,9 @@ export default function EditField() {
                   handleInputChange('number_of_animals', sanitizedValue);
                 }}
                 keyboardType="numeric"
-                cursorColor="#486732"
-                selectionColor={Platform.OS == 'ios' ? '#486732' : '#486732'}
+                cursorColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                selectionColor={colorScheme === 'dark' ? '#A0E57D' : '#486732'}
+                textColor={colorScheme === 'dark' ? '#black' : '#292929'}
                 activeOutlineColor="transparent"
                 outlineColor="#F1F1F1"
                 style={styles.input}
