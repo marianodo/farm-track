@@ -39,6 +39,7 @@ interface ReportState {
   resetMeasurementEditData: () => void;
   resetReportByIdNameAndComment: () => void;
   setMeasurementData: (data: MeasurementData[]) => void;
+  retryWithBackoff: (operation: () => Promise<any>, maxRetries?: number, baseDelay?: number) => Promise<any>;
   createMeasurementWithReportId: (data: any, field_id: string) => void;
   getMeasurementEditData: (report_id: number, subject_id: number) => void;
   onDeleteMeasurement: (report_id: number, measurement_id: number) => void;
@@ -383,6 +384,54 @@ const useReportStore = create<ReportState>((set) => ({
       measurementVariablesData: data,
     });
   },
+  // Función auxiliar para reintentos con backoff exponencial
+  retryWithBackoff: async (
+    operation: () => Promise<any>,
+    maxRetries: number = 5,
+    baseDelay: number = 1000
+  ): Promise<any> => {
+    let lastError: any;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        await saveLog('Store: Intento de operación', {
+          attempt,
+          maxRetries
+        }, 'measurement');
+        
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        
+        await saveLog('Store: Error en intento', {
+          attempt,
+          maxRetries,
+          error: error?.toString(),
+          errorMessage: error?.message,
+          errorStatus: error?.response?.status
+        }, 'error');
+        
+        // Si es el último intento, no esperar
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        // Calcular delay con backoff exponencial
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        
+        await saveLog('Store: Esperando antes del siguiente intento', {
+          attempt,
+          delay,
+          nextAttempt: attempt + 1
+        }, 'measurement');
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError;
+  },
+
   createMeasurementWithReportId: async (
     data: any,
     field_id: string
@@ -400,26 +449,26 @@ const useReportStore = create<ReportState>((set) => ({
     }, 'measurement');
 
     try {
-      await saveLog('Store: Haciendo llamada POST a /measurements', {
-        data,
-        field_id
-      }, 'measurement');
+      // Usar la función de reintentos para el POST
+      await useReportStore.getState().retryWithBackoff(async () => {
+        await saveLog('Store: Haciendo llamada POST a /measurements', {
+          data,
+          field_id
+        }, 'measurement');
 
-      await axiosInstance.post('/measurements', data);
+        return await axiosInstance.post('/measurements', data);
+      });
       
       await saveLog('Store: Llamada POST exitosa, actualizando reports', {
         field_id
       }, 'measurement');
 
-      // const newReport = response.data;
-      
       // Invalidar caché de reportes cuando se crean mediciones
       await invalidateCachePattern(CACHE_CONFIGS.reports.key);
       // También invalidar caché de reportes por ID ya que las mediciones han cambiado
       await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
       
       useReportStore.getState().getAllReportsByField(field_id, true);
-      //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ reportsLoading: false });
       
       await saveLog('Store: createMeasurementWithReportId completado exitosamente', {
@@ -427,7 +476,7 @@ const useReportStore = create<ReportState>((set) => ({
       }, 'measurement');
 
     } catch (error: any) {
-      await saveLog('Store: Error en createMeasurementWithReportId', {
+      await saveLog('Store: Error final en createMeasurementWithReportId después de todos los reintentos', {
         error: error?.toString(),
         errorMessage: error?.message,
         errorResponse: error?.response?.data,
@@ -438,7 +487,7 @@ const useReportStore = create<ReportState>((set) => ({
 
       set({ reportsLoading: false });
       
-      await saveLog('Store: Estado reportsLoading establecido en false después del error', {
+      await saveLog('Store: Estado reportsLoading establecido en false después del error final', {
         field_id
       }, 'measurement');
 
@@ -449,7 +498,7 @@ const useReportStore = create<ReportState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error creating measurement with report id');
+        throw new Error('Error creating measurement with report id after retries');
       }
     }
   },

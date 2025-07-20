@@ -9,9 +9,10 @@ export const useFieldSelectorTypes = () => {
                 { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
                 { label: t('typeProductionText.bovine_of_meat'), value: 'bovine_of_meat' },
                 { label: t('typeProductionText.swine'), value: 'swine' },
-                { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
-                { label: t('typeProductionText.posture_poultry'), value: 'posture_poultry' },
-                { label: t('breedText.other'), value: 'other' },
+                // OPCIONES DESHABILITADAS TEMPORALMENTE
+                // { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
+                // { label: t('typeProductionText.posture_poultry'), value: 'posture_poultry' },
+                // { label: t('breedText.other'), value: 'other' },
             ],
         },
         {

@@ -144,6 +144,17 @@ export default function CreateField() {
     userId: userId,
   });
 
+  // Inicializar selectedValues cuando t esté disponible
+  useEffect(() => {
+    if (Object.keys(selectedValues).length === 0) {
+      setSelectedValues({
+        [t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
+        [t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
+        [t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
+      });
+    }
+  }, [t]);
+
   useEffect(() => {
     setFormData((prev: any) => ({
       ...prev,
@@ -171,12 +182,13 @@ export default function CreateField() {
     { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
     { label: t('typeProductionText.bovine_of_meat'), value: 'bovine_of_meat' },
     { label: t('typeProductionText.swine'), value: 'swine' },
-    { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
-    {
-      label: t('typeProductionText.posture_poultry'),
-      value: 'posture_poultry',
-    },
-    { label: t('typeProductionText.customized'), value: 'customized' },
+    // OPCIONES DESHABILITADAS TEMPORALMENTE
+    // { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
+    // {
+    //   label: t('typeProductionText.posture_poultry'),
+    //   value: 'posture_poultry',
+    // },
+    // { label: t('typeProductionText.customized'), value: 'customized' },
   ]);
 
   const [breed, setBreed] = useState<{ label: string; value: string }[]>([

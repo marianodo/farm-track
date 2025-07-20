@@ -265,36 +265,37 @@ export default function ObjectScreen() {
     }
   };
 
-  const renderRightActions = (progress: any, dragX: any, object: any) => (
-    <View style={styles.rightActions}>
-      <Pressable
-        style={styles.editButton}
-        onPress={() => {
-          setEditInputValue({
-            name: object.name,
-          });
-          setObjectId(object.id);
-          setIsModalEditVisible(true);
-        }}
-      >
-        <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
-      </Pressable>
-      <Pressable
-        style={styles.deleteButton}
-        onPress={() => {
-          setSelectedObjectDelete({ id: object.id });
-          setTexts({
-            title: `${t('objectView.deleteAlertTitle')} "${object.name}"?`,
-          });
-          setShowDeleteModal(true);
-        }}
-      >
-        <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
-      </Pressable>
-    </View>
-  );
+  // DESLIZAMIENTO DESHABILITADO TEMPORALMENTE
+  // const renderRightActions = (progress: any, dragX: any, object: any) => (
+  //   <View style={styles.rightActions}>
+  //     <Pressable
+  //       style={styles.editButton}
+  //       onPress={() => {
+  //         setEditInputValue({
+  //           name: object.name,
+  //         });
+  //         setObjectId(object.id);
+  //         setIsModalEditVisible(true);
+  //       }}
+  //     >
+  //       <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
+  //       <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
+  //     </Pressable>
+  //     <Pressable
+  //       style={styles.deleteButton}
+  //       onPress={() => {
+  //         setSelectedObjectDelete({ id: object.id });
+  //         setTexts({
+  //           title: `${t('objectView.deleteAlertTitle')} "${object.name}"?`,
+  //         });
+  //         setShowDeleteModal(true);
+  //       }}
+  //     >
+  //       <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
+  //       <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
+  //     </Pressable>
+  //   </View>
+  // );
 
   const ListItem: React.FC<ListItemProps> = ({
     item,
@@ -321,123 +322,133 @@ export default function ObjectScreen() {
     }, [isExpanded]);
 
     return (
-      <Swipeable
+      <View
         key={index}
-        enabled={!isExpanded} // Elimina el swipe si está expandido
-        renderRightActions={(progress, dragX) =>
-          renderRightActions(progress, dragX, item)
-        }
-        containerStyle={{
+        style={{
           backgroundColor: '#3A5228',
-          marginBottom: 10,
+          marginBottom: 20,
           borderRadius: 10,
         }}
       >
-        <TouchableWithoutFeedback
+        {/* DESLIZAMIENTO DESHABILITADO TEMPORALMENTE */}
+        {/* <Swipeable
           key={index}
-          onPress={
-            item.variables.length > 0
-              ? () => {
-                  Keyboard.dismiss;
-                  toggleExpand(index);
-                }
-              : () => {
-                  Keyboard.dismiss;
-                }
+          enabled={!isExpanded} // Elimina el swipe si está expandido
+          renderRightActions={(progress, dragX) =>
+            renderRightActions(progress, dragX, item)
           }
-        >
-          <View style={styles.objectContainer}>
-            <Text
+          containerStyle={{
+            backgroundColor: '#3A5228',
+            marginBottom: 10,
+            borderRadius: 10,
+          }}
+        > */}
+          <TouchableWithoutFeedback
+            key={index}
+            onPress={
+              item.variables.length > 0
+                ? () => {
+                    Keyboard.dismiss;
+                    toggleExpand(index);
+                  }
+                : () => {
+                    Keyboard.dismiss;
+                  }
+            }
+          >
+            <View style={styles.objectContainer}>
+              <Text
+                style={{
+                  paddingBottom: rMS(8),
+                  fontSize: rMS(17),
+                  paddingLeft: 6,
+                  fontWeight: 'bold',
+                  fontFamily: 'Pro-Regular',
+                  color: '#000000',
+                }}
+              >
+                {item?.name}
+              </Text>
+              {item.variables.length > 0 && isExpanded ? (
+                <View style={{ paddingBottom: rMS(8) }}>
+                  <Image
+                    source={require('../../../../../assets/images/tabs/variables-selected.png')}
+                    style={{
+                      width: rMS(22),
+                      height: rMS(22),
+                      alignSelf: 'center',
+                    }}
+                    resizeMode="contain"
+                  />
+                </View>
+              ) : item.variables.length > 0 && !isExpanded ? (
+                <View style={{ paddingBottom: rMS(8) }}>
+                  <Image
+                    source={require('../../../../../assets/images/tabs/variables-unselected.png')}
+                    style={{
+                      width: rMS(22),
+                      height: rMS(22),
+                      alignSelf: 'center',
+                    }}
+                    resizeMode="contain"
+                  />
+                </View>
+              ) : null}
+            </View>
+          </TouchableWithoutFeedback>
+          {/* Mostrar información cuando se expande */}
+
+          <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
+            <Divider
               style={{
+                backgroundColor: '#486732',
+                height: 1,
+              }}
+            />
+            <View
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                paddingHorizontal: rMS(10),
+                paddingTop: rMS(8),
                 paddingBottom: rMS(8),
-                fontSize: rMS(17),
-                paddingLeft: 6,
-                fontWeight: 'bold',
-                fontFamily: 'Pro-Regular',
-                color: '#000000',
+                gap: rMS(4),
+                width: '100%',
               }}
             >
-              {item?.name}
-            </Text>
-            {item.variables.length > 0 && isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../../../assets/images/tabs/variables-selected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : item.variables.length > 0 && !isExpanded ? (
-              <View style={{ paddingBottom: rMS(8) }}>
-                <Image
-                  source={require('../../../../../assets/images/tabs/variables-unselected.png')}
-                  style={{
-                    width: rMS(22),
-                    height: rMS(22),
-                    alignSelf: 'center',
-                  }}
-                  resizeMode="contain"
-                />
-              </View>
-            ) : null}
-          </View>
-        </TouchableWithoutFeedback>
-        {/* Mostrar información cuando se expande */}
-
-        <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
-          <Divider
-            style={{
-              backgroundColor: '#486732',
-              height: 1,
-            }}
-          />
-          <View
-            style={{
-              display: 'flex',
-              flexDirection: 'row',
-              flexWrap: 'wrap',
-              paddingHorizontal: rMS(10),
-              paddingTop: rMS(8),
-              paddingBottom: rMS(8),
-              gap: rMS(4),
-              width: '100%',
-            }}
-          >
-            {item.variables.map((variable: any, index: number) => {
-              return (
-                <View
-                  key={index}
-                  style={{
-                    paddingHorizontal: rMS(10),
-                    height: rMS(24),
-                    backgroundColor: '#486732',
-                    marginRight: rMS(4),
-                    marginBottom: rMS(4),
-                    borderRadius: 16,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text
+              {item.variables.map((variable: any, index: number) => {
+                return (
+                  <View
+                    key={index}
                     style={{
-                      color: '#FFFFFF', // Explicit white text for visibility on dark green
-                      fontFamily: 'Pro-Regular',
-                      fontSize: rMS(12),
-                      fontWeight: 'bold',
+                      paddingHorizontal: rMS(10),
+                      height: rMS(24),
+                      backgroundColor: '#486732',
+                      marginRight: rMS(4),
+                      marginBottom: rMS(4),
+                      borderRadius: 16,
+                      justifyContent: 'center',
+                      alignItems: 'center',
                     }}
                   >
-                    {variable.name}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </Animated.View>
-      </Swipeable>
+                    <Text
+                      style={{
+                        color: '#FFFFFF', // Explicit white text for visibility on dark green
+                        fontFamily: 'Pro-Regular',
+                        fontSize: rMS(12),
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {variable.name}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          </Animated.View>
+        {/* </Swipeable> */}
+      </View>
     );
   };
 
@@ -665,7 +676,8 @@ export default function ObjectScreen() {
             }}
           />
         )}
-        {Array.isArray(fieldsByUserId) &&
+        {/* BOTÓN CREAR DESHABILITADO TEMPORALMENTE */}
+        {/* {Array.isArray(fieldsByUserId) &&
           fieldsByUserId.length > 0 &&
           !isModalVisible &&
           !isModalEditVisible && (
@@ -676,11 +688,11 @@ export default function ObjectScreen() {
               }}
             >
               <CreateButton
-                text={t('reportsView.createReportTextButton')}
+                text={t('objectView.createButtonText')}
                 onPress={() => setIsModalVisible(true)}
               />
             </View>
-          )}
+          )} */}
         <TwoButtonsModal
           isVisible={showDeleteModal}
           onDismiss={() => setShowDeleteModal(false)}

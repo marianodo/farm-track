@@ -150,9 +150,22 @@ const variableStore = create<VariableStore>((set) => ({
       }
       
       try {
-        // Get all variables and filter locally if needed
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/variables`;
-        console.log('Fetching all variables and filtering locally');
+        // Get current user to use user-specific endpoint
+        const user = useAuthStore.getState().user;
+        const userId = user?.id;
+        
+        if (!userId) {
+          set({ 
+            variableLoading: false, 
+            variablesByUser: [],
+            variableError: 'No user ID available for authentication'
+          });
+          return [];
+        }
+        
+        // Use user-specific endpoint instead of admin-only endpoint
+        const url = `${process.env.NEXT_PUBLIC_API_URL}/variables/byUser/${userId}`;
+        console.log(`Fetching variables for user ${userId}`);
         
         const response = await axios.get(
           url,
@@ -169,29 +182,15 @@ const variableStore = create<VariableStore>((set) => ({
           return [];
         }
         
-        // Get all variables from response
-        const allVariables = response.data;
-        console.log(`Fetched ${allVariables.length} total variables`);
-        // Get current user (for local filtering if needed)
-        const user = useAuthStore.getState().user;
-
-        const userId = user?.userId;
-        console.log(userId);
+        // Get variables from user-specific endpoint (already filtered by backend)
+        const userVariables = response.data;
+        console.log(`Fetched ${userVariables.length} variables for user ${userId}`);
         
-        // If we have a userId, filter the variables locally
-        let userVariables = allVariables;
-        if (userId) {
-          userVariables = allVariables.filter((v: any) => v.userId === userId);
-          console.log(`Filtered ${userVariables.length} variables for user ${userId}`);
-        } else {
-          console.warn('No user ID available for local filtering');
-        }
-        
-        // Update state with the variables
+        // Update state with the variables (no local filtering needed since backend already filters)
         set({
           variablesByUser: userVariables,
           variableLoading: false,
-          variableError: userId ? null : 'Warning: Using all variables without user filtering'
+          variableError: null
         });
         
         return userVariables;

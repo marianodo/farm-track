@@ -259,13 +259,13 @@ const CreateMeasurement: React.FC = () => {
       reportsLoading
     }, 'measurement');
 
-    await createMeasurementWithReportId(newMeasurement, fieldId as string);
-    
-    await saveLog('createMeasurementWithReportId completado', {
-      measurementCount: measurementCount + 1
-    }, 'measurement');
-
     try {
+      await createMeasurementWithReportId(newMeasurement, fieldId as string);
+      
+      await saveLog('createMeasurementWithReportId completado exitosamente', {
+        measurementCount: measurementCount + 1
+      }, 'measurement');
+
       await saveLog('Iniciando actualización de estado después de crear medición', {
         measurementCount: measurementCount + 1
       }, 'measurement');
@@ -273,7 +273,6 @@ const CreateMeasurement: React.FC = () => {
       setSliderVal(null);
       setMeasurementCount((prevCount: any) => prevCount + 1);
       setFirstRender(false);
-      // setReloadMeasurementStats(true);
       
       await saveLog('Mostrando modal de éxito', {
         measurementCount: measurementCount + 1
@@ -301,12 +300,16 @@ const CreateMeasurement: React.FC = () => {
         measurementCount: measurementCount + 1
       }, 'measurement');
 
-    } catch (stateError) {
-      await saveLog('Error al actualizar estado después de crear medición', {
-        error: stateError?.toString(),
-        errorMessage: (stateError as any)?.message,
+    } catch (error) {
+      await saveLog('Error en createNewMeasurement después de reintentos', {
+        error: error?.toString(),
+        errorMessage: (error as any)?.message,
+        errorStack: (error as any)?.stack,
         measurementCount: measurementCount + 1
       }, 'error');
+      
+      // Re-lanzar el error para que sea manejado por handleSubmit
+      throw error;
     }
   };
 
@@ -516,13 +519,30 @@ const CreateMeasurement: React.FC = () => {
         measurementCount: measurementCount + 1
       }, 'measurement');
 
-    } catch (error) {
-      await saveLog('Error al crear medición', {
+    } catch (error: any) {
+      await saveLog('Error al crear medición después de reintentos', {
         error: error?.toString(),
-        errorMessage: (error as any)?.message,
-        errorStack: (error as any)?.stack
+        errorMessage: error?.message,
+        errorStack: error?.stack
       }, 'error');
-      console.log('ERROR:', error);
+      
+      // Mostrar mensaje de error más específico al usuario
+      let errorMessage = 'Error al guardar la medición';
+      
+      if (error?.message?.includes('network') || error?.message?.includes('connection')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.';
+      } else if (error?.message?.includes('timeout')) {
+        errorMessage = 'La operación tardó demasiado. Intenta nuevamente.';
+      } else if (error?.message?.includes('retries')) {
+        errorMessage = 'No se pudo guardar la medición después de varios intentos. Verifica tu conexión e intenta nuevamente.';
+      }
+      
+      // Mostrar alerta con el mensaje de error
+      Alert.alert(
+        'Error',
+        errorMessage,
+        [{ text: 'OK', style: 'default' }]
+      );
     }
   };
 
