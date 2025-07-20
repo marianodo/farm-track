@@ -308,11 +308,25 @@ export class PenRepository {
                   });
 
                 if (!existingEntry) {
+                  // Transformar el defaultValue para que coincida con la estructura esperada por custom_parameters
+                  let customParameters = variable.defaultValue;
+                  
+                  // Si es una variable categórica, transformar la estructura
+                  if (variable.type === 'CATEGORICAL') {
+                    const defaultValue = variable.defaultValue as any;
+                    customParameters = {
+                      value: {
+                        categories: defaultValue.value.categories,
+                        optimal_values: defaultValue.value.optimal_values || []
+                      }
+                    };
+                  }
+                  
                   await this.penVariableTypeOfObjectRepository.create({
                     penId: id,
                     variableId: variable.id,
                     typeOfObjectId: typeOfObjectId,
-                    custom_parameters: variable.defaultValue,
+                    custom_parameters: customParameters,
                   });
                 }
               }

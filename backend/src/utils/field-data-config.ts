@@ -16,8 +16,10 @@ export interface NumberDefaultValue {
 
 // Tipo para los valores categóricos del campo "defaultValue"
 export interface CategoricalDefaultValue {
-  value: string[];
-  optimal_values: string[];
+  value: {
+    categories: string[];
+    optimal_values: string[];
+  };
 }
 
 // Tipo general para defaultValue, que puede ser numérico o categórico
@@ -129,8 +131,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Ruminating',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['YES', 'NO'],
-          optimal_values: ['YES', 'NO'],
+          value: {
+            categories: ['YES', 'NO'],
+            optimal_values: ['YES', 'NO'],
+          },
         },
         associatedTypeOfObject: 'Animal',
       },
@@ -138,8 +142,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Laying',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['YES', 'NO'],
-          optimal_values: ['YES', 'NO'],
+          value: {
+            categories: ['YES', 'NO'],
+            optimal_values: ['YES', 'NO'],
+          },
         },
         associatedTypeOfObject: 'Animal',
       },
@@ -306,8 +312,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Mud score',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
-          optimal_values: ['MODERATE MUD'],
+          value: {
+            categories: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+            optimal_values: ['MODERATE MUD'],
+          },
         },
         associatedTypeOfObject: 'Installation',
       },
@@ -418,8 +426,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Mud score',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
-          optimal_values: ['MODERATE MUD'],
+          value: {
+            categories: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+            optimal_values: ['MODERATE MUD'],
+          },
         },
         associatedTypeOfObject: 'Installation',
       },

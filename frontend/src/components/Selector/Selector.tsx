@@ -27,8 +27,10 @@ export function Selector({
   const [inputFocused, setInputFocused] = useState<Record<string, boolean>>({});
 
   const handleCategoryPress = (category: string) => {
+    if (!category) return;
+    
     const fieldKey = getFieldKeyFromCategory(category);
-    const selectedOption = selectedValues[fieldKey]?.value;
+    const selectedOption = selectedValues && selectedValues[fieldKey] ? selectedValues[fieldKey].value : undefined;
 
     if (selectedOption === 'other' && inputFocused[category]) {
       return;
@@ -41,6 +43,8 @@ export function Selector({
   };
 
   const handleOptionSelect = (category: string, option: any) => {
+    if (!category || !option) return;
+    
     const fieldKey = getFieldKeyFromCategory(category);
 
     // If selecting 'other', keep the category expanded
@@ -61,19 +65,21 @@ export function Selector({
       [fieldKey]: {
         value: option.value,
         customValue: option.value === 'other'
-          ? selectedValues[fieldKey]?.customValue || ''
+          ? (selectedValues && selectedValues[fieldKey] ? selectedValues[fieldKey].customValue || '' : '')
           : '',
       },
     });
   };
 
   const handleCustomValueChange = (category: string, text: string) => {
+    if (!category) return;
+    
     const fieldKey = getFieldKeyFromCategory(category);
 
     onChange({
       ...selectedValues,
       [fieldKey]: {
-        ...selectedValues[fieldKey],
+        ...(selectedValues && selectedValues[fieldKey] ? selectedValues[fieldKey] : {}),
         customValue: text,
       },
     });
@@ -83,15 +89,44 @@ export function Selector({
     return category.replace(/\s+/g, '');
   };
 
+  // Validación adicional para evitar errores de renderizado
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    return (
+      <View style={styles.categoryContainer}>
+        <Text style={styles.categoryTitle}>Cargando opciones...</Text>
+      </View>
+    );
+  }
+
+  if (!selectedValues || typeof selectedValues !== 'object') {
+    return (
+      <View style={styles.categoryContainer}>
+        <Text style={styles.categoryTitle}>Inicializando...</Text>
+      </View>
+    );
+  }
+
   return (
     <>
       {data.map((categoryData: any, categoryIndex: any) => {
+        if (!categoryData || typeof categoryData !== 'object') {
+          return null;
+        }
+        
         const category = Object.keys(categoryData)[0];
+        if (!category) {
+          return null;
+        }
+        
         const options = categoryData[category];
+        if (!options || !Array.isArray(options)) {
+          return null;
+        }
+        
         const fieldKey = getFieldKeyFromCategory(category);
-        const selectedOption = selectedValues[fieldKey]?.value || '';
-        const customValue = selectedValues[fieldKey]?.customValue || '';
-        const isExpanded = expandedCategories[category];
+        const selectedOption = selectedValues[fieldKey] ? selectedValues[fieldKey].value || '' : '';
+        const customValue = selectedValues[fieldKey] ? selectedValues[fieldKey].customValue || '' : '';
+        const isExpanded = expandedCategories[category] || false;
         const selectedLabel = selectedOption === 'other'
           ? customValue.trim()
           : options.find((opt: any) => opt.value === selectedOption)?.label;
@@ -122,7 +157,11 @@ export function Selector({
                 entering={FadeIn.duration(300)}
                 exiting={FadeOut.duration(300)}
               >
-                {options.map((option: any, index: any) => {
+                {options && Array.isArray(options) && options.map((option: any, index: any) => {
+                  if (!option || typeof option !== 'object') {
+                    return null;
+                  }
+                  
                   const isSelected = selectedOption === option.value;
                   return (
                     <TouchableOpacity

@@ -146,11 +146,15 @@ export default function CreateField() {
 
   // Inicializar selectedValues cuando t esté disponible
   useEffect(() => {
+    const productionKey = t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '');
+    const breedKey = t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '');
+    const installationKey = t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '');
+    
     if (Object.keys(selectedValues).length === 0) {
       setSelectedValues({
-        [t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
-        [t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
-        [t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '')]: { value: '', customValue: '' },
+        [productionKey]: { value: '', customValue: '' },
+        [breedKey]: { value: '', customValue: '' },
+        [installationKey]: { value: '', customValue: '' },
       });
     }
   }, [t]);
@@ -605,6 +609,35 @@ export default function CreateField() {
                   }
 
                   if (key === 'production_type') {
+                    // Solo renderizar el Selector si selectedValues está inicializado
+                    if (!selectedValues || Object.keys(selectedValues).length === 0) {
+                      return (
+                        <View key={key + index}>
+                          <Text style={styles.inputLabel}>{input.placeholder}</Text>
+                          <View style={{
+                            backgroundColor: colorScheme === 'dark' ? '#444444' : '#F1F1F1',
+                            borderRadius: 5,
+                            borderWidth: 1,
+                            borderColor: colorScheme === 'dark' ? '#555555' : '#EAEAEA',
+                            marginBottom: 10,
+                            padding: 2
+                          }}>
+                            <Text style={{
+                              fontFamily: 'Pro-Regular',
+                              color: colorScheme === 'dark' ? '#CCCCCC' : '#666666',
+                              backgroundColor: 'transparent',
+                              fontSize: 16,
+                              height: 40,
+                              paddingHorizontal: 8,
+                              textAlignVertical: 'center'
+                            }}>
+                              Cargando...
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    }
+                    
                     return (
                       <Selector
                         key={key + index}
