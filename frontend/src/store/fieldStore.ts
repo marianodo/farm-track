@@ -63,9 +63,9 @@ const useFieldStore = create<FieldState>((set: any) => ({
       // Invalidar caché de campos
       await invalidateCachePattern(CACHE_CONFIGS.fields.key);
       
-      // Si es bovino de leche o carne, también refrescar tipos de objetos y variables
+      // Si es bovino de leche, carne o porcino, también refrescar tipos de objetos y variables
       // ya que se crean automáticamente
-      if (field.production_type === 'bovine_of_milk' || field.production_type === 'bovine_of_meat') {
+      if (field.production_type === 'bovine_of_milk' || field.production_type === 'bovine_of_meat' || field.production_type === 'swine') {
         const { default: useTypeOfObjectStore } = await import('./typeOfObjectStore');
         const { default: useVariableStore } = await import('./variableStore');
         

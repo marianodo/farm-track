@@ -398,10 +398,16 @@ export default function CreateField() {
       setShowModal(true);
       await createField(formData);
       setShowModal(false);
+      
+      // Mostrar mensaje de éxito con tiempo adicional para que se refresquen los datos
       const handleOneButtonPress = () => {
-        setMessageModalText(t('fieldView.fieldCreatedText'));
+        setMessageModalText(t('fieldView.fieldCreatedText') + ' Refrescando datos...');
         setSuccess(true);
         setShowMessageModal(true);
+        
+        // Esperar más tiempo para que se refresquen los datos automáticamente
+        const refreshTime = formData.production_type === 'swine' ? 3500 : 2000;
+        
         if (Platform.OS === 'ios') {
           setTimeout(() => {
             getAllVariables();
@@ -410,14 +416,14 @@ export default function CreateField() {
             setTimeout(() => {
               router.back();
             }, 430);
-          }, 2000);
+          }, refreshTime);
         } else {
           setTimeout(() => {
             getAllVariables();
             getAllTypeOfObjects();
             setShowMessageModal(false);
             router.back();
-          }, 2000);
+          }, refreshTime);
         }
       };
       setOneButtonOnPress(handleOneButtonPress);
