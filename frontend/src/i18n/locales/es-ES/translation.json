@@ -205,7 +205,8 @@
     "penObjectSelectsPlaceHolder": "Objetos seleccionados",
     "updatePenTextButton": "Actualizar corral",
     "editPenTextButton": "Editar pen",
-    "updatePenOkText": "Corral actualizado exitosamente."
+    "updatePenOkText": "Corral actualizado exitosamente.",
+    "existingPensTitle": "Corrales Existentes"
   },
   "reportsView": {
     "reportsText": "Lista de evaluaciones",

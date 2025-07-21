@@ -86,9 +86,10 @@ const CreatePen: React.FC = () => {
   const { typeOfObjects } = useTypeOfObjectStore((state: any) => ({
     typeOfObjects: state.typeOfObjects,
   }));
-  const { pensLoading, createPen } = usePenStore((state: any) => ({
+  const { pensLoading, createPen, pens } = usePenStore((state: any) => ({
     pensLoading: state.pensLoading,
     createPen: state.createPen,
+    pens: state.pens,
   }));
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -99,6 +100,7 @@ const CreatePen: React.FC = () => {
     name: null,
     type_of_object_ids: null,
   });
+  const [inputValue, setInputValue] = useState<string>('');
 
   const validateForm = () => {
     const newError: FormDataError = {
@@ -111,6 +113,25 @@ const CreatePen: React.FC = () => {
 
     setError(newError);
     return newError.name || newError.type_of_object_ids;
+  };
+
+  const clearForm = () => {
+    setFormData({
+      name: null,
+      type_of_object_ids: null,
+    });
+    setInputValue('');
+    setItemsValue(undefined);
+    setError({
+      name: null,
+      type_of_object_ids: null,
+    });
+  };
+
+  // Obtener los pens del campo actual
+  const getCurrentFieldPens = () => {
+    if (!pens || !fieldId) return [];
+    return pens[fieldId as string] || [];
   };
 
   useEffect(() => {
@@ -126,6 +147,14 @@ const CreatePen: React.FC = () => {
       });
     }
   }, []);
+
+  // Cargar pens del campo al montar el componente
+  useEffect(() => {
+    if (fieldId) {
+      const { getAllPens } = usePenStore.getState();
+      getAllPens(fieldId as string, false, false, false);
+    }
+  }, [fieldId]);
 
   const onChange = (field: keyof FormData, inputValue: any) => {
     const updatedFormData = { ...formData, [field]: inputValue };
@@ -152,27 +181,20 @@ const CreatePen: React.FC = () => {
     if (!validateForm()) {
       try {
         await createPen({ ...formData, fieldId: fieldId as string });
-        setFormData({
-          name: null,
-          type_of_object_ids: null,
-        });
-        setItemsValue(undefined);
+        
+        // Limpiar el formulario completamente
+        clearForm();
+        
+        // Mostrar mensaje de éxito
         setMessageModalText(t('penView.formOkText'));
         setSuccess(true);
         setShowMessageModal(true);
-        if (Platform.OS === 'ios') {
-          setTimeout(() => {
-            setShowMessageModal(false);
-            setTimeout(() => {
-              router.back();
-            }, 480);
-          }, 2000);
-        } else {
-          setTimeout(() => {
-            setShowMessageModal(false);
-            router.back();
-          }, 2000);
-        }
+        
+        // Ocultar mensaje después de 2 segundos (sin navegar)
+        setTimeout(() => {
+          setShowMessageModal(false);
+        }, 2000);
+        
       } catch (error) {
         setMessageModalText(t('penView.penCreatedError'));
         setSuccess(false);
@@ -316,7 +338,11 @@ const CreatePen: React.FC = () => {
               mode="outlined"
               placeholderTextColor="#292929"
               placeholder={t('penView.penNamePlaceHolder')}
-              onChangeText={(value) => onChange('name', value)}
+              value={inputValue}
+              onChangeText={(value) => {
+                setInputValue(value);
+                onChange('name', value);
+              }}
               autoCapitalize="sentences"
               activeOutlineColor="transparent"
               outlineColor="#F1F1F1"
@@ -377,6 +403,49 @@ const CreatePen: React.FC = () => {
               <Text style={styles.errorText}>{error?.type_of_object_ids}</Text>
             )}
           </View>
+
+          {/* Listado de corrales creados */}
+          {getCurrentFieldPens().length > 0 && (
+            <View style={{ marginTop: 20, marginBottom: 10 }}>
+              <Text style={{
+                fontSize: 16,
+                fontWeight: 'bold',
+                fontFamily: 'Pro-Regular',
+                color: '#292929',
+                marginBottom: 10,
+                textAlign: 'center'
+              }}>
+                {t('penView.existingPensTitle')}
+              </Text>
+              
+              <View style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'flex-start',
+                gap: 6
+              }}>
+                {getCurrentFieldPens().map((pen: any, index: number) => (
+                  <View key={pen.id} style={{
+                    backgroundColor: '#E8F5E8',
+                    borderRadius: 16,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderWidth: 1,
+                    borderColor: '#486732'
+                  }}>
+                    <Text style={{
+                      fontSize: 11,
+                      fontWeight: '500',
+                      fontFamily: 'Pro-Regular',
+                      color: '#486732'
+                    }}>
+                      {pen.name}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
         </KeyboardAwareScrollView>
         <View style={styles.fixedButtonContainer}>
           <Pressable onPress={handleSubmit} style={styles.button}>
