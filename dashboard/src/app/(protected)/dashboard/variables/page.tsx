@@ -8,19 +8,50 @@ import AddVariableModal from './add-variable-modal';
 
 export default function VariablesPage() {
   const { getVariablesByUser, variablesByUser, variableLoading, variableError } = variableStore();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, token } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      
+      // Debug completo del estado de autenticación
+      const authState = useAuthStore.getState();
+      console.log('🔍 DEBUG - Complete auth state:', authState);
+      console.log('🔍 DEBUG - User object:', user);
+      console.log('🔍 DEBUG - Is authenticated:', isAuthenticated);
+      console.log('🔍 DEBUG - Token:', token);
+      console.log('🔍 DEBUG - User ID from user object:', user?.id);
+      console.log('🔍 DEBUG - User ID from auth state:', authState.user?.id);
+      
+      // Verificar si el usuario está autenticado
+      if (!isAuthenticated) {
+        console.log('🔍 DEBUG - User not authenticated (isAuthenticated: false)');
+        setLoading(false);
+        return;
+      }
+      
+      if (!token) {
+        console.log('🔍 DEBUG - No token available');
+        setLoading(false);
+        return;
+      }
+      
+      const userId = user?.id || user?.userId;
+      if (!userId) {
+        console.log('🔍 DEBUG - No user ID available');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('🔍 DEBUG - All checks passed, calling getVariablesByUser');
       await getVariablesByUser();
       setLoading(false);
     };
 
     fetchData();
-  }, [getVariablesByUser]);
+  }, [getVariablesByUser, isAuthenticated, token, user]);
   
 
 
@@ -70,6 +101,30 @@ export default function VariablesPage() {
                 <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
                   <div className="flex justify-center items-center h-64">
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                </td>
+              </tr>
+            ) : !isAuthenticated ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-center p-6 bg-yellow-100 rounded-md text-yellow-700">
+                    <p>Usuario no autenticado (isAuthenticated: false). Por favor, inicia sesión.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : !token ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-center p-6 bg-yellow-100 rounded-md text-yellow-700">
+                    <p>No hay token de autenticación disponible.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : !(user?.id || user?.userId) ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-center p-6 bg-yellow-100 rounded-md text-yellow-700">
+                    <p>No hay ID de usuario disponible. Usuario: {JSON.stringify(user)}</p>
                   </div>
                 </td>
               </tr>

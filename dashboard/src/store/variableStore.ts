@@ -135,10 +135,14 @@ const variableStore = create<VariableStore>((set) => ({
     set({ variableLoading: true, variableError: null });
     
     try {
-      // Get auth token
+      // Get auth token and user info (same as fields store)
       const token = useAuthStore.getState().token;
+      const userId = useAuthStore.getState()?.user?.id || useAuthStore.getState()?.user?.userId;
       
-      // If token is missing, we can't make authenticated requests
+      console.log('🔍 DEBUG - Variable store - Token:', token);
+      console.log('🔍 DEBUG - Variable store - User ID:', userId);
+      console.log('🔍 DEBUG - Variable store - Full user object:', useAuthStore.getState().user);
+      
       if (!token) {
         console.warn('No authentication token available');
         set({ 
@@ -149,67 +153,42 @@ const variableStore = create<VariableStore>((set) => ({
         return [];
       }
       
-      try {
-        // Get current user to use user-specific endpoint
-        const user = useAuthStore.getState().user;
-        const userId = user?.id;
-        
-        if (!userId) {
-          set({ 
-            variableLoading: false, 
-            variablesByUser: [],
-            variableError: 'No user ID available for authentication'
-          });
-          return [];
-        }
-        
-        // Use user-specific endpoint instead of admin-only endpoint
-        const url = `${process.env.NEXT_PUBLIC_API_URL}/variables/byUser/${userId}`;
-        console.log(`Fetching variables for user ${userId}`);
-        
-        const response = await axios.get(
-          url,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        
-        // Handle empty response
-        if (!response.data) {
-          set({ 
-            variableLoading: false, 
-            variablesByUser: [],
-            variableError: 'Empty response from server'
-          });
-          return [];
-        }
-        
-        // Get variables from user-specific endpoint (already filtered by backend)
-        const userVariables = response.data;
-        console.log(`Fetched ${userVariables.length} variables for user ${userId}`);
-        
-        // Update state with the variables (no local filtering needed since backend already filters)
-        set({
-          variablesByUser: userVariables,
-          variableLoading: false,
-          variableError: null
-        });
-        
-        return userVariables;
-      } catch (apiError: any) {
-        const statusCode = apiError.response?.status;
-        const errorMessage = apiError.response?.data?.message || apiError.message;
-        
-        console.error(`API error (${statusCode}):`, errorMessage);
+      if (!userId) {
+        console.warn('No user ID available');
         set({ 
-          variableLoading: false,
-          variableError: `Error al obtener variables: ${errorMessage}`
+          variableLoading: false, 
+          variablesByUser: [],
+          variableError: 'No user ID available for authentication'
         });
         return [];
       }
+      
+      // Use the same pattern as fields store
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/variables/byUser/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      console.log('🔍 DEBUG - Variable store - Response:', response.data);
+      
+      // Handle response same as fields store
+      const userVariables = response.data.length ? response.data : [];
+      set({
+        variablesByUser: userVariables,
+        variableLoading: false,
+        variableError: null
+      });
+      
+      return userVariables;
     } catch (error: any) {
-      console.error('Unexpected error in getVariablesByUser:', error);
+      console.error('🔍 DEBUG - Variable store - Error:', error);
       set({ 
         variableLoading: false,
-        variableError: 'Error inesperado al obtener variables'
+        variableError: error.response?.data?.message || error.message || 'Error al obtener variables'
       });
       return [];
     }
