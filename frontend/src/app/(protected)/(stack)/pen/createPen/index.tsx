@@ -128,10 +128,11 @@ const CreatePen: React.FC = () => {
     });
   };
 
-  // Obtener los pens del campo actual
+  // Obtener los pens del campo actual ordenados por ID
   const getCurrentFieldPens = () => {
     if (!pens || !fieldId) return [];
-    return pens[fieldId as string] || [];
+    const fieldPens = pens[fieldId as string] || [];
+    return fieldPens.sort((a: any, b: any) => a.id - b.id);
   };
 
   useEffect(() => {
@@ -330,7 +331,10 @@ const CreatePen: React.FC = () => {
           extraScrollHeight={30}
           contentContainerStyle={[
             styles.scrollContent,
-            { height: open ? rMS(360) : null },
+            { 
+              height: open ? rMS(360) : null,
+              paddingBottom: 100 // Espacio para el botón fijo
+            },
           ]}
         >
           <View style={{ width: '100%', marginBottom: 20 }}>
