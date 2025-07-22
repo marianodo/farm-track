@@ -1224,7 +1224,7 @@ const DashboardPage: React.FC = () => {
             <h2 className="text-xl font-semibold mb-4">Histórico</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Historical Stats */}
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg h-64">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Reportes</span>
@@ -1262,7 +1262,7 @@ const DashboardPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Animales</span>
+                            <span className="text-gray-600">Medición en Animales</span>
                             <div className="flex items-center">
                                 {(() => {
                                     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
@@ -1278,7 +1278,7 @@ const DashboardPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Instalación</span>
+                            <span className="text-gray-600">Medición en Instalación</span>
                             <div className="flex items-center">
                                 {(() => {
                                     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
@@ -1294,7 +1294,7 @@ const DashboardPage: React.FC = () => {
                     </div>
                 </div>
                 {/* Correction Rate Chart */}
-                <div className="col-span-3 mt-6">
+                <div className="col-span-3">
     <div className="bg-gray-50 p-4 rounded-lg h-full">
         <h3 className="text-sm font-medium text-gray-500 mb-4">% Correctos por Reporte</h3>
         <div className="h-64">
