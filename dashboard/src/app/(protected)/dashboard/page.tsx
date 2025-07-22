@@ -946,31 +946,15 @@ const DashboardPage: React.FC = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Cantidad Mediciones</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{summaryReportMeasurements.length}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{summaryReportMeasurements.length}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Corrales</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.pen)).size}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.pen)).size}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Variables Medidas</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.variable)).size}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.variable)).size}</span>
                         </div>
                     </div>
                 </div>
@@ -1250,9 +1234,14 @@ const DashboardPage: React.FC = () => {
     const uniqueReportIds = new Set(measurements.map(m => m.report_id)).size;
     return <span className="text-2xl font-bold">{uniqueReportIds}</span>;
 })()}
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="m3 17 2 2 4-4"/>
+                                    <path d="m3 7 2 2 4-4"/>
+                                    <path d="M13 6h8"/>
+                                    <path d="M13 12h8"/>
+                                    <path d="M13 18h8"/>
                                 </svg>
+
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -1262,9 +1251,13 @@ const DashboardPage: React.FC = () => {
     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
     return <span className="text-2xl font-bold">{measurements.length}</span>;
 })()}
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"/>
+                                    <path d="m8 6 2-2"/>
+                                    <path d="m18 16 2-2"/>
+                                    <path d="m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"/>
+                                    <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+                                    <path d="m15 5 4 4"/>
                                 </svg>
                             </div>
                         </div>
@@ -1272,9 +1265,11 @@ const DashboardPage: React.FC = () => {
                             <span className="text-gray-600">Total Animales</span>
                             <div className="flex items-center">
                                 <span className="text-2xl font-bold">557</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="4" r="2"/>
+                                    <circle cx="18" cy="8" r="2"/>
+                                    <circle cx="20" cy="16" r="2"/>
+                                    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
                                 </svg>
                             </div>
                         </div>
@@ -1282,8 +1277,9 @@ const DashboardPage: React.FC = () => {
                             <span className="text-gray-600">Total Instalación</span>
                             <div className="flex items-center">
                                 <span className="text-2xl font-bold">85</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm3 1h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1v2h-1v-2zm1-2V7h-1v2h1zM5 7v2h1V7H5zm1 4H5v2h1v-2z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                                 </svg>
                             </div>
                         </div>

@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Edit, Trash2, Plus, RefreshCw, Home } from 'lucide-react';
 import penStore, { Pen } from '@/store/penStore';
 import { useAuthStore } from '@/store/authStore';
 import useFieldStore from '@/store/fieldStore';
 
 export default function PensPage() {
+  const router = useRouter();
   const { getPensByUser, pensByUser, penLoading, penError, deletePen } = penStore();
   const { user } = useAuthStore();
   const { fields, getFieldsByUser } = useFieldStore();
@@ -17,8 +19,9 @@ export default function PensPage() {
     const fetchData = async () => {
       setLoading(true);
       // Fetch fields first to ensure we have field data for displaying field names
-      if (user?.id) {
-        await getFieldsByUser(user.id);
+      const userId = user?.id || user?.userId;
+      if (userId) {
+        await getFieldsByUser(userId);
       }
       await getPensByUser();
       setLoading(false);
@@ -62,7 +65,7 @@ export default function PensPage() {
         <div className="flex space-x-2">
           <button 
             className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center hover:bg-green-700 transition-colors"
-            onClick={() => { window.location.href = '/dashboard/pens/new'; }}
+            onClick={() => router.push('/dashboard/pens/new')}
           >
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Corral
@@ -127,7 +130,7 @@ export default function PensPage() {
                       <div className="flex space-x-2">
                         <button 
                           className="text-indigo-600 hover:text-indigo-900"
-                          onClick={() => { window.location.href = `/dashboard/pens/edit/${pen.id}`; }}
+                          onClick={() => router.push(`/dashboard/pens/edit/${pen.id}`)}
                         >
                           <Edit className="w-4 h-4" />
                         </button>

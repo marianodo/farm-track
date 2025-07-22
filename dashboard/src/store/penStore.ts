@@ -7,7 +7,7 @@ export type Pen = {
   id: string;
   name: string;
   description?: string;
-  field_id: string;
+  fieldId: string;
   fieldName?: string; // To store the field name
 };
 
@@ -37,7 +37,7 @@ const penStore = create<PenStore>((set, get) => ({
   penError: null,
   
   // Create a new pen
-  createPen: async (pen) => {
+  createPen: async (pen: { name: string; fieldId: string; type_of_object_ids: number[] }) => {
     set({ penLoading: true, penError: null });
     try {
       const response = await axios.post(
@@ -49,13 +49,13 @@ const penStore = create<PenStore>((set, get) => ({
       );
       set({ penLoading: false });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating pen:', error);
       set({ 
         penLoading: false, 
-        penError: error instanceof Error ? error.message : 'Error creating pen' 
+        penError: error.response?.data?.message || error.message || 'Error creating pen' 
       });
-      return undefined;
+      throw error;
     }
   },
   
