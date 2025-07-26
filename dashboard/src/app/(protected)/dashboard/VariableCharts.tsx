@@ -972,6 +972,9 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
+                legend: {
+                  display: false
+                },
                 title: {
                   display: true,
                   text: `Distribución de ${variable}`,
@@ -1295,6 +1298,9 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+              legend: {
+                display: false
+              },
               title: {
                 display: true,
                 text: `Distribución de ${variable}`,
@@ -1481,6 +1487,35 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                       </div>
                     )}
                   </div>
+                  {/* Statistics for distribution chart */}
+                  <div className="mt-3 text-sm text-gray-600">
+                    {latestReportMeasurements.length > 0 && (() => {
+                      const values = latestReportMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+                      const n = values.length;
+                      
+                      if (n === 0) return null;
+                      
+                      const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                      const stdDev = Math.sqrt(variance);
+                      const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+                      
+                      return (
+                        <div className="flex justify-between">
+                          {optimalMin !== undefined && optimalMax !== undefined ? (
+                            <span className="font-medium">Rango óptimo: {optimalMin} - {optimalMax}</span>
+                          ) : (
+                            <span>Último valor: {latestReportMeasurements[0].value}</span>
+                          )}
+                          <div className="flex gap-4">
+                            <span>Prom = {mean.toFixed(2)}</span>
+                            <span>DS = {stdDev.toFixed(2)}</span>
+                            <span>CV = {cv.toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
                 
                 <div className="bg-gray-50 p-4 rounded-lg flex-1">
@@ -1494,26 +1529,32 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                       </div>
                     )}
                   </div>
+                  {/* Statistics for trend chart */}
+                  <div className="mt-3 text-sm text-gray-600">
+                    {variableMeasurements.length > 0 && (() => {
+                      const values = variableMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+                      const n = values.length;
+                      
+                      if (n === 0) return null;
+                      
+                      const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                      const stdDev = Math.sqrt(variance);
+                      const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+                      
+                      return (
+                        <div className="flex justify-end gap-4">
+                          <span>Prom = {mean.toFixed(2)}</span>
+                          <span>DS = {stdDev.toFixed(2)}</span>
+                          <span>CV = {cv.toFixed(2)}%</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
               
-              {/* Optional: Add statistics or additional info */}
-              <div className="mt-3 text-sm text-gray-600">
-                {latestReportMeasurements.length > 0 && (
-                  <div className="flex justify-between">
-                    {optimalMin !== undefined && optimalMax !== undefined ? (
-                      <span>Rango óptimo: {optimalMin} - {optimalMax}</span>
-                    ) : (
-                      <span>Último valor: {latestReportMeasurements[0].value}</span>
-                    )}
-                    {variableMeasurements.length > 1 && (
-                      <span>
-                        Promedio: {(variableMeasurements.reduce((acc, curr) => acc + Number(curr.value), 0) / variableMeasurements.length).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
+
             </div>
           );
         })}
