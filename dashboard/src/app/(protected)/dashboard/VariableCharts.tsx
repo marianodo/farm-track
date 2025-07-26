@@ -568,6 +568,29 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
       <div className="flex-1">
         {renderSingleVariableDistribution(filteredMeasurements, variableName)}
       </div>
+      
+      {/* Statistics for the chart */}
+      <div className="mt-3 text-sm text-gray-600">
+        {filteredMeasurements.length > 0 && (() => {
+          const values = filteredMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+          const n = values.length;
+
+          if (n === 0) return null;
+
+          const mean = values.reduce((sum, val) => sum + val, 0) / n;
+          const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+          const stdDev = Math.sqrt(variance);
+          const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+
+          return (
+            <div className="flex justify-end gap-4">
+              <span>Prom = {mean.toFixed(2)}</span>
+              <span>DS = {stdDev.toFixed(2)}</span>
+              <span>CV = {cv.toFixed(2)}%</span>
+            </div>
+          );
+        })()}
+      </div>
     </div>
   );
 };
