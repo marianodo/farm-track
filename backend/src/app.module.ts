@@ -12,6 +12,7 @@ import { MeasurementModule } from './measurement/measurement.module';
 import { SubjectModule } from './subject/subject.module';
 import { ReportModule } from './report/report.module';
 import { DatabaseModule } from './database/database.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 import { ConfigModule } from '@nestjs/config';
 import { ClsModule } from 'nestjs-cls';
 import { TransactionalAdapterPrisma } from '@nestjs-cls/transactional-adapter-prisma';
@@ -49,6 +50,7 @@ import { PrismaModule } from './prisma/prisma.module';
     MeasurementModule,
     SubjectModule,
     DatabaseModule,
+    ChatbotModule,
   ],
   controllers: [],
   providers: [PrismaService],

@@ -354,10 +354,10 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
     date: report.date,
     average: report.count && report.count > 0 ? report.sum! / report.count : 0,
     count: report.count,
-    min: report.values.length > 0 ? Math.min(...report.values) : 0,
-    max: report.values.length > 0 ? Math.max(...report.values) : 0
+    min: report.values && report.values.length > 0 ? Math.min(...report.values) : 0,
+    max: report.values && report.values.length > 0 ? Math.max(...report.values) : 0
   }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+    .sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0)); // Sort by date
     
   // Get optimal range from measurements
   const measurementWithRanges = sortedMeasurements.find(m => 
@@ -368,7 +368,7 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
   
   // Chart data
   const evolutionData = {
-    labels: allReports.map(report => report.date.toLocaleDateString()),
+    labels: allReports.map(report => report.date?.toLocaleDateString() || 'Fecha desconocida'),
     datasets: [{
       label: 'Promedio por reporte',
       data: allReports.map(report => report.average),
@@ -410,7 +410,7 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
             const avg = report.average.toFixed(2);
             const min = report.min.toFixed(2);
             const max = report.max.toFixed(2);
-            const date = report.date.toLocaleDateString();
+            const date = report.date?.toLocaleDateString() || 'Fecha desconocida';
             
             return [
               `Reporte: #${report.reportId}`,
@@ -1276,8 +1276,8 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
               count: report.count,
               min: report.values.length > 0 ? Math.min(...report.values) : 0,
               max: report.values.length > 0 ? Math.max(...report.values) : 0
-            }))
-            .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+              }))
+    .sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0)); // Sort by date
           
           // Chart data for evolution (line chart)
           const evolutionData = {

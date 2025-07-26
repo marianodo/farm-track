@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
         source: '/reports',
         destination: '/dashboard/reports',
       },
+      // Proxy API calls to backend
+      {
+        source: '/api/chatbot/:path*',
+        destination: 'http://localhost:4000/api/chatbot/:path*',
+      },
     ];
   },
 };

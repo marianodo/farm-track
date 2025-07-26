@@ -32,6 +32,8 @@ import VariableCharts from "./VariableCharts";
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import useReportStore from '@/store/reportStore';
+import { useChatbotStore } from '@/store/chatbotStore';
+import { Chatbot } from '@/components/Chatbot/Chatbot';
 
 type TabType = "general" | "pens" | "numerical";
 
@@ -244,6 +246,13 @@ const DashboardPage: React.FC = () => {
         if (!selected) return;
 
         setSelectedField(selected);
+        
+        // Set chatbot field selection
+        if (selected.value === "all") {
+            useChatbotStore.getState().setSelectedFieldId(null);
+        } else if ('id' in selected) {
+            useChatbotStore.getState().setSelectedFieldId(selected.id);
+        }
         
         if (selected.value !== "all" && 'id' in selected) {
             setLoading(true);
@@ -2034,6 +2043,7 @@ const DashboardPage: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <Chatbot />
       </>
     );
 };
