@@ -379,6 +379,66 @@ const DashboardPage: React.FC = () => {
       exportSelectedReportsToPDF(selectedMeasurements, reportIdsSorted, measurements);
     };
 
+    const handleDownloadAllMeasurements = () => {
+      // Placeholder for CSV generation and download logic
+      // It will use the 'measurements' state variable from DashboardPage, 
+      // which holds all measurements for the selected field.
+      console.log("Downloading all measurements...", measurements);
+      const dataToDownload = measurements; // Use the 'measurements' state variable
+      if (dataToDownload.length === 0) {
+        alert("No hay mediciones para descargar.");
+        return;
+      }
+
+      const headers = [
+        "Report ID", "Variable", "Valor", "Corral", "Fecha", 
+        "Correcto", "Tipo de Objeto", "Valores Óptimos", 
+        "Óptimo Mínimo", "Óptimo Máximo", "Mínimo", "Máximo"
+      ];
+      const csvRows = [
+        headers.join(',')
+      ];
+
+      dataToDownload.forEach((m: Measurement) => {
+        const row = [
+          `"${m.report_id || ''}"`, 
+          `"${m.variable || ''}"`, 
+          `"${m.value !== undefined ? String(m.value) : ''}"`, 
+          `"${m.pen || ''}"`, 
+          `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
+          `"${(String(m.correct) === '1' || String(m.correct) === 'true') ? 'Sí' : 'No'}"`, 
+          `"${m.type_of_object || ''}"`, 
+          `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
+          `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
+          `"${m.optimo_max !== undefined ? m.optimo_max : ''}"`, 
+          `"${m.min !== undefined ? m.min : ''}"`, 
+          `"${m.max !== undefined ? m.max : ''}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      // Generate filename
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+      let fieldNameForFile = "todos_los_campos"; // Default for 'all' fields
+      if (selectedField && selectedField.value !== 'all') {
+        fieldNameForFile = selectedField.label.toLowerCase().replace(/\s+/g, '_');
+      }
+      const filename = `${fieldNameForFile}_${timestamp}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
     // Nueva función para exportar solo los reportes seleccionados
     function exportSelectedReportsToPDF(selectedMeasurements: Measurement[], reportIdsSorted: string[], allMeasurements: Measurement[]) {
       // 1. Totales históricos (siempre al inicio, usando todas las mediciones del campo)
@@ -843,25 +903,43 @@ const DashboardPage: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="mb-4">
-                    <label htmlFor="field-select" className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
-                    <select
-                        id="field-select"
-                        value={selectedField.value}
-                        onChange={(e) => handleFieldChange(e.target.value)}
-                        onClick={() => setIsDropdownOpen(true)}
-                        onFocus={() => setIsDropdownOpen(true)}
-                        onBlur={() => setIsDropdownOpen(false)}
-                        className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
-                    >
-                        {loadingFields ? (
-                            <option disabled>Cargando campos...</option>
-                        ) : fields.map((field: Field | AllFieldsOption, index: number) => (
-                            <option key={field.value + '_' + index} value={field.value}>
-                                {field.label}
-                            </option>
-                        ))}
-                    </select>
+                <div className="mb-4 flex items-end justify-between">
+                    <div>
+                        <label htmlFor="field-select" className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
+                        <select
+                            id="field-select"
+                            value={selectedField.value}
+                            onChange={(e) => handleFieldChange(e.target.value)}
+                            onClick={() => setIsDropdownOpen(true)}
+                            onFocus={() => setIsDropdownOpen(true)}
+                            onBlur={() => setIsDropdownOpen(false)}
+                            className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
+                        >
+                            {loadingFields ? (
+                                <option disabled>Cargando campos...</option>
+                            ) : fields.map((field: Field | AllFieldsOption, index: number) => (
+                                <option key={field.value + '_' + index} value={field.value}>
+                                    {field.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {measurements.length > 0 && (
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleDownloadAllMeasurements}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
+                            >
+                                Download (CSV)
+                            </button>
+                            <button
+                                onClick={handleExportHistoricToPDF}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm"
+                            >
+                                Exportar a PDF
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-6 w-full border border-gray-200 rounded-md overflow-hidden bg-white p-4">
@@ -1431,147 +1509,6 @@ const DashboardPage: React.FC = () => {
 </div>
             </div>
         </div>
-    </div>
-    {/* Latest Report Measurements Table */}
-    <div className="mt-8">
-      {(() => {
-        if (!measurements.length) return null;
-        const reportIds = measurements.map(m => m.report_id);
-        const latestReportId = Math.max(...reportIds.map(Number));
-        const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-
-        const handleDownloadAllMeasurements = () => {
-          // Placeholder for CSV generation and download logic
-          // It will use the 'measurements' state variable from DashboardPage, 
-          // which holds all measurements for the selected field.
-          console.log("Downloading all measurements...", measurements);
-          const dataToDownload = measurements; // Use the 'measurements' state variable
-          if (dataToDownload.length === 0) {
-            alert("No hay mediciones para descargar.");
-            return;
-          }
-
-          const headers = [
-            "Report ID", "Variable", "Valor", "Corral", "Fecha", 
-            "Correcto", "Tipo de Objeto", "Valores Óptimos", 
-            "Óptimo Mínimo", "Óptimo Máximo", "Mínimo", "Máximo"
-          ];
-          const csvRows = [
-            headers.join(',')
-          ];
-
-          dataToDownload.forEach((m: Measurement) => {
-            const row = [
-              `"${m.report_id || ''}"`, 
-              `"${m.variable || ''}"`, 
-              `"${m.value !== undefined ? String(m.value) : ''}"`, 
-              `"${m.pen || ''}"`, 
-              `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
-              `"${(String(m.correct) === '1' || String(m.correct) === 'true') ? 'Sí' : 'No'}"`, 
-              `"${m.type_of_object || ''}"`, 
-              `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
-              `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
-              `"${m.optimo_max !== undefined ? m.optimo_max : ''}"`, 
-              `"${m.min !== undefined ? m.min : ''}"`, 
-              `"${m.max !== undefined ? m.max : ''}"`
-            ];
-            csvRows.push(row.join(','));
-          });
-
-          const csvString = csvRows.join('\n');
-          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-
-          // Generate filename
-          const now = new Date();
-          const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-          let fieldNameForFile = "todos_los_campos"; // Default for 'all' fields
-          if (selectedField && selectedField.value !== 'all') {
-            fieldNameForFile = selectedField.label.toLowerCase().replace(/\s+/g, '_');
-          }
-          const filename = `${fieldNameForFile}_${timestamp}.csv`;
-
-          link.setAttribute("href", url);
-          link.setAttribute("download", filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        };
-
-        if (!latestMeasurements.length && !measurements.length) return null; // Hide if no data at all
-
-        return (
-          <div className="overflow-x-auto">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Mediciones del Último Reporte</h3>
-              <div className="flex gap-2">
-                {measurements.length > 0 && (
-                  <>
-                    <button 
-                      onClick={handleDownloadAllMeasurements}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
-                    >
-                      Download (CSV)
-                    </button>
-                    <button
-                      onClick={handleExportHistoricToPDF}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm"
-                    >
-                      Exportar a PDF
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border-b">Variable</th>
-                  <th className="py-2 px-4 border-b">Valor</th>
-                  <th className="py-2 px-4 border-b">Corral</th>
-                  <th className="py-2 px-4 border-b">Fecha</th>
-                  <th className="py-2 px-4 border-b">¿Correcto?</th>
-<th className="py-2 px-4 border-b">Optimal Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestMeasurements.map((m, idx) => (
-                  <tr key={idx} className="text-center">
-                    <td className="py-2 px-4 border-b">{m.variable}</td>
-                    <td className="py-2 px-4 border-b">{m.value}</td>
-                    <td className="py-2 px-4 border-b">{m.pen}</td>
-                    <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
-                    <td className="py-2 px-4 border-b">
-  {String(m.correct) === '1' || String(m.correct) === 'true' ? (
-    <span className="flex justify-center">
-      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
-    </span>
-  ) : (
-    <span className="flex justify-center">
-      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </span>
-  )}
-</td>
-<td className="py-2 px-4 border-b">
-  {Array.isArray(m.optimal_values) && m.optimal_values.length > 0
-    ? m.optimal_values.join(', ')
-    : (m.optimo_min !== undefined && m.optimo_max !== undefined
-        ? `${m.optimo_min} - ${m.optimo_max}`
-        : '-')}
-</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
     </div>
 </Tab.Panel>
                                     <Tab.Panel>
