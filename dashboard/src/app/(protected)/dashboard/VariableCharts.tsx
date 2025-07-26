@@ -1062,33 +1062,35 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
 
             return (
               <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold mb-4">
                   <div>
                     <span>{variable}</span>
                     <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center">
-                    {correctPercentage >= 80 ? (
-                      <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    ) : correctPercentage >= 50 ? (
-                      <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    )}
-                    <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
-                      {correctPercentage}% correcto ({correctCount}/{totalCount})
-                    </span>
-                  </div>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-500">Distribución de Variables</h4>
+                      <div className="flex items-center">
+                        {correctPercentage >= 80 ? (
+                          <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        ) : correctPercentage >= 50 ? (
+                          <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                        )}
+                        <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                          {correctPercentage}% correcto ({correctCount}/{totalCount})
+                        </span>
+                      </div>
+                    </div>
                     <div style={{ height: '250px' }}>
                       {latestReportMeasurements.length > 0 ? (
                         <Bar options={distributionOptions} data={distributionData} />
@@ -1440,34 +1442,36 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
           
           return (
             <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold mb-4">
                 <div>
                   <span>{variable}</span>
                   <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
-                </div>
-                <div className="flex items-center">
-                  {correctPercentage >= 80 ? (
-                    <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  ) : correctPercentage >= 50 ? (
-                    <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  )}
-                  <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
-                    {correctPercentage}% correcto ({correctCount}/{totalCount})
-                  </span>
                 </div>
               </h3>
               
               <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
                 <div className="bg-gray-50 p-4 rounded-lg flex-1">
-                  <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-gray-500">Distribución de Variables</h4>
+                    <div className="flex items-center">
+                      {correctPercentage >= 80 ? (
+                        <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      ) : correctPercentage >= 50 ? (
+                        <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      )}
+                      <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                        {correctPercentage}% correcto ({correctCount}/{totalCount})
+                      </span>
+                    </div>
+                  </div>
                   <div style={{ height: '350px' }}>
                     {latestReportMeasurements.length > 0 ? (
                       <Bar options={distributionOptions} data={distributionData} />
