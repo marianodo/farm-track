@@ -1299,7 +1299,7 @@ const DashboardPage: React.FC = () => {
 
         {/* Historical Data */}
         <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Histórico</h2>
+            <h2 className="text-xl font-semibold mb-4">Resumen histórico de reportes</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Historical Stats */}
                 <div className="bg-gray-50 p-4 rounded-lg h-64">
@@ -1436,7 +1436,7 @@ const DashboardPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(context: any) { // Keep any for Chart.js context
@@ -1502,7 +1502,33 @@ const DashboardPage: React.FC = () => {
                         },
                     },
                 };
-                return <Bar data={chartData} options={options} style={{height: '220px'}} />;
+                return (
+                    <>
+                        <Bar data={chartData} options={options} style={{height: '220px'}} />
+                        {/* Statistics for the chart */}
+                        <div className="mt-3 text-sm text-gray-600">
+                            {healthPercentages.length > 0 && (() => {
+                                const values = healthPercentages.filter(v => !isNaN(v));
+                                const n = values.length;
+
+                                if (n === 0) return null;
+
+                                const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                                const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                                const stdDev = Math.sqrt(variance);
+                                const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+
+                                return (
+                                    <div className="flex justify-end gap-4">
+                                        <span>Prom = {mean.toFixed(2)}%</span>
+                                        <span>DS = {stdDev.toFixed(2)}%</span>
+                                        <span>CV = {cv.toFixed(2)}%</span>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </>
+                );
             })()}
         </div>
     </div>
