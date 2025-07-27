@@ -148,8 +148,11 @@ export class ChatbotService {
       AND r.field_id = $1
     `;
 
+    let categoricalData: any[];
+    let numericalData: any[];
+    
     try {
-      const [categoricalData, numericalData] = await Promise.all([
+      [categoricalData, numericalData] = await Promise.all([
         this.prisma.$queryRawUnsafe(categoricalQuery, fieldId),
         this.prisma.$queryRawUnsafe(numericalQuery, fieldId)
       ]);
@@ -158,8 +161,8 @@ export class ChatbotService {
       throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`);
     }
 
-    console.log('Categorical data count:', (categoricalData as any[]).length);
-    console.log('Numerical data count:', (numericalData as any[]).length);
+    console.log('Categorical data count:', categoricalData.length);
+    console.log('Numerical data count:', numericalData.length);
 
     // Normalize data to match dashboard format
     const normalizeData = (data: any[]) => {
@@ -185,8 +188,8 @@ export class ChatbotService {
     };
 
     const combinedData = [
-      ...normalizeData(categoricalData as any[]),
-      ...normalizeData(numericalData as any[])
+      ...normalizeData(categoricalData),
+      ...normalizeData(numericalData)
     ];
 
     console.log('Combined measurements count:', combinedData.length);
