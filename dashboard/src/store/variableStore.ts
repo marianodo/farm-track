@@ -152,38 +152,38 @@ const variableStore = create<VariableStore>((set) => ({
         });
         return [];
       }
-      
-      if (!userId) {
+        
+        if (!userId) {
         console.warn('No user ID available');
-        set({ 
-          variableLoading: false, 
-          variablesByUser: [],
-          variableError: 'No user ID available for authentication'
-        });
-        return [];
-      }
-      
+          set({ 
+            variableLoading: false, 
+            variablesByUser: [],
+            variableError: 'No user ID available for authentication'
+          });
+          return [];
+        }
+        
       // Use the same pattern as fields store
-      const response = await axios.get(
+        const response = await axios.get(
         `${process.env.NEXT_PUBLIC_API_URL}/variables/byUser/${userId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
           }
         }
-      );
-      
+        );
+        
       console.log('🔍 DEBUG - Variable store - Response:', response.data);
-      
+        
       // Handle response same as fields store
       const userVariables = response.data.length ? response.data : [];
-      set({
-        variablesByUser: userVariables,
-        variableLoading: false,
-        variableError: null
-      });
-      
-      return userVariables;
+        set({
+          variablesByUser: userVariables,
+          variableLoading: false,
+          variableError: null
+        });
+        
+        return userVariables;
     } catch (error: any) {
       console.error('🔍 DEBUG - Variable store - Error:', error);
       set({ 
