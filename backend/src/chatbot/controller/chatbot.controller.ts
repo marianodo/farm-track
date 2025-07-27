@@ -4,7 +4,6 @@ import { ChatMessageDto, ChatResponseDto } from '../dto/chatbot.dto';
 import { JwtAuthGuard } from '../../auth/guard/jwt-auth.guard';
 
 @Controller('chatbot')
-@UseGuards(JwtAuthGuard)
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
 
@@ -18,6 +17,7 @@ export class ChatbotController {
   }
 
   @Post('message')
+  @UseGuards(JwtAuthGuard)
   async processMessage(
     @Body() chatMessageDto: ChatMessageDto,
     @Request() req: any

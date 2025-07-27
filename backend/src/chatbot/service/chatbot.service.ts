@@ -152,10 +152,12 @@ export class ChatbotService {
     let numericalData: any[];
     
     try {
-      [categoricalData, numericalData] = await Promise.all([
+      const results = await Promise.all([
         this.prisma.$queryRawUnsafe(categoricalQuery, fieldId),
         this.prisma.$queryRawUnsafe(numericalQuery, fieldId)
       ]);
+      categoricalData = results[0] as any[];
+      numericalData = results[1] as any[];
     } catch (dbError) {
       console.error('Database query error:', dbError);
       throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`);
