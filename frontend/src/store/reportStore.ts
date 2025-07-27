@@ -451,10 +451,10 @@ const useReportStore = create<ReportState>((set) => ({
     try {
       // Usar la función de reintentos para el POST
       await useReportStore.getState().retryWithBackoff(async () => {
-        await saveLog('Store: Haciendo llamada POST a /measurements', {
-          data,
-          field_id
-        }, 'measurement');
+      await saveLog('Store: Haciendo llamada POST a /measurements', {
+        data,
+        field_id
+      }, 'measurement');
 
         return await axiosInstance.post('/measurements', data);
       });
@@ -462,7 +462,7 @@ const useReportStore = create<ReportState>((set) => ({
       await saveLog('Store: Llamada POST exitosa, actualizando reports', {
         field_id
       }, 'measurement');
-
+      
       // Invalidar caché de reportes cuando se crean mediciones
       await invalidateCachePattern(CACHE_CONFIGS.reports.key);
       // También invalidar caché de reportes por ID ya que las mediciones han cambiado

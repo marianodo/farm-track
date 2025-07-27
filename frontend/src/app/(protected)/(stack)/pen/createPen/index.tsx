@@ -192,9 +192,9 @@ const CreatePen: React.FC = () => {
         setShowMessageModal(true);
         
         // Ocultar mensaje después de 2 segundos (sin navegar)
-        setTimeout(() => {
-          setShowMessageModal(false);
-        }, 2000);
+          setTimeout(() => {
+            setShowMessageModal(false);
+          }, 2000);
         
       } catch (error) {
         setMessageModalText(t('penView.penCreatedError'));

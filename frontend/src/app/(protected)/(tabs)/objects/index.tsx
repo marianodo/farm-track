@@ -332,121 +332,121 @@ export default function ObjectScreen() {
       >
         {/* DESLIZAMIENTO DESHABILITADO TEMPORALMENTE */}
         {/* <Swipeable
-          key={index}
-          enabled={!isExpanded} // Elimina el swipe si está expandido
-          renderRightActions={(progress, dragX) =>
-            renderRightActions(progress, dragX, item)
-          }
-          containerStyle={{
-            backgroundColor: '#3A5228',
-            marginBottom: 10,
-            borderRadius: 10,
-          }}
+        key={index}
+        enabled={!isExpanded} // Elimina el swipe si está expandido
+        renderRightActions={(progress, dragX) =>
+          renderRightActions(progress, dragX, item)
+        }
+        containerStyle={{
+          backgroundColor: '#3A5228',
+          marginBottom: 10,
+          borderRadius: 10,
+        }}
         > */}
-          <TouchableWithoutFeedback
-            key={index}
-            onPress={
-              item.variables.length > 0
-                ? () => {
-                    Keyboard.dismiss;
-                    toggleExpand(index);
-                  }
-                : () => {
-                    Keyboard.dismiss;
-                  }
-            }
-          >
-            <View style={styles.objectContainer}>
-              <Text
-                style={{
-                  paddingBottom: rMS(8),
-                  fontSize: rMS(17),
-                  paddingLeft: 6,
-                  fontWeight: 'bold',
-                  fontFamily: 'Pro-Regular',
-                  color: '#000000',
-                }}
-              >
-                {item?.name}
-              </Text>
-              {item.variables.length > 0 && isExpanded ? (
-                <View style={{ paddingBottom: rMS(8) }}>
-                  <Image
-                    source={require('../../../../../assets/images/tabs/variables-selected.png')}
-                    style={{
-                      width: rMS(22),
-                      height: rMS(22),
-                      alignSelf: 'center',
-                    }}
-                    resizeMode="contain"
-                  />
-                </View>
-              ) : item.variables.length > 0 && !isExpanded ? (
-                <View style={{ paddingBottom: rMS(8) }}>
-                  <Image
-                    source={require('../../../../../assets/images/tabs/variables-unselected.png')}
-                    style={{
-                      width: rMS(22),
-                      height: rMS(22),
-                      alignSelf: 'center',
-                    }}
-                    resizeMode="contain"
-                  />
-                </View>
-              ) : null}
-            </View>
-          </TouchableWithoutFeedback>
-          {/* Mostrar información cuando se expande */}
-
-          <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
-            <Divider
+        <TouchableWithoutFeedback
+          key={index}
+          onPress={
+            item.variables.length > 0
+              ? () => {
+                  Keyboard.dismiss;
+                  toggleExpand(index);
+                }
+              : () => {
+                  Keyboard.dismiss;
+                }
+          }
+        >
+          <View style={styles.objectContainer}>
+            <Text
               style={{
-                backgroundColor: '#486732',
-                height: 1,
-              }}
-            />
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                paddingHorizontal: rMS(10),
-                paddingTop: rMS(8),
                 paddingBottom: rMS(8),
-                gap: rMS(4),
-                width: '100%',
+                fontSize: rMS(17),
+                paddingLeft: 6,
+                fontWeight: 'bold',
+                fontFamily: 'Pro-Regular',
+                color: '#000000',
               }}
             >
-              {item.variables.map((variable: any, index: number) => {
-                return (
-                  <View
-                    key={index}
+              {item?.name}
+            </Text>
+            {item.variables.length > 0 && isExpanded ? (
+              <View style={{ paddingBottom: rMS(8) }}>
+                <Image
+                  source={require('../../../../../assets/images/tabs/variables-selected.png')}
+                  style={{
+                    width: rMS(22),
+                    height: rMS(22),
+                    alignSelf: 'center',
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : item.variables.length > 0 && !isExpanded ? (
+              <View style={{ paddingBottom: rMS(8) }}>
+                <Image
+                  source={require('../../../../../assets/images/tabs/variables-unselected.png')}
+                  style={{
+                    width: rMS(22),
+                    height: rMS(22),
+                    alignSelf: 'center',
+                  }}
+                  resizeMode="contain"
+                />
+              </View>
+            ) : null}
+          </View>
+        </TouchableWithoutFeedback>
+        {/* Mostrar información cuando se expande */}
+
+        <Animated.View style={[animatedStyle, { overflow: 'hidden' }]}>
+          <Divider
+            style={{
+              backgroundColor: '#486732',
+              height: 1,
+            }}
+          />
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              paddingHorizontal: rMS(10),
+              paddingTop: rMS(8),
+              paddingBottom: rMS(8),
+              gap: rMS(4),
+              width: '100%',
+            }}
+          >
+            {item.variables.map((variable: any, index: number) => {
+              return (
+                <View
+                  key={index}
+                  style={{
+                    paddingHorizontal: rMS(10),
+                    height: rMS(24),
+                    backgroundColor: '#486732',
+                    marginRight: rMS(4),
+                    marginBottom: rMS(4),
+                    borderRadius: 16,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text
                     style={{
-                      paddingHorizontal: rMS(10),
-                      height: rMS(24),
-                      backgroundColor: '#486732',
-                      marginRight: rMS(4),
-                      marginBottom: rMS(4),
-                      borderRadius: 16,
-                      justifyContent: 'center',
-                      alignItems: 'center',
+                      color: '#FFFFFF', // Explicit white text for visibility on dark green
+                      fontFamily: 'Pro-Regular',
+                      fontSize: rMS(12),
+                      fontWeight: 'bold',
                     }}
                   >
-                    <Text
-                      style={{
-                        color: '#FFFFFF', // Explicit white text for visibility on dark green
-                        fontFamily: 'Pro-Regular',
-                        fontSize: rMS(12),
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {variable.name}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </Animated.View>
+                    {variable.name}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </Animated.View>
         {/* </Swipeable> */}
       </View>
     );

@@ -260,11 +260,11 @@ const CreateMeasurement: React.FC = () => {
     }, 'measurement');
 
     try {
-      await createMeasurementWithReportId(newMeasurement, fieldId as string);
-      
+    await createMeasurementWithReportId(newMeasurement, fieldId as string);
+    
       await saveLog('createMeasurementWithReportId completado exitosamente', {
-        measurementCount: measurementCount + 1
-      }, 'measurement');
+      measurementCount: measurementCount + 1
+    }, 'measurement');
 
       await saveLog('Iniciando actualización de estado después de crear medición', {
         measurementCount: measurementCount + 1
