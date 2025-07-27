@@ -2,28 +2,45 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ChatMessageDto, ChatResponseDto } from '../dto/chatbot.dto';
 import OpenAI from 'openai';
+import { getOpenAIConfig } from '../../config/env.config';
 
 @Injectable()
 export class ChatbotService {
   private openai: OpenAI;
 
   constructor(private prisma: PrismaService) {
-    // Initialize OpenAI - you'll need to set OPENAI_API_KEY in your environment
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+    try {
+      // Get OpenAI configuration
+      const openAIConfig = getOpenAIConfig();
+      
+      // Initialize OpenAI
+      this.openai = new OpenAI(openAIConfig);
+      console.log('OpenAI client initialized successfully');
+    } catch (error) {
+      console.error('Failed to initialize OpenAI client:', error);
+      throw error;
+    }
   }
 
   async processMessage(chatMessageDto: ChatMessageDto, userId: string): Promise<ChatResponseDto> {
     try {
+      console.log('Processing chatbot message:', {
+        message: chatMessageDto.message,
+        fieldId: chatMessageDto.fieldId,
+        userId: userId
+      });
+
       // Get user's data for specific field
       const userData = await this.getUserData(userId, chatMessageDto.fieldId);
+      console.log('User data retrieved successfully');
       
       // Create context for AI
       const context = this.createContext(userData);
+      console.log('Context created successfully');
       
       // Generate AI response
       const aiResponse = await this.generateAIResponse(chatMessageDto.message, context);
+      console.log('AI response generated successfully');
       
       return {
         response: aiResponse,
@@ -33,8 +50,22 @@ export class ChatbotService {
       };
     } catch (error) {
       console.error('Error processing chatbot message:', error);
+      
+      // Return a more specific error message based on the error type
+      let errorMessage = 'Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('OpenAI API key not configured')) {
+          errorMessage = 'Error de configuración: La API de OpenAI no está configurada correctamente.';
+        } else if (error.message.includes('Field not found')) {
+          errorMessage = 'No se encontró el campo especificado o no tienes acceso a él.';
+        } else if (error.message.includes('database') || error.message.includes('prisma')) {
+          errorMessage = 'Error de base de datos. Por favor, intenta de nuevo más tarde.';
+        }
+      }
+      
       return {
-        response: 'Lo siento, hubo un error al procesar tu consulta. Por favor, intenta de nuevo.',
+        response: errorMessage,
         alerts: [],
         recommendations: []
       };
@@ -117,10 +148,15 @@ export class ChatbotService {
       AND r.field_id = $1
     `;
 
-    const [categoricalData, numericalData] = await Promise.all([
-      this.prisma.$queryRawUnsafe(categoricalQuery, fieldId),
-      this.prisma.$queryRawUnsafe(numericalQuery, fieldId)
-    ]);
+    try {
+      const [categoricalData, numericalData] = await Promise.all([
+        this.prisma.$queryRawUnsafe(categoricalQuery, fieldId),
+        this.prisma.$queryRawUnsafe(numericalQuery, fieldId)
+      ]);
+    } catch (dbError) {
+      console.error('Database query error:', dbError);
+      throw new Error(`Database error: ${dbError instanceof Error ? dbError.message : 'Unknown database error'}`);
+    }
 
     console.log('Categorical data count:', (categoricalData as any[]).length);
     console.log('Numerical data count:', (numericalData as any[]).length);

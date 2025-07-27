@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { ChatbotService } from '../service/chatbot.service';
 import { ChatMessageDto, ChatResponseDto } from '../dto/chatbot.dto';
 import { JwtAuthGuard } from '../../auth/guard/jwt-auth.guard';
@@ -7,6 +7,15 @@ import { JwtAuthGuard } from '../../auth/guard/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class ChatbotController {
   constructor(private readonly chatbotService: ChatbotService) {}
+
+  @Get('health')
+  async healthCheck() {
+    return {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      openaiConfigured: !!process.env.OPENAI_API_KEY
+    };
+  }
 
   @Post('message')
   async processMessage(
