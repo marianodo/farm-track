@@ -14,12 +14,6 @@ const nextConfig: NextConfig = {
     };
 
     return [
-  /* config options here */
-  devIndicators: false,
-  
-  // Add rewrites to serve dashboard content at the root path
-  async rewrites() {
-    return [
       {
         source: '/',
         destination: '/dashboard',
