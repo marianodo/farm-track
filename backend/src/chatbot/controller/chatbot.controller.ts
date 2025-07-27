@@ -9,10 +9,16 @@ export class ChatbotController {
 
   @Get('health')
   async healthCheck() {
+    const requiredVars = ['OPENAI_API_KEY', 'DATABASE_URL', 'JWT_SECRET'];
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
     return {
-      status: 'ok',
+      status: missingVars.length > 0 ? 'error' : 'ok',
       timestamp: new Date().toISOString(),
-      openaiConfigured: !!process.env.OPENAI_API_KEY
+      openaiConfigured: !!process.env.OPENAI_API_KEY,
+      databaseConfigured: !!process.env.DATABASE_URL,
+      jwtConfigured: !!process.env.JWT_SECRET,
+      missingVariables: missingVars
     };
   }
 
