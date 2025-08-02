@@ -16,7 +16,10 @@ export interface NumberDefaultValue {
 
 // Tipo para los valores categóricos del campo "defaultValue"
 export interface CategoricalDefaultValue {
-  value: string[];
+  value: {
+    categories: string[];
+    optimal_values: string[];
+  };
 }
 
 // Tipo general para defaultValue, que puede ser numérico o categórico
@@ -128,7 +131,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Ruminating',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['YES', 'NO'],
+          value: {
+            categories: ['YES', 'NO'],
+            optimal_values: ['YES', 'NO'],
+          },
         },
         associatedTypeOfObject: 'Animal',
       },
@@ -136,7 +142,10 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Laying',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['YES', 'NO'],
+          value: {
+            categories: ['YES', 'NO'],
+            optimal_values: ['YES', 'NO'],
+          },
         },
         associatedTypeOfObject: 'Animal',
       },
@@ -303,7 +312,124 @@ export const fieldConfigurations: Record<string, FieldConfig> = {
         name: 'Mud score',
         type: 'CATEGORICAL',
         defaultValue: {
-          value: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+          value: {
+            categories: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+            optimal_values: ['MODERATE MUD'],
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+    ],
+  },
+  swine: {
+    typesOfObjects: [{ name: 'Animal' }, { name: 'Installation' }],
+    variables: [
+      {
+        name: 'Body condition',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 9,
+            optimal_min: 6,
+            optimal_max: 7,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Locomotion score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Fecal score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 2,
+            optimal_max: 3,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Panting score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 0,
+            max: 7,
+            optimal_min: 0,
+            optimal_max: 1,
+            granularity: 0.5,
+          },
+        },
+        associatedTypeOfObject: 'Animal',
+      },
+      {
+        name: 'Feed bunk score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 0,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 2,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Water trough score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 5,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Pen hygiene score',
+        type: 'NUMBER',
+        defaultValue: {
+          value: {
+            min: 1,
+            max: 3,
+            optimal_min: 1,
+            optimal_max: 1,
+            granularity: 1,
+          },
+        },
+        associatedTypeOfObject: 'Installation',
+      },
+      {
+        name: 'Mud score',
+        type: 'CATEGORICAL',
+        defaultValue: {
+          value: {
+            categories: ['DRY', 'MODERATE MUD', 'MUD', 'LAGOONS'],
+            optimal_values: ['MODERATE MUD'],
+          },
         },
         associatedTypeOfObject: 'Installation',
       },

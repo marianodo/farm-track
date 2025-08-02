@@ -354,10 +354,10 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
     date: report.date,
     average: report.count && report.count > 0 ? report.sum! / report.count : 0,
     count: report.count,
-    min: report.values.length > 0 ? Math.min(...report.values) : 0,
-    max: report.values.length > 0 ? Math.max(...report.values) : 0
+    min: report.values && report.values.length > 0 ? Math.min(...report.values) : 0,
+    max: report.values && report.values.length > 0 ? Math.max(...report.values) : 0
   }))
-    .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+    .sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0)); // Sort by date
     
   // Get optimal range from measurements
   const measurementWithRanges = sortedMeasurements.find(m => 
@@ -368,7 +368,7 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
   
   // Chart data
   const evolutionData = {
-    labels: allReports.map(report => report.date.toLocaleDateString()),
+    labels: allReports.map(report => report.date?.toLocaleDateString() || 'Fecha desconocida'),
     datasets: [{
       label: 'Promedio por reporte',
       data: allReports.map(report => report.average),
@@ -410,7 +410,7 @@ const renderSingleVariableTrend = (measurements: Measurement[], variableName: st
             const avg = report.average.toFixed(2);
             const min = report.min.toFixed(2);
             const max = report.max.toFixed(2);
-            const date = report.date.toLocaleDateString();
+            const date = report.date?.toLocaleDateString() || 'Fecha desconocida';
             
             return [
               `Reporte: #${report.reportId}`,
@@ -567,6 +567,29 @@ const renderPenVariableDistribution = (measurements: Measurement[], pen: string,
       {/* Chart */}
       <div className="flex-1">
         {renderSingleVariableDistribution(filteredMeasurements, variableName)}
+      </div>
+      
+      {/* Statistics for the chart */}
+      <div className="mt-3 text-sm text-gray-600">
+        {filteredMeasurements.length > 0 && (() => {
+          const values = filteredMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+          const n = values.length;
+
+          if (n === 0) return null;
+
+          const mean = values.reduce((sum, val) => sum + val, 0) / n;
+          const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+          const stdDev = Math.sqrt(variance);
+          const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+
+          return (
+            <div className="flex justify-end gap-4">
+              <span>Prom = {mean.toFixed(2)}</span>
+              <span>DS = {stdDev.toFixed(2)}</span>
+              <span>CV = {cv.toFixed(2)}%</span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -972,6 +995,9 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
               responsive: true,
               maintainAspectRatio: false,
               plugins: {
+                legend: {
+                  display: false
+                },
                 title: {
                   display: true,
                   text: `Distribución de ${variable}`,
@@ -1062,33 +1088,35 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
 
             return (
               <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold mb-4">
                   <div>
                     <span>{variable}</span>
                     <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
                   </div>
-                  <div className="flex items-center">
-                    {correctPercentage >= 80 ? (
-                      <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    ) : correctPercentage >= 50 ? (
-                      <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                      </svg>
-                    )}
-                    <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
-                      {correctPercentage}% correcto ({correctCount}/{totalCount})
-                    </span>
-                  </div>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-500">Distribución de Variables</h4>
+                      <div className="flex items-center">
+                        {correctPercentage >= 80 ? (
+                          <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        ) : correctPercentage >= 50 ? (
+                          <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                          </svg>
+                        )}
+                        <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                          {correctPercentage}% correcto ({correctCount}/{totalCount})
+                        </span>
+                      </div>
+                    </div>
                     <div style={{ height: '250px' }}>
                       {latestReportMeasurements.length > 0 ? (
                         <Bar options={distributionOptions} data={distributionData} />
@@ -1248,8 +1276,8 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
               count: report.count,
               min: report.values.length > 0 ? Math.min(...report.values) : 0,
               max: report.values.length > 0 ? Math.max(...report.values) : 0
-            }))
-            .sort((a, b) => a.date.getTime() - b.date.getTime()); // Sort by date
+              }))
+    .sort((a, b) => (a.date?.getTime() || 0) - (b.date?.getTime() || 0)); // Sort by date
           
           // Chart data for evolution (line chart)
           const evolutionData = {
@@ -1293,6 +1321,9 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
+              legend: {
+                display: false
+              },
               title: {
                 display: true,
                 text: `Distribución de ${variable}`,
@@ -1440,34 +1471,36 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
           
           return (
             <div key={variable} className="bg-white p-4 rounded-lg shadow-md mb-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold mb-4">
                 <div>
                   <span>{variable}</span>
                   <span className="text-xs text-gray-500 block">{latestReportMeasurements[0]?.type_of_object || 'N/A'}</span>
-                </div>
-                <div className="flex items-center">
-                  {correctPercentage >= 80 ? (
-                    <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                  ) : correctPercentage >= 50 ? (
-                    <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                  )}
-                  <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
-                    {correctPercentage}% correcto ({correctCount}/{totalCount})
-                  </span>
                 </div>
               </h3>
               
               <div className="flex flex-col lg:flex-row lg:space-x-6 space-y-6 lg:space-y-0">
                 <div className="bg-gray-50 p-4 rounded-lg flex-1">
-                  <h4 className="text-sm font-medium text-gray-500 mb-3">Distribución de Variables</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-gray-500">Distribución de Variables</h4>
+                    <div className="flex items-center">
+                      {correctPercentage >= 80 ? (
+                        <svg className="w-5 h-5 text-green-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      ) : correctPercentage >= 50 ? (
+                        <svg className="w-5 h-5 text-yellow-500 mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5 text-red-500 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      )}
+                      <span className="text-sm font-medium ml-2 px-2 py-1 bg-gray-100 rounded-full">
+                        {correctPercentage}% correcto ({correctCount}/{totalCount})
+                      </span>
+                    </div>
+                  </div>
                   <div style={{ height: '350px' }}>
                     {latestReportMeasurements.length > 0 ? (
                       <Bar options={distributionOptions} data={distributionData} />
@@ -1476,6 +1509,35 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                         No hay datos disponibles
                       </div>
                     )}
+                  </div>
+                  {/* Statistics for distribution chart */}
+                  <div className="mt-3 text-sm text-gray-600">
+                    {latestReportMeasurements.length > 0 && (() => {
+                      const values = latestReportMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+                      const n = values.length;
+                      
+                      if (n === 0) return null;
+                      
+                      const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                      const stdDev = Math.sqrt(variance);
+                      const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+                      
+                      return (
+                        <div className="flex justify-between">
+                          {optimalMin !== undefined && optimalMax !== undefined ? (
+                            <span className="font-medium">Rango óptimo: {optimalMin} - {optimalMax}</span>
+                          ) : (
+                            <span>Último valor: {latestReportMeasurements[0].value}</span>
+                          )}
+                          <div className="flex gap-4">
+                            <span>Prom = {mean.toFixed(2)}</span>
+                            <span>DS = {stdDev.toFixed(2)}</span>
+                            <span>CV = {cv.toFixed(2)}%</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
                 
@@ -1490,26 +1552,32 @@ const VariableCharts: React.FC<VariableChartsProps> = ({
                       </div>
                     )}
                   </div>
+                  {/* Statistics for trend chart */}
+                  <div className="mt-3 text-sm text-gray-600">
+                    {variableMeasurements.length > 0 && (() => {
+                      const values = variableMeasurements.map(m => Number(m.value)).filter(v => !isNaN(v));
+                      const n = values.length;
+                      
+                      if (n === 0) return null;
+                      
+                      const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                      const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                      const stdDev = Math.sqrt(variance);
+                      const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+                      
+                      return (
+                        <div className="flex justify-end gap-4">
+                          <span>Prom = {mean.toFixed(2)}</span>
+                          <span>DS = {stdDev.toFixed(2)}</span>
+                          <span>CV = {cv.toFixed(2)}%</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
               
-              {/* Optional: Add statistics or additional info */}
-              <div className="mt-3 text-sm text-gray-600">
-                {latestReportMeasurements.length > 0 && (
-                  <div className="flex justify-between">
-                    {optimalMin !== undefined && optimalMax !== undefined ? (
-                      <span>Rango óptimo: {optimalMin} - {optimalMax}</span>
-                    ) : (
-                      <span>Último valor: {latestReportMeasurements[0].value}</span>
-                    )}
-                    {variableMeasurements.length > 1 && (
-                      <span>
-                        Promedio: {(variableMeasurements.reduce((acc, curr) => acc + Number(curr.value), 0) / variableMeasurements.length).toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
+
             </div>
           );
         })}

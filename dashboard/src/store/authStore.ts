@@ -5,7 +5,8 @@ import axios from 'axios';
 import useFieldStore from './fieldStore';
 
 interface User {
-  id: string;
+  id?: string;
+  userId?: string;
   name?: string;
   username?: string;
   email: string;

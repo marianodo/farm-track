@@ -85,7 +85,7 @@ const PensTab: React.FC<PensTabProps> = ({
         {Array.from(new Set(measurementsToShow.map(m => m.pen))).map(pen => {
           const penMeasurements = measurementsToShow.filter(m => m.pen === pen);
           const totalCount = penMeasurements.length;
-          const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || m.correct === true).length;
+          const correctCount = penMeasurements.filter(m => String(m.correct) === '1' || String(m.correct) === 'true').length;
           const percent = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
           // Icon logic
           let icon = null;

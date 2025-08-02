@@ -90,7 +90,6 @@ export default function LogsScreen() {
   };
 
   const createTestLog = async () => {
-    await saveLog('Log de prueba creado', { test: true }, 'general');
     loadLogs();
   };
 

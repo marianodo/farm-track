@@ -32,6 +32,8 @@ import VariableCharts from "./VariableCharts";
 import jsPDF from 'jspdf';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import useReportStore from '@/store/reportStore';
+import { useChatbotStore } from '@/store/chatbotStore';
+import { Chatbot } from '@/components/Chatbot/Chatbot';
 
 type TabType = "general" | "pens" | "numerical";
 
@@ -245,6 +247,13 @@ const DashboardPage: React.FC = () => {
 
         setSelectedField(selected);
         
+        // Set chatbot field selection
+        if (selected.value === "all") {
+            useChatbotStore.getState().setSelectedFieldId(null);
+        } else if ('id' in selected) {
+            useChatbotStore.getState().setSelectedFieldId(selected.id);
+        }
+        
         if (selected.value !== "all" && 'id' in selected) {
             setLoading(true);
             try {
@@ -377,6 +386,66 @@ const DashboardPage: React.FC = () => {
       const reportIdsSorted = [...selectedReportIds].sort((a, b) => Number(b) - Number(a));
       // Llama a la función de exportación pasando solo los reportes seleccionados y todas las mediciones del campo
       exportSelectedReportsToPDF(selectedMeasurements, reportIdsSorted, measurements);
+    };
+
+    const handleDownloadAllMeasurements = () => {
+      // Placeholder for CSV generation and download logic
+      // It will use the 'measurements' state variable from DashboardPage, 
+      // which holds all measurements for the selected field.
+      console.log("Downloading all measurements...", measurements);
+      const dataToDownload = measurements; // Use the 'measurements' state variable
+      if (dataToDownload.length === 0) {
+        alert("No hay mediciones para descargar.");
+        return;
+      }
+
+      const headers = [
+        "Report ID", "Variable", "Valor", "Corral", "Fecha", 
+        "Correcto", "Tipo de Objeto", "Valores Óptimos", 
+        "Óptimo Mínimo", "Óptimo Máximo", "Mínimo", "Máximo"
+      ];
+      const csvRows = [
+        headers.join(',')
+      ];
+
+      dataToDownload.forEach((m: Measurement) => {
+        const row = [
+          `"${m.report_id || ''}"`, 
+          `"${m.variable || ''}"`, 
+          `"${m.value !== undefined ? String(m.value) : ''}"`, 
+          `"${m.pen || ''}"`, 
+          `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
+          `"${(String(m.correct) === '1' || String(m.correct) === 'true') ? 'Sí' : 'No'}"`, 
+          `"${m.type_of_object || ''}"`, 
+          `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
+          `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
+          `"${m.optimo_max !== undefined ? m.optimo_max : ''}"`, 
+          `"${m.min !== undefined ? m.min : ''}"`, 
+          `"${m.max !== undefined ? m.max : ''}"`
+        ];
+        csvRows.push(row.join(','));
+      });
+
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      // Generate filename
+      const now = new Date();
+      const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+      let fieldNameForFile = "todos_los_campos"; // Default for 'all' fields
+      if (selectedField && selectedField.value !== 'all') {
+        fieldNameForFile = selectedField.label.toLowerCase().replace(/\s+/g, '_');
+      }
+      const filename = `${fieldNameForFile}_${timestamp}.csv`;
+
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     };
 
     // Nueva función para exportar solo los reportes seleccionados
@@ -843,25 +912,43 @@ const DashboardPage: React.FC = () => {
                     </p>
                 </div>
 
-                <div className="mb-4">
-                    <label htmlFor="field-select" className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
-                    <select
-                        id="field-select"
-                        value={selectedField.value}
-                        onChange={(e) => handleFieldChange(e.target.value)}
-                        onClick={() => setIsDropdownOpen(true)}
-                        onFocus={() => setIsDropdownOpen(true)}
-                        onBlur={() => setIsDropdownOpen(false)}
-                        className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
-                    >
-                        {loadingFields ? (
-                            <option disabled>Cargando campos...</option>
-                        ) : fields.map((field: Field | AllFieldsOption, index: number) => (
-                            <option key={field.value + '_' + index} value={field.value}>
-                                {field.label}
-                            </option>
-                        ))}
-                    </select>
+                <div className="mb-4 flex items-end justify-between">
+                    <div>
+                        <label htmlFor="field-select" className="block text-sm font-medium mb-2">Seleccionar Campo:</label>
+                        <select
+                            id="field-select"
+                            value={selectedField.value}
+                            onChange={(e) => handleFieldChange(e.target.value)}
+                            onClick={() => setIsDropdownOpen(true)}
+                            onFocus={() => setIsDropdownOpen(true)}
+                            onBlur={() => setIsDropdownOpen(false)}
+                            className="w-full sm:w-72 p-2 border border-measure-green rounded-md focus:outline-none focus:ring-2 focus:ring-measure-green"
+                        >
+                            {loadingFields ? (
+                                <option disabled>Cargando campos...</option>
+                            ) : fields.map((field: Field | AllFieldsOption, index: number) => (
+                                <option key={field.value + '_' + index} value={field.value}>
+                                    {field.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {measurements.length > 0 && (
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={handleDownloadAllMeasurements}
+                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
+                            >
+                                Download (CSV)
+                            </button>
+                            <button
+                                onClick={handleExportHistoricToPDF}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm"
+                            >
+                                Exportar a PDF
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-6 w-full border border-gray-200 rounded-md overflow-hidden bg-white p-4">
@@ -946,31 +1033,15 @@ const DashboardPage: React.FC = () => {
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Cantidad Mediciones</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{summaryReportMeasurements.length}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{summaryReportMeasurements.length}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Corrales</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.pen)).size}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.pen)).size}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Variables Medidas</span>
-                            <div className="flex items-center">
-                                <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.variable)).size}</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
+                            <span className="text-2xl font-bold">{new Set(summaryReportMeasurements.map(m => m.variable)).size}</span>
                         </div>
                     </div>
                 </div>
@@ -1237,10 +1308,10 @@ const DashboardPage: React.FC = () => {
 
         {/* Historical Data */}
         <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Histórico</h2>
+            <h2 className="text-xl font-semibold mb-4">Resumen histórico de reportes</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {/* Historical Stats */}
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-4 rounded-lg h-64">
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <span className="text-gray-600">Total Reportes</span>
@@ -1250,9 +1321,14 @@ const DashboardPage: React.FC = () => {
     const uniqueReportIds = new Set(measurements.map(m => m.report_id)).size;
     return <span className="text-2xl font-bold">{uniqueReportIds}</span>;
 })()}
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="m3 17 2 2 4-4"/>
+                                    <path d="m3 7 2 2 4-4"/>
+                                    <path d="M13 6h8"/>
+                                    <path d="M13 12h8"/>
+                                    <path d="M13 18h8"/>
                                 </svg>
+
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
@@ -1262,35 +1338,50 @@ const DashboardPage: React.FC = () => {
     if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
     return <span className="text-2xl font-bold">{measurements.length}</span>;
 })()}
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
-                                    <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"/>
+                                    <path d="m8 6 2-2"/>
+                                    <path d="m18 16 2-2"/>
+                                    <path d="m17 11 4.3 4.3c.94.94.94 2.46 0 3.4l-2.6 2.6c-.94.94-2.46.94-3.4 0L11 17"/>
+                                    <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
+                                    <path d="m15 5 4 4"/>
                                 </svg>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Animales</span>
+                            <span className="text-gray-600">Medición en Animales</span>
                             <div className="flex items-center">
-                                <span className="text-2xl font-bold">557</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                                    <path fillRule="evenodd" d="M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                {(() => {
+                                    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
+                                    const animalMeasurements = measurements.filter(m => m.type_of_object === 'Animal');
+                                    return <span className="text-2xl font-bold">{animalMeasurements.length}</span>;
+                                })()}
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="4" r="2"/>
+                                    <circle cx="18" cy="8" r="2"/>
+                                    <circle cx="20" cy="16" r="2"/>
+                                    <path d="M9 10a5 5 0 0 1 5 5v3.5a3.5 3.5 0 0 1-6.84 1.045Q6.52 17.48 4.46 16.84A3.5 3.5 0 0 1 5.5 10Z"/>
                                 </svg>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Instalación</span>
+                            <span className="text-gray-600">Medición en Instalación</span>
                             <div className="flex items-center">
-                                <span className="text-2xl font-bold">85</span>
-                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4zm3 1h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1v2h-1v-2zm1-2V7h-1v2h1zM5 7v2h1V7H5zm1 4H5v2h1v-2z" clipRule="evenodd" />
+                                {(() => {
+                                    if (!measurements.length) return <span className="text-2xl font-bold">0</span>;
+                                    const installationMeasurements = measurements.filter(m => m.type_of_object === 'Installation');
+                                    return <span className="text-2xl font-bold">{installationMeasurements.length}</span>;
+                                })()}
+                                <svg className="w-5 h-5 ml-2 text-gray-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                    <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                                    <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                                 </svg>
                             </div>
                         </div>
                     </div>
                 </div>
                 {/* Correction Rate Chart */}
-                <div className="col-span-3 mt-6">
+                <div className="col-span-3">
     <div className="bg-gray-50 p-4 rounded-lg h-full">
         <h3 className="text-sm font-medium text-gray-500 mb-4">% Correctos por Reporte</h3>
         <div className="h-64">
@@ -1354,7 +1445,7 @@ const DashboardPage: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: true },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(context: any) { // Keep any for Chart.js context
@@ -1420,154 +1511,39 @@ const DashboardPage: React.FC = () => {
                         },
                     },
                 };
-                return <Bar data={chartData} options={options} style={{height: '220px'}} />;
+                return (
+                    <>
+                        <Bar data={chartData} options={options} style={{height: '220px'}} />
+                        {/* Statistics for the chart */}
+                        <div className="mt-3 text-sm text-gray-600">
+                            {healthPercentages.length > 0 && (() => {
+                                const values = healthPercentages.filter(v => !isNaN(v));
+                                const n = values.length;
+
+                                if (n === 0) return null;
+
+                                const mean = values.reduce((sum, val) => sum + val, 0) / n;
+                                const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+                                const stdDev = Math.sqrt(variance);
+                                const cv = mean !== 0 ? (stdDev / mean) * 100 : 0;
+
+                                return (
+                                    <div className="flex justify-end gap-4">
+                                        <span>Prom = {mean.toFixed(2)}%</span>
+                                        <span>DS = {stdDev.toFixed(2)}%</span>
+                                        <span>CV = {cv.toFixed(2)}%</span>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </>
+                );
             })()}
         </div>
     </div>
 </div>
             </div>
         </div>
-    </div>
-    {/* Latest Report Measurements Table */}
-    <div className="mt-8">
-      {(() => {
-        if (!measurements.length) return null;
-        const reportIds = measurements.map(m => m.report_id);
-        const latestReportId = Math.max(...reportIds.map(Number));
-        const latestMeasurements = measurements.filter(m => Number(m.report_id) === latestReportId);
-
-        const handleDownloadAllMeasurements = () => {
-          // Placeholder for CSV generation and download logic
-          // It will use the 'measurements' state variable from DashboardPage, 
-          // which holds all measurements for the selected field.
-          console.log("Downloading all measurements...", measurements);
-          const dataToDownload = measurements; // Use the 'measurements' state variable
-          if (dataToDownload.length === 0) {
-            alert("No hay mediciones para descargar.");
-            return;
-          }
-
-          const headers = [
-            "Report ID", "Variable", "Valor", "Corral", "Fecha", 
-            "Correcto", "Tipo de Objeto", "Valores Óptimos", 
-            "Óptimo Mínimo", "Óptimo Máximo", "Mínimo", "Máximo"
-          ];
-          const csvRows = [
-            headers.join(',')
-          ];
-
-          dataToDownload.forEach((m: Measurement) => {
-            const row = [
-              `"${m.report_id || ''}"`, 
-              `"${m.variable || ''}"`, 
-              `"${m.value !== undefined ? String(m.value) : ''}"`, 
-              `"${m.pen || ''}"`, 
-              `"${m.measureDate ? new Date(m.measureDate).toLocaleString() : ''}"`, 
-              `"${(String(m.correct) === '1' || String(m.correct) === 'true') ? 'Sí' : 'No'}"`, 
-              `"${m.type_of_object || ''}"`, 
-              `"${Array.isArray(m.optimal_values) ? m.optimal_values.join('; ') : ''}"`, 
-              `"${m.optimo_min !== undefined ? m.optimo_min : ''}"`, 
-              `"${m.optimo_max !== undefined ? m.optimo_max : ''}"`, 
-              `"${m.min !== undefined ? m.min : ''}"`, 
-              `"${m.max !== undefined ? m.max : ''}"`
-            ];
-            csvRows.push(row.join(','));
-          });
-
-          const csvString = csvRows.join('\n');
-          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-          const link = document.createElement("a");
-          const url = URL.createObjectURL(blob);
-
-          // Generate filename
-          const now = new Date();
-          const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
-          let fieldNameForFile = "todos_los_campos"; // Default for 'all' fields
-          if (selectedField && selectedField.value !== 'all') {
-            fieldNameForFile = selectedField.label.toLowerCase().replace(/\s+/g, '_');
-          }
-          const filename = `${fieldNameForFile}_${timestamp}.csv`;
-
-          link.setAttribute("href", url);
-          link.setAttribute("download", filename);
-          link.style.visibility = 'hidden';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        };
-
-        if (!latestMeasurements.length && !measurements.length) return null; // Hide if no data at all
-
-        return (
-          <div className="overflow-x-auto">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-semibold">Mediciones del Último Reporte</h3>
-              <div className="flex gap-2">
-                {measurements.length > 0 && (
-                  <>
-                    <button 
-                      onClick={handleDownloadAllMeasurements}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 text-sm"
-                    >
-                      Download (CSV)
-                    </button>
-                    <button
-                      onClick={handleExportHistoricToPDF}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-sm"
-                    >
-                      Exportar a PDF
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-            <table className="min-w-full bg-white border border-gray-200 rounded-lg">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border-b">Variable</th>
-                  <th className="py-2 px-4 border-b">Valor</th>
-                  <th className="py-2 px-4 border-b">Corral</th>
-                  <th className="py-2 px-4 border-b">Fecha</th>
-                  <th className="py-2 px-4 border-b">¿Correcto?</th>
-<th className="py-2 px-4 border-b">Optimal Value</th>
-                </tr>
-              </thead>
-              <tbody>
-                {latestMeasurements.map((m, idx) => (
-                  <tr key={idx} className="text-center">
-                    <td className="py-2 px-4 border-b">{m.variable}</td>
-                    <td className="py-2 px-4 border-b">{m.value}</td>
-                    <td className="py-2 px-4 border-b">{m.pen}</td>
-                    <td className="py-2 px-4 border-b">{new Date(m.measureDate).toLocaleString()}</td>
-                    <td className="py-2 px-4 border-b">
-  {String(m.correct) === '1' || String(m.correct) === 'true' ? (
-    <span className="flex justify-center">
-      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-      </svg>
-    </span>
-  ) : (
-    <span className="flex justify-center">
-      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
-    </span>
-  )}
-</td>
-<td className="py-2 px-4 border-b">
-  {Array.isArray(m.optimal_values) && m.optimal_values.length > 0
-    ? m.optimal_values.join(', ')
-    : (m.optimo_min !== undefined && m.optimo_max !== undefined
-        ? `${m.optimo_min} - ${m.optimo_max}`
-        : '-')}
-</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })()}
     </div>
 </Tab.Panel>
                                     <Tab.Panel>
@@ -2067,6 +2043,7 @@ const DashboardPage: React.FC = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <Chatbot />
       </>
     );
 };

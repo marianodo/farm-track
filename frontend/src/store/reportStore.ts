@@ -39,6 +39,7 @@ interface ReportState {
   resetMeasurementEditData: () => void;
   resetReportByIdNameAndComment: () => void;
   setMeasurementData: (data: MeasurementData[]) => void;
+  retryWithBackoff: (operation: () => Promise<any>, maxRetries?: number, baseDelay?: number) => Promise<any>;
   createMeasurementWithReportId: (data: any, field_id: string) => void;
   getMeasurementEditData: (report_id: number, subject_id: number) => void;
   onDeleteMeasurement: (report_id: number, measurement_id: number) => void;
@@ -186,88 +187,47 @@ const useReportStore = create<ReportState>((set) => ({
     }
   },
   getAllReportsByField: async (field_id: string, forceRefresh: boolean = false) => {
-    await saveLog('Store: Iniciando getAllReportsByField', {
-      field_id,
-      forceRefresh,
-      reportsLoading: useReportStore.getState().reportsLoading
-    }, 'measurement');
-
     set({ reportsLoading: true });
     
     try {
-      // Delay mínimo para mostrar el indicador de carga
-      await new Promise(resolve => setTimeout(resolve, 500));
-
       // Intentar obtener del caché primero
       if (!forceRefresh) {
         const cacheKey = `${CACHE_CONFIGS.reports.key}_${field_id}`;
         const cachedReports = await getCacheData<Report[]>(cacheKey);
         if (cachedReports) {
-          await saveLog('Store: Datos obtenidos del caché', {
-            field_id,
-            reportsCount: cachedReports?.length || 0
-          }, 'measurement');
-          
-          set({ reportsByFielId: { [field_id]: cachedReports }, reportsLoading: false, isFromCache: true });
+          set({
+            reportsByFielId: { [field_id]: cachedReports },
+            reportsLoading: false,
+            isFromCache: true,
+          });
           return;
         }
       }
 
-      await saveLog('Store: Haciendo llamada GET a /reports/byField', {
-        field_id
-      }, 'measurement');
-
       const response = await axiosInstance.get(`/reports/byField/${field_id}`);
-      
+      const reports = response.data;
+
       // Guardar en caché
       const cacheKey = `${CACHE_CONFIGS.reports.key}_${field_id}`;
-      await setCacheData(cacheKey, response.data, CACHE_CONFIGS.reports.ttl);
-      
-      await saveLog('Store: Llamada GET exitosa, actualizando estado y caché', {
-        field_id,
-        reportsCount: response.data?.length || 0
-      }, 'measurement');
+      await setCacheData(cacheKey, reports, CACHE_CONFIGS.reports.ttl);
 
-      set({ reportsByFielId: { [field_id]: response.data }, reportsLoading: false, isFromCache: false });
+      set({
+        reportsByFielId: { [field_id]: reports },
+        reportsLoading: false,
+        isFromCache: false,
+      });
       
-      await saveLog('Store: getAllReportsByField completado exitosamente', {
-        field_id
-      }, 'measurement');
-
     } catch (error: any) {
       await saveLog('Store: Error en getAllReportsByField', {
         error: error?.toString(),
         errorMessage: error?.message,
-        errorResponse: error?.response?.data,
         errorStatus: error?.response?.status,
         field_id
       }, 'error');
-
       set({ reportsLoading: false });
-      
-      await saveLog('Store: Estado reportsLoading establecido en false después del error en getAllReportsByField', {
-        field_id
-      }, 'measurement');
-
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        throw new Error(error.response.data.message);
-      } else {
-        throw new Error('Error fetching reports by field');
-      }
     }
   },
   getReportById: async (id: number | null, onlyNameAndComment?: string, forceRefresh: boolean = false) => {
-    await saveLog('Store: Iniciando getReportById', {
-      id,
-      onlyNameAndComment,
-      forceRefresh,
-      reportsLoading: useReportStore.getState().reportsLoading
-    }, 'measurement');
-
     set({ reportsLoading: true });
 
     try {
@@ -288,19 +248,10 @@ const useReportStore = create<ReportState>((set) => ({
           const cacheKey = `${CACHE_CONFIGS.reportById.key}_${id}`;
           const cachedReport = await getCacheData<ReportWithMeasurements2[]>(cacheKey);
           if (cachedReport) {
-            await saveLog('Store: Reporte obtenido del caché', {
-              id,
-              reportData: cachedReport?.length || 0
-            }, 'measurement');
-            
             set({ reportById: cachedReport, reportsLoading: false, isFromCache: true });
             return;
           }
         }
-
-        await saveLog('Store: Haciendo llamada GET a /reports/:id', {
-          id
-        }, 'measurement');
 
         const response = await axiosInstance.get(`/reports/${id}`);
         
@@ -310,16 +261,7 @@ const useReportStore = create<ReportState>((set) => ({
           await setCacheData(cacheKey, response.data, CACHE_CONFIGS.reportById.ttl);
         }
         
-        await saveLog('Store: Llamada GET exitosa, actualizando estado y caché', {
-          id,
-          reportData: response.data?.length || 0
-        }, 'measurement');
-
         set({ reportById: response.data, reportsLoading: false, isFromCache: false });
-        
-        await saveLog('Store: getReportById completado exitosamente', {
-          id
-        }, 'measurement');
       }
     } catch (error: any) {
       await saveLog('Store: Error en getReportById', {
@@ -329,22 +271,7 @@ const useReportStore = create<ReportState>((set) => ({
         errorStatus: error?.response?.status,
         id
       }, 'error');
-
       set({ reportsLoading: false });
-      
-      await saveLog('Store: Estado reportsLoading establecido en false después del error en getReportById', {
-        id
-      }, 'measurement');
-
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        throw new Error(error.response.data.message);
-      } else {
-        throw new Error('Error fetch report id');
-      }
     }
   },
   resetDetail: () => {
@@ -383,51 +310,62 @@ const useReportStore = create<ReportState>((set) => ({
       measurementVariablesData: data,
     });
   },
+  // Función auxiliar para reintentos con backoff exponencial
+  retryWithBackoff: async (
+    operation: () => Promise<any>,
+    maxRetries: number = 5,
+    baseDelay: number = 1000
+  ): Promise<any> => {
+    let lastError: any;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        
+        await saveLog('Store: Error en intento', {
+          attempt,
+          maxRetries,
+          error: error?.toString(),
+          errorMessage: error?.message,
+          errorStatus: error?.response?.status
+        }, 'error');
+        
+        // Si es el último intento, no esperar
+        if (attempt === maxRetries) {
+          break;
+        }
+        
+        // Calcular delay con backoff exponencial
+        const delay = baseDelay * Math.pow(2, attempt - 1);
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    throw lastError;
+  },
+
   createMeasurementWithReportId: async (
     data: any,
     field_id: string
   ): Promise<void> => {
-    await saveLog('Store: Iniciando createMeasurementWithReportId', {
-      data,
-      field_id,
-      reportsLoading: useReportStore.getState().reportsLoading
-    }, 'measurement');
-
     set({ reportsLoading: true });
     
-    await saveLog('Store: Estado reportsLoading establecido en true', {
-      data
-    }, 'measurement');
-
     try {
-      await saveLog('Store: Haciendo llamada POST a /measurements', {
-        data,
-        field_id
-      }, 'measurement');
-
-      await axiosInstance.post('/measurements', data);
+      await useReportStore.getState().retryWithBackoff(async () => {
+        return await axiosInstance.post('/measurements', data);
+      });
       
-      await saveLog('Store: Llamada POST exitosa, actualizando reports', {
-        field_id
-      }, 'measurement');
-
-      // const newReport = response.data;
-      
-      // Invalidar caché de reportes cuando se crean mediciones
       await invalidateCachePattern(CACHE_CONFIGS.reports.key);
-      // También invalidar caché de reportes por ID ya que las mediciones han cambiado
       await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
       
       useReportStore.getState().getAllReportsByField(field_id, true);
-      //   useTypeOfObjectStore.getState().getAllTypeOfObjects();
       set({ reportsLoading: false });
-      
-      await saveLog('Store: createMeasurementWithReportId completado exitosamente', {
-        field_id
-      }, 'measurement');
 
     } catch (error: any) {
-      await saveLog('Store: Error en createMeasurementWithReportId', {
+      await saveLog('Store: Error final en createMeasurementWithReportId después de todos los reintentos', {
         error: error?.toString(),
         errorMessage: error?.message,
         errorResponse: error?.response?.data,
@@ -437,10 +375,6 @@ const useReportStore = create<ReportState>((set) => ({
       }, 'error');
 
       set({ reportsLoading: false });
-      
-      await saveLog('Store: Estado reportsLoading establecido en false después del error', {
-        field_id
-      }, 'measurement');
 
       if (
         error.response &&
@@ -449,7 +383,7 @@ const useReportStore = create<ReportState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error creating measurement with report id');
+        throw new Error('Error creating measurement with report id after retries');
       }
     }
   },

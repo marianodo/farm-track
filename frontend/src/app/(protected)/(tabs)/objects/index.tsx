@@ -265,36 +265,37 @@ export default function ObjectScreen() {
     }
   };
 
-  const renderRightActions = (progress: any, dragX: any, object: any) => (
-    <View style={styles.rightActions}>
-      <Pressable
-        style={styles.editButton}
-        onPress={() => {
-          setEditInputValue({
-            name: object.name,
-          });
-          setObjectId(object.id);
-          setIsModalEditVisible(true);
-        }}
-      >
-        <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
-      </Pressable>
-      <Pressable
-        style={styles.deleteButton}
-        onPress={() => {
-          setSelectedObjectDelete({ id: object.id });
-          setTexts({
-            title: `${t('objectView.deleteAlertTitle')} "${object.name}"?`,
-          });
-          setShowDeleteModal(true);
-        }}
-      >
-        <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
-        <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
-      </Pressable>
-    </View>
-  );
+  // DESLIZAMIENTO DESHABILITADO TEMPORALMENTE
+  // const renderRightActions = (progress: any, dragX: any, object: any) => (
+  //   <View style={styles.rightActions}>
+  //     <Pressable
+  //       style={styles.editButton}
+  //       onPress={() => {
+  //         setEditInputValue({
+  //           name: object.name,
+  //         });
+  //         setObjectId(object.id);
+  //         setIsModalEditVisible(true);
+  //       }}
+  //     >
+  //       <IconButton icon="pencil-outline" iconColor="#fff" size={rMS(24)} />
+  //       <Text style={styles.actionText}>{t(`fieldView.editButton`)}</Text>
+  //     </Pressable>
+  //     <Pressable
+  //       style={styles.deleteButton}
+  //       onPress={() => {
+  //         setSelectedObjectDelete({ id: object.id });
+  //         setTexts({
+  //           title: `${t('objectView.deleteAlertTitle')} "${object.name}"?`,
+  //         });
+  //         setShowDeleteModal(true);
+  //       }}
+  //     >
+  //       <IconButton icon="trash-can-outline" iconColor="#fff" size={rMS(24)} />
+  //       <Text style={styles.actionText}>{t(`fieldView.deleteButton`)}</Text>
+  //     </Pressable>
+  //   </View>
+  // );
 
   const ListItem: React.FC<ListItemProps> = ({
     item,
@@ -321,7 +322,16 @@ export default function ObjectScreen() {
     }, [isExpanded]);
 
     return (
-      <Swipeable
+      <View
+        key={index}
+        style={{
+          backgroundColor: '#3A5228',
+          marginBottom: 20,
+          borderRadius: 10,
+        }}
+      >
+        {/* DESLIZAMIENTO DESHABILITADO TEMPORALMENTE */}
+        {/* <Swipeable
         key={index}
         enabled={!isExpanded} // Elimina el swipe si está expandido
         renderRightActions={(progress, dragX) =>
@@ -332,7 +342,7 @@ export default function ObjectScreen() {
           marginBottom: 10,
           borderRadius: 10,
         }}
-      >
+        > */}
         <TouchableWithoutFeedback
           key={index}
           onPress={
@@ -437,7 +447,8 @@ export default function ObjectScreen() {
             })}
           </View>
         </Animated.View>
-      </Swipeable>
+        {/* </Swipeable> */}
+      </View>
     );
   };
 
@@ -665,7 +676,8 @@ export default function ObjectScreen() {
             }}
           />
         )}
-        {Array.isArray(fieldsByUserId) &&
+        {/* BOTÓN CREAR DESHABILITADO TEMPORALMENTE */}
+        {/* {Array.isArray(fieldsByUserId) &&
           fieldsByUserId.length > 0 &&
           !isModalVisible &&
           !isModalEditVisible && (
@@ -676,11 +688,11 @@ export default function ObjectScreen() {
               }}
             >
               <CreateButton
-                text={t('reportsView.createReportTextButton')}
+                text={t('objectView.createButtonText')}
                 onPress={() => setIsModalVisible(true)}
               />
             </View>
-          )}
+          )} */}
         <TwoButtonsModal
           isVisible={showDeleteModal}
           onDismiss={() => setShowDeleteModal(false)}

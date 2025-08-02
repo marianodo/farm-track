@@ -28,12 +28,17 @@ export class FieldRepository {
     createFieldDto: CreateFieldDto,
     // autoConfig: boolean,
   ): Promise<Field> {
+    console.log('🔍 DEBUG - Field repository create called with production_type:', createFieldDto.production_type);
+    
     if (
       createFieldDto.production_type === 'bovine_of_milk' ||
-      createFieldDto.production_type === 'bovine_of_meat'
+      createFieldDto.production_type === 'bovine_of_meat' ||
+      createFieldDto.production_type === 'swine'
     ) {
+      console.log('🔍 DEBUG - Calling autoConfigField for:', createFieldDto.production_type);
       return autoConfigField(createFieldDto, this.txHost);
     }
+    console.log('🔍 DEBUG - Calling createFieldWithoutAutoConfig for:', createFieldDto.production_type);
     return this.createFieldWithoutAutoConfig(createFieldDto);
   }
 

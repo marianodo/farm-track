@@ -10,9 +10,20 @@ import { UserResourceGuard } from './auth/guard/user-resource.guard';
 import { RolesGuard } from './auth/guard/roles.guard';
 import { OwnedResourceGuard } from './auth/guard/owned-resource.guard';
 import { PrismaService } from './prisma/prisma.service';
+import { validateEnvironment } from './config/env.config';
+
 dotenvConfig();
 
 console.log(typeof process.env.TOKEN_EXPIRES);
+
+// Validate environment variables
+try {
+  validateEnvironment();
+} catch (error) {
+  console.error('Environment validation failed:', error);
+  process.exit(1);
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors({

@@ -16,7 +16,12 @@ export async function autoConfigField(
   txHost: any,
 ) {
   const { production_type, userId } = createFieldDto;
+  console.log('🔍 DEBUG - Production type received:', production_type);
+  console.log('🔍 DEBUG - Production type lowercase:', production_type.toLowerCase());
+  console.log('🔍 DEBUG - Available configurations:', Object.keys(fieldConfigurations));
+  
   const fieldType = fieldConfigurations[production_type.toLowerCase()];
+  console.log('🔍 DEBUG - Field type found:', fieldType ? 'YES' : 'NO');
 
   if (!fieldType) {
     throw new BadRequestException(
@@ -33,6 +38,7 @@ export async function autoConfigField(
       skipDuplicates: true,
     });
 
+    console.log('🔍 DEBUG - Creating variables:', variables.map(v => v.name));
     await txHost.tx.variable.createMany({
       data: variables.map(({ name, type, defaultValue }) => ({
         name,
@@ -42,12 +48,16 @@ export async function autoConfigField(
       })),
       skipDuplicates: true,
     });
+    console.log('🔍 DEBUG - Variables created successfully');
 
     // Recuperar ambos tipos de objetos y variables en una sola consulta
     const [typesOfObjectsFound, variablesFound] = await Promise.all([
       txHost.tx.typeOfObject.findMany({ where: { userId } }),
       txHost.tx.variable.findMany({ where: { userId } }),
     ]);
+    
+    console.log('🔍 DEBUG - Types of objects found:', typesOfObjectsFound.map(t => t.name));
+    console.log('🔍 DEBUG - Variables found:', variablesFound.map(v => v.name));
 
     const separatedVariablesById = typesOfObjectsFound.reduce(
       (acc, typeOfObject) => {
@@ -58,12 +68,19 @@ export async function autoConfigField(
       },
       {},
     );
+    
+    console.log('🔍 DEBUG - Separated variables by type of object:', Object.keys(separatedVariablesById).map(key => ({
+      typeOfObjectId: key,
+      variables: separatedVariablesById[key].map(v => v.name)
+    })));
 
     // Crear relaciones entre variables y tipos de objetos de manera eficiente
+    console.log('🔍 DEBUG - Creating type_of_object_variable relationships...');
     await Promise.all(
       Object.entries(separatedVariablesById).map(
         async ([typeOfObjectId, variablesToAssociate]) => {
           const typeOfObjectIdParsed = parseInt(typeOfObjectId);
+          console.log(`🔍 DEBUG - Creating relationships for type of object ${typeOfObjectIdParsed} with variables:`, (variablesToAssociate as Variable[]).map(v => v.name));
 
           // Asociar las variables recién creadas con los tipos de objetos
           await txHost.tx.typeOfObject_Variable.createMany({
@@ -85,14 +102,17 @@ export async function autoConfigField(
             }),
             skipDuplicates: true,
           });
+          console.log(`🔍 DEBUG - Relationships created successfully for type of object ${typeOfObjectIdParsed}`);
         },
       ),
     );
+    console.log('🔍 DEBUG - All type_of_object_variable relationships created');
 
     // Crear el nuevo campo
     const newField = await txHost.tx.field.create({
       data: createFieldDto,
     });
+    console.log('🔍 DEBUG - Field created:', newField.id);
 
     return newField;
   } catch (error) {

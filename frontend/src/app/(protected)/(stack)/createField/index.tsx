@@ -1,5 +1,3 @@
-import * as Location from 'expo-location';
-
 import {
   Alert,
   Button,
@@ -21,7 +19,6 @@ import {
 import React, { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { IconButton, Text, TextInput } from 'react-native-paper';
-import MapView, { Marker } from 'react-native-maps';
 // import * as Localization from 'expo-localization';
 import { rMS, rV } from '@/styles/responsive';
 import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
@@ -29,7 +26,6 @@ import useFieldStore, { FiledWithUserId } from '@/store/fieldStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import CreateButton from '@/components/createButton/CreateButton';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { Image } from 'expo-image';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Loader from '@/components/Loader';
@@ -62,7 +58,6 @@ export default function CreateField() {
   const { t } = useTranslation();
   // Usar 'light' como valor predeterminado si colorScheme es undefined
   const colorScheme = useColorScheme() || 'light';
-  const mapRef = useRef(null);
   const [value, setValue] = useState<string | undefined>();
   const [openInstallation, setOpenInstallation] = useState<boolean>(false);
   const [openBreed, setOpenBreed] = useState<boolean>(false);
@@ -77,28 +72,7 @@ export default function CreateField() {
     () => void | undefined
   >(() => () => { });
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
-  const [ubication, setUbication] = useState({
-    origin: {
-      latitude: -38.416097, // Coordenadas de Argentina
-      longitude: -63.616672,
-      latitudeDelta: 10, // Ajusta para mostrar una mayor área de Argentina
-      longitudeDelta: 10,
-    },
-    userLocation: {
-      latitude: 0,
-      longitude: 0,
-      direction: '',
-    },
-    inputLocation: {
-      direction: '',
-      latitude: 0,
-      longitude: 0,
-    },
-    marketLocation: {
-      latitude: -38.416097,
-      longitude: -63.616672,
-    },
-  });
+
   const [inputsData, setInputsData] = useState({
     nameField: {
       value: '',
@@ -107,12 +81,6 @@ export default function CreateField() {
     description: {
       value: '',
       placeholder: t('detailField.fieldDescriptionPlaceHolder'),
-    },
-    ubication: {
-      value: '',
-      placeholder: t('detailField.fieldUbicationPlaceHolder'),
-      lat: 0,
-      lng: 0,
     },
     production_type: {
       placeholder: t('detailField.fieldTypeProductionPlaceHolder'),
@@ -134,9 +102,9 @@ export default function CreateField() {
   const [formData, setFormData] = useState<any>({
     name: inputsData.nameField.value,
     description: inputsData.description.value,
-    location: ubication.userLocation.direction,
-    latitude: ubication.userLocation.latitude,
-    longitude: ubication.userLocation.longitude,
+    location: null,
+    latitude: null,
+    longitude: null,
     production_type: undefined,
     breed: undefined,
     installation: undefined,
@@ -144,14 +112,29 @@ export default function CreateField() {
     userId: userId,
   });
 
+  // Inicializar selectedValues cuando t esté disponible
+  useEffect(() => {
+    const productionKey = t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '');
+    const breedKey = t('detailField.fieldBreedPlaceHolder').replace(/\s+/g, '');
+    const installationKey = t('detailField.fieldInstallationPlaceHolder').replace(/\s+/g, '');
+    
+    if (Object.keys(selectedValues).length === 0) {
+      setSelectedValues({
+        [productionKey]: { value: '', customValue: '' },
+        [breedKey]: { value: '', customValue: '' },
+        [installationKey]: { value: '', customValue: '' },
+      });
+    }
+  }, [t]);
+
   useEffect(() => {
     setFormData((prev: any) => ({
       ...prev,
       name: inputsData.nameField.value,
       description: inputsData.description.value,
-      location: ubication.userLocation.direction,
-      latitude: ubication.userLocation.latitude,
-      longitude: ubication.userLocation.longitude,
+      location: null,
+      latitude: null,
+      longitude: null,
       production_type: selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')]?.value
         ? [selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].customValue || selectedValues[t('detailField.fieldTypeProductionPlaceHolder').replace(/\s+/g, '')].value][0]
         : undefined,
@@ -171,12 +154,13 @@ export default function CreateField() {
     { label: t('typeProductionText.bovine_of_milk'), value: 'bovine_of_milk' },
     { label: t('typeProductionText.bovine_of_meat'), value: 'bovine_of_meat' },
     { label: t('typeProductionText.swine'), value: 'swine' },
-    { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
-    {
-      label: t('typeProductionText.posture_poultry'),
-      value: 'posture_poultry',
-    },
-    { label: t('typeProductionText.customized'), value: 'customized' },
+    // OPCIONES DESHABILITADAS TEMPORALMENTE
+    // { label: t('typeProductionText.broil_poultry'), value: 'broil_poultry' },
+    // {
+    //   label: t('typeProductionText.posture_poultry'),
+    //   value: 'posture_poultry',
+    // },
+    // { label: t('typeProductionText.customized'), value: 'customized' },
   ]);
 
   const [breed, setBreed] = useState<{ label: string; value: string }[]>([
@@ -228,7 +212,7 @@ export default function CreateField() {
     },
   ]);
 
-  const [lang, setLang] = useState<any>('');
+
   const { getAllVariables } = useVariableStore((state: any) => ({
     getAllVariables: state.getAllVariables,
   }));
@@ -237,108 +221,7 @@ export default function CreateField() {
     getAllTypeOfObjects: state.getAllTypeOfObjects,
   }));
 
-  const onDragEndChange = async (coordinate) => {
-    try {
-      const { latitude, longitude } = coordinate;
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ubication.marketLocation.latitude},${ubication.marketLocation.longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
-      );
-      const data = await response.json();
-      if (data.results && data.results.length > 2) {
-        setUbication((prev) => ({
-          ...prev,
-          userLocation: {
-            latitude: prev.marketLocation.latitude,
-            longitude: prev.marketLocation.longitude,
-            direction:
-              data.results[2]?.formatted_address || 'Dirección no encontrada',
-          },
-        }));
-        setUbication({
-          ...ubication,
-          marketLocation: {
-            latitude,
-            longitude,
-          },
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching geocode data:', error);
-    }
-  };
 
-  const getLanguage = useCallback(async () => {
-    const lang = await AsyncStorage.getItem('language');
-    if (lang) setLang(lang);
-  }, []);
-
-  const getLocation = useCallback(async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        const { coords } = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 10,
-        });
-        const { latitude, longitude } = coords;
-        setUbication((prev) => ({
-          ...prev,
-          origin: {
-            ...prev.origin,
-            latitude,
-            longitude,
-          },
-          marketLocation: { latitude, longitude },
-          inputLocation: { latitude, longitude, direction: 'falta' },
-        }));
-      } else {
-
-      }
-    } catch (error) {
-      console.error('Error obteniendo la ubicación:', error);
-    }
-  }, []);
-
-  const setDirection = useCallback(async () => {
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${ubication.marketLocation.latitude},${ubication.marketLocation.longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
-      );
-      const data = await response.json();
-      if (data.results && data.results.length > 2) {
-        setUbication((prev) => ({
-          ...prev,
-          userLocation: {
-            latitude: prev.marketLocation.latitude,
-            longitude: prev.marketLocation.longitude,
-            direction:
-              data.results[2]?.formatted_address || 'Dirección no encontrada',
-          },
-        }));
-      }
-    } catch (error) {
-      console.error('Error obteniendo dirección:', error);
-    }
-  }, [ubication.marketLocation]);
-
-  useEffect(() => {
-    getLanguage();
-    getLocation();
-  }, [getLanguage, getLocation]);
-
-  useEffect(() => {
-    if (ubication.marketLocation) {
-      mapRef.current.animateToRegion(
-        {
-          ...ubication.marketLocation,
-          latitudeDelta: ubication.origin.latitudeDelta,
-          longitudeDelta: ubication.origin.longitudeDelta,
-        },
-        1500
-      );
-      setDirection();
-    }
-  }, [ubication.marketLocation, setDirection]);
 
   const handleInputChange = (key: string, value: string) => {
     setInputsData((previnputsData) => ({
@@ -382,10 +265,16 @@ export default function CreateField() {
       setShowModal(true);
       await createField(formData);
       setShowModal(false);
+      
+      // Mostrar mensaje de éxito con tiempo adicional para que se refresquen los datos
       const handleOneButtonPress = () => {
-        setMessageModalText(t('fieldView.fieldCreatedText'));
+        setMessageModalText(t('fieldView.fieldCreatedText') + ' Refrescando datos...');
         setSuccess(true);
         setShowMessageModal(true);
+        
+        // Esperar más tiempo para que se refresquen los datos automáticamente
+        const refreshTime = formData.production_type === 'swine' ? 3500 : 2000;
+        
         if (Platform.OS === 'ios') {
           setTimeout(() => {
             getAllVariables();
@@ -394,14 +283,14 @@ export default function CreateField() {
             setTimeout(() => {
               router.back();
             }, 430);
-          }, 2000);
+          }, refreshTime);
         } else {
           setTimeout(() => {
             getAllVariables();
             getAllTypeOfObjects();
             setShowMessageModal(false);
             router.back();
-          }, 2000);
+          }, refreshTime);
         }
       };
       setOneButtonOnPress(handleOneButtonPress);
@@ -482,117 +371,36 @@ export default function CreateField() {
                 {/* TextInputs */}
                 {Object.keys(inputsData).map((key: string, index: number) => {
                   const input = inputsData[key];
-                  if (key === 'ubication') {
-                    return (
-                      <View
-                        key={key + index}
-                        style={{ marginBottom: 10 }}>
-                        <View>
-                          {/* <GooglePlacesAutocomplete
-                          placeholder="Ubicación"
-                          minLength={3}
-                          GooglePlacesDetailsQuery={{
-                            fields: 'geometry',
-                          }}
-                          enablePoweredByContainer={false}
-                          textInputProps={{
-                            value: `${ubication.userLocation.direction}`,
-                            cursorColor: '#486732',
-                            selectionColor: '#486732',
-                            placeholderTextColor: '#292929',
-                            editable: false,
-                          }}
-                          styles={{
-                            textInputContainer: {
-                              alignSelf: 'center',
-                              marginVertical: height * 0.01,
-                              width: width * 0.9,
-                              height: height * 0.07,
-                              borderWidth: 1,
-                              borderColor: '#F1F1F1',
-                              borderRadius: 8,
-                            },
-                            textInput: {
-                              height: '100%',
-                              fontSize: width * 0.04,
-                              fontFamily: 'Pro-Regular',
-                              color: 'black',
-                              backgroundColor: '#F1F1F1',
-                              paddingHorizontal: 16,
-                            },
-
-                            listView: {
-                              zIndex: 10,
-                            },
-                            description: { color: 'black' },
-                            separator: {
-                              height: 0.5,
-                            },
-                          }}
-                          onFail={(err) => console.error(err)}
-                          fetchDetails={true}
-                          // disableScroll={true}
-                          onPress={async (data, details) => {
-                            setUbication({
-                              ...ubication,
-                              marketLocation: {
-                                latitude: details?.geometry.location.lat,
-                                longitude: details?.geometry.location.lng,
-                              },
-                            });
-                          }}
-                          query={{
-                            key: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY,
-                            language: lang,
-                          }}
-                        /> */}
-                          <TextInput
-                            mode="outlined"
-                            placeholderTextColor="#292929"
-                            placeholder={t('detailField.fieldUbicationPlaceHolder')}
-                            value={ubication.userLocation.direction ?? ''}
-                            onChangeText={(value) =>
-                              handleInputChange('location', value)
-                            }
-                            editable={false}
-                            activeOutlineColor="transparent"
-                            outlineColor="#F1F1F1"
-                            cursorColor="#486732"
-                            selectionColor={
-                              Platform.OS == 'ios' ? '#486732' : '#486732'
-                            }
-                            selection={{ start: 0, end: 0 }}
-                            style={styles.input}
-                          />
-                        </View>
-
-                        <View
-                          key={key + index}
-                        >
-                          <MapView
-                            ref={mapRef}
-                            style={{ width: width * 0.9, height: 239 }}
-                            initialRegion={ubication.origin}
-                            region={{
-                              ...ubication.marketLocation,
-                              latitudeDelta: ubication.origin.latitudeDelta,
-                              longitudeDelta: ubication.origin.longitudeDelta,
-                            }}
-                          >
-                            <Marker
-                              draggable
-                              coordinate={ubication.marketLocation}
-                              onDragEnd={(e) => {
-                                onDragEndChange(e.nativeEvent.coordinate);
-                              }}
-                            />
-                          </MapView>
-                        </View>
-                      </View>
-                    );
-                  }
-
                   if (key === 'production_type') {
+                    // Solo renderizar el Selector si selectedValues está inicializado
+                    if (!selectedValues || Object.keys(selectedValues).length === 0) {
+                      return (
+                        <View key={key + index}>
+                          <Text style={styles.inputLabel}>{input.placeholder}</Text>
+                          <View style={{
+                            backgroundColor: colorScheme === 'dark' ? '#444444' : '#F1F1F1',
+                            borderRadius: 5,
+                            borderWidth: 1,
+                            borderColor: colorScheme === 'dark' ? '#555555' : '#EAEAEA',
+                            marginBottom: 10,
+                            padding: 2
+                          }}>
+                            <Text style={{
+                              fontFamily: 'Pro-Regular',
+                              color: colorScheme === 'dark' ? '#CCCCCC' : '#666666',
+                              backgroundColor: 'transparent',
+                              fontSize: 16,
+                              height: 40,
+                              paddingHorizontal: 8,
+                              textAlignVertical: 'center'
+                            }}>
+                              Cargando...
+                            </Text>
+                          </View>
+                        </View>
+                      );
+                    }
+                    
                     return (
                       <Selector
                         key={key + index}

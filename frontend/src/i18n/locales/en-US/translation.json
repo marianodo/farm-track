@@ -127,7 +127,7 @@
     "title": "Create and organize objects",
     "objectText": "Element list",
     "cancelButtonText": "Cancel",
-    "createButtonText": "Create",
+    "createButtonText": "Create elements to measure",
     "updateButtonText": "Update",
     "placeHolderModal": "Object name",
     "modalTitle": "New object",
@@ -205,7 +205,8 @@
     "penObjectSelectsPlaceHolder": "Selected objects",
     "updatePenTextButton": "Update pen",
     "editPenTextButton": "Edit pen",
-    "updatePenOkText": "Pen updated successfully."
+    "updatePenOkText": "Pen updated successfully.",
+    "existingPensTitle": "Existing Pens"
   },
   "reportsView": {
     "reportsText": "List of evaluations",
