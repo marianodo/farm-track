@@ -575,53 +575,33 @@ export default function HomeScreen() {
                       justifyContent: 'space-between',
                     }}
                   >
-                    <Text
-                      style={{
-                        textAlign: 'left',
-                        fontSize: 18,
-                        paddingLeft: 6,
-                        fontWeight: 'bold',
-                        fontFamily: 'Pro-Regular',
-                        color: '#000000',
-                      }}
-                    >
-                      {field.name}
-                    </Text>
-                    <View
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'row',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                        gap: rMS(6),
-                        marginBottom: rMS(12),
-
-                        width: rS(178),
-                      }}
-                    >
-                      {/* Usar componente Text como contenedor seguro para el icono */}
-                      <Text style={{ alignSelf: 'center' }}>
-                        <MaterialIcons 
-                          name="location-on" 
-                          size={18} 
-                          color={colorScheme === 'dark' ? '#FFFFFF' : '#486732'} 
-                        />
-                      </Text>
-                      <Text
+                                          <Text
                         style={{
-                          width: rS(158),
-                          color: colorScheme === 'dark' ? '#FFFFFF' : '#333333',
-                          backgroundColor: colorScheme === 'dark' ? 'rgba(0,0,0,0.5)' : undefined,
-                          paddingHorizontal: colorScheme === 'dark' ? 4 : 0,
-                          borderRadius: colorScheme === 'dark' ? 4 : 0
+                          textAlign: 'left',
+                          fontSize: 18,
+                          paddingLeft: 6,
+                          fontWeight: 'bold',
+                          fontFamily: 'Pro-Regular',
+                          color: '#000000',
                         }}
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
                       >
-                        {field.location}
+                        {field.name}
                       </Text>
+                      {field.installation && (
+                        <Text
+                          style={{
+                            textAlign: 'left',
+                            fontSize: 14,
+                            paddingLeft: 6,
+                            marginTop: rMS(2),
+                            fontFamily: 'Pro-Regular',
+                            color: '#666666',
+                          }}
+                        >
+                          {t(`installationText.${field.installation}`)}
+                        </Text>
+                      )}
                     </View>
-                  </View>
                   <View
                     style={{
                       width: rS(110),
