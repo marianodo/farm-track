@@ -53,12 +53,26 @@ export class VariableRepository {
         ]);
 
         for (const combination of uniqueCombinations) {
+          // Transformar el defaultValue para que coincida con la estructura esperada por custom_parameters
+          let customParameters = createdVariable.defaultValue;
+          
+          // Si es una variable categórica, transformar la estructura
+          if (createdVariable.type === 'CATEGORICAL') {
+            const defaultValue = createdVariable.defaultValue as any;
+            customParameters = {
+              value: {
+                categories: defaultValue.value.categories,
+                optimal_values: defaultValue.value.optimal_values || []
+              }
+            };
+          }
+          
           await transaction.tx.penVariableTypeOfObject.create({
             data: {
               penId: combination.penId,
               variableId: createdVariable.id,
               typeOfObjectId: typeOfObjectId,
-              custom_parameters: createdVariable.defaultValue,
+              custom_parameters: customParameters,
             },
           });
         }
@@ -92,12 +106,26 @@ export class VariableRepository {
           await this.findUniqueCombinations(type_of_object_ids);
 
         for (const combination of uniqueCombinations) {
+          // Transformar el defaultValue para que coincida con la estructura esperada por custom_parameters
+          let customParameters = newVariable.defaultValue;
+          
+          // Si es una variable categórica, transformar la estructura
+          if (newVariable.type === 'CATEGORICAL') {
+            const defaultValue = newVariable.defaultValue as any;
+            customParameters = {
+              value: {
+                categories: defaultValue.value.categories,
+                optimal_values: defaultValue.value.optimal_values || []
+              }
+            };
+          }
+          
           await this.db.penVariableTypeOfObject.create({
             data: {
               penId: combination.penId,
               variableId: newVariable.id,
               typeOfObjectId: combination.type_of_object_id,
-              custom_parameters: newVariable.defaultValue,
+              custom_parameters: customParameters,
             },
           });
         }

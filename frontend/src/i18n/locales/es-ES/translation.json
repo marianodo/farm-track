@@ -127,7 +127,7 @@
     "title": "Crea y organiza objetos",
     "objectText": "Lista de elementos",
     "cancelButtonText": "Cancelar",
-    "createButtonText": "Crear",
+    "createButtonText": "Crear elementos a medir",
     "updateButtonText": "Actualizar",
     "placeHolderModal": "Nombre del objeto",
     "modalTitle": "Nuevo objeto",
@@ -205,7 +205,8 @@
     "penObjectSelectsPlaceHolder": "Objetos seleccionados",
     "updatePenTextButton": "Actualizar corral",
     "editPenTextButton": "Editar pen",
-    "updatePenOkText": "Corral actualizado exitosamente."
+    "updatePenOkText": "Corral actualizado exitosamente.",
+    "existingPensTitle": "Corrales Existentes"
   },
   "reportsView": {
     "reportsText": "Lista de evaluaciones",
