@@ -87,6 +87,7 @@ export const en = {
   'footer.about': 'About us',
   'footer.careers': 'Careers',
   'footer.contact': 'Contact',
+  'footer.deleteAccount': 'Delete Account',
 
   // Language selector
   'language': 'Language',
@@ -102,5 +103,33 @@ export const en = {
   'login.loading': 'Logging in...',
   'login.noAccount': 'Don\'t have an account?',
   'login.register': 'Sign up',
-  'login.error': 'Please fill in all fields'
+  'login.error': 'Please fill in all fields',
+
+  // Delete Account Page
+  'deleteAccount.title': 'Delete Account',
+  'deleteAccount.subtitle': 'Information about the account deletion process',
+  'deleteAccount.sections.warning.title': 'Important Warning',
+  'deleteAccount.sections.warning.content': 'Account deletion is an irreversible process. Once completed, all your data will be permanently deleted and cannot be recovered.',
+  'deleteAccount.sections.whatHappens.title': 'What happens when you delete your account?',
+  'deleteAccount.sections.whatHappens.content': 'When you delete your account, the following will be permanently removed:',
+  'deleteAccount.sections.whatHappens.items.profile': 'Your user profile and personal information',
+  'deleteAccount.sections.whatHappens.items.fields': 'All your fields and establishments',
+  'deleteAccount.sections.whatHappens.items.measurements': 'All measurements and reports',
+  'deleteAccount.sections.whatHappens.items.data': 'All data associated with your account',
+  'deleteAccount.sections.process.title': 'Deletion Process',
+  'deleteAccount.sections.process.content': 'To protect your privacy and ensure you really want to delete your account, we follow a specific process:',
+  'deleteAccount.sections.process.items.contact': 'You must contact us directly by email',
+  'deleteAccount.sections.process.items.verification': 'We will verify your identity to confirm the request',
+  'deleteAccount.sections.process.items.confirmation': 'We will send you a confirmation before proceeding',
+  'deleteAccount.sections.process.items.deletion': 'We will permanently delete all your data',
+  'deleteAccount.sections.timeline.title': 'Processing Time',
+  'deleteAccount.sections.timeline.content': 'The account deletion process will be completed within the following timeframes:',
+  'deleteAccount.sections.timeline.items.response': 'Initial response: 24-48 business hours',
+  'deleteAccount.sections.timeline.items.verification': 'Identity verification: 1-2 business days',
+  'deleteAccount.sections.timeline.items.deletion': 'Complete deletion: 3-5 business days',
+  'deleteAccount.sections.contact.title': 'Contact for Deletion',
+  'deleteAccount.sections.contact.content': 'To request account deletion, contact one of our representatives:',
+  'deleteAccount.additionalInfo.title': 'Additional Information',
+  'deleteAccount.additionalInfo.content': 'If you have any questions about the account deletion process or need help, please don\'t hesitate to contact us. We are here to help you.',
+  'deleteAccount.additionalInfo.note': 'Note: This process is irreversible. Make sure to backup any important information before requesting deletion.'
 };

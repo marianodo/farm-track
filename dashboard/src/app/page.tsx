@@ -722,7 +722,8 @@ export default function LandingPage() {
                 <h3 className="text-lg font-semibold mb-4">Legal</h3>
                 <ul className="space-y-2">
                   <li><a href="#" className="text-gray-400 hover:text-white">Términos</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">Privacidad</a></li>
+                  <li><a href="/privacy-policy" className="text-gray-400 hover:text-white">Privacidad</a></li>
+                  <li><a href="/delete-account" className="text-gray-400 hover:text-white">{t('footer.deleteAccount')}</a></li>
                 </ul>
               </div>
             </div>

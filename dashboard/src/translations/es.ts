@@ -84,6 +84,7 @@ export const es = {
   'footer.about': 'Sobre nosotros',
   'footer.careers': 'Carreras',
   'footer.contact': 'Contacto',
+  'footer.deleteAccount': 'Eliminar Cuenta',
 
   // Language selector
   'language': 'Idioma',
@@ -98,6 +99,34 @@ export const es = {
   'login.button': 'Iniciar sesión',
   'login.loading': 'Iniciando sesión...',
   'login.noAccount': '¿No tienes una cuenta?',
+
+  // Delete Account Page
+  'deleteAccount.title': 'Eliminar Cuenta',
+  'deleteAccount.subtitle': 'Información sobre el proceso de eliminación de cuenta',
+  'deleteAccount.sections.warning.title': 'Advertencia Importante',
+  'deleteAccount.sections.warning.content': 'La eliminación de tu cuenta es un proceso irreversible. Una vez completado, todos tus datos serán eliminados permanentemente y no podrán ser recuperados.',
+  'deleteAccount.sections.whatHappens.title': '¿Qué sucede cuando eliminas tu cuenta?',
+  'deleteAccount.sections.whatHappens.content': 'Al eliminar tu cuenta, se eliminarán permanentemente:',
+  'deleteAccount.sections.whatHappens.items.profile': 'Tu perfil de usuario y información personal',
+  'deleteAccount.sections.whatHappens.items.fields': 'Todos tus campos y establecimientos',
+  'deleteAccount.sections.whatHappens.items.measurements': 'Todas las mediciones y reportes',
+  'deleteAccount.sections.whatHappens.items.data': 'Todos los datos asociados a tu cuenta',
+  'deleteAccount.sections.process.title': 'Proceso de Eliminación',
+  'deleteAccount.sections.process.content': 'Para proteger tu privacidad y asegurar que realmente deseas eliminar tu cuenta, seguimos un proceso específico:',
+  'deleteAccount.sections.process.items.contact': 'Debes contactarnos directamente por correo electrónico',
+  'deleteAccount.sections.process.items.verification': 'Verificaremos tu identidad para confirmar la solicitud',
+  'deleteAccount.sections.process.items.confirmation': 'Te enviaremos una confirmación antes de proceder',
+  'deleteAccount.sections.process.items.deletion': 'Eliminaremos todos tus datos de forma permanente',
+  'deleteAccount.sections.timeline.title': 'Tiempo de Procesamiento',
+  'deleteAccount.sections.timeline.content': 'El proceso de eliminación de cuenta se completará dentro de los siguientes plazos:',
+  'deleteAccount.sections.timeline.items.response': 'Respuesta inicial: 24-48 horas hábiles',
+  'deleteAccount.sections.timeline.items.verification': 'Verificación de identidad: 1-2 días hábiles',
+  'deleteAccount.sections.timeline.items.deletion': 'Eliminación completa: 3-5 días hábiles',
+  'deleteAccount.sections.contact.title': 'Contacto para Eliminación',
+  'deleteAccount.sections.contact.content': 'Para solicitar la eliminación de tu cuenta, contacta a uno de nuestros representantes:',
+  'deleteAccount.additionalInfo.title': 'Información Adicional',
+  'deleteAccount.additionalInfo.content': 'Si tienes alguna pregunta sobre el proceso de eliminación de cuenta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ayudarte.',
+  'deleteAccount.additionalInfo.note': 'Nota: Este proceso es irreversible. Asegúrate de hacer una copia de seguridad de cualquier información importante antes de solicitar la eliminación.'
   'login.register': 'Regístrate',
   'login.error': 'Por favor complete todos los campos'
 };
