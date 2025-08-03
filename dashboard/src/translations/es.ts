@@ -126,7 +126,7 @@ export const es = {
   'deleteAccount.sections.contact.content': 'Para solicitar la eliminación de tu cuenta, contacta a uno de nuestros representantes:',
   'deleteAccount.additionalInfo.title': 'Información Adicional',
   'deleteAccount.additionalInfo.content': 'Si tienes alguna pregunta sobre el proceso de eliminación de cuenta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ayudarte.',
-  'deleteAccount.additionalInfo.note': 'Nota: Este proceso es irreversible. Asegúrate de hacer una copia de seguridad de cualquier información importante antes de solicitar la eliminación.'
+  'deleteAccount.additionalInfo.note': 'Nota: Este proceso es irreversible. Asegúrate de hacer una copia de seguridad de cualquier información importante antes de solicitar la eliminación.',
   'login.register': 'Regístrate',
   'login.error': 'Por favor complete todos los campos'
 };
