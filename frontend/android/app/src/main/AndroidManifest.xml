@@ -30,7 +30,6 @@
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="myapp"/>
-        <data android:scheme="com.bdmetrics.measureme"/>
         <data android:scheme="exp+farm-track"/>
       </intent-filter>
     </activity>

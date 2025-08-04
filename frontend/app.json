@@ -4,20 +4,20 @@
     "slug": "farm-track",
     "version": "1.0.12",
     "orientation": "portrait",
-    "icon": "./assets/images/main-icon.png",
+    "icon": "./assets/images/icon.jpeg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": ["**/*"],
     "splash": {
-      "image": "./assets/images/main-icon.png",
+      "image": "./assets/images/splash-bd-metrics.jpeg",
       "resizeMode": "cover",
       "backgroundColor": "#000000"
     },
     "newArchEnabled": true,
     "ios": {
-      "icon": "./assets/images/main-icon.png",
+      "icon": "./assets/images/icon.jpeg",
       "splash": {
-        "image": "./assets/images/main-icon.png",
+        "image": "./assets/images/splash-bd-metrics.jpeg",
         "resizeMode": "cover",
         "backgroundColor": "#000000"
       },
@@ -26,9 +26,9 @@
       "runtimeVersion": "1.0.1"
     },
     "android": {
-      "icon": "./assets/images/main-icon.png",
+      "icon": "./assets/images/icon.jpeg",
       "splash": {
-        "image": "./assets/images/main-icon.png",
+        "image": "./assets/images/splash-bd-metrics.jpeg",
         "resizeMode": "cover",
         "backgroundColor": "#000000"
       },
@@ -38,8 +38,8 @@
         }
       },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/main-icon.png",
-        "backgroundImage": "./assets/images/main-icon.png",
+        "foregroundImage": "./assets/images/icon.jpeg",
+        "backgroundImage": "./assets/images/icon.jpeg",
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",

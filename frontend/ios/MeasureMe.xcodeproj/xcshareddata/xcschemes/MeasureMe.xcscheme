@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "farmproject.app"
-               BlueprintName = "farmproject"
-               ReferencedContainer = "container:farmproject.xcodeproj">
+               BuildableName = "MeasureMe.app"
+               BlueprintName = "MeasureMe"
+               ReferencedContainer = "container:MeasureMe.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "farmprojectTests.xctest"
-               BlueprintName = "farmprojectTests"
-               ReferencedContainer = "container:farmproject.xcodeproj">
+               BuildableName = "MeasureMeTests.xctest"
+               BlueprintName = "MeasureMeTests"
+               ReferencedContainer = "container:MeasureMe.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "farmproject.app"
-            BlueprintName = "farmproject"
-            ReferencedContainer = "container:farmproject.xcodeproj">
+            BuildableName = "MeasureMe.app"
+            BlueprintName = "MeasureMe"
+            ReferencedContainer = "container:MeasureMe.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "farmproject.app"
-            BlueprintName = "farmproject"
-            ReferencedContainer = "container:farmproject.xcodeproj">
+            BuildableName = "MeasureMe.app"
+            BlueprintName = "MeasureMe"
+            ReferencedContainer = "container:MeasureMe.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
