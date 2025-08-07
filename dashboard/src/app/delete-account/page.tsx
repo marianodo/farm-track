@@ -1,12 +1,12 @@
 "use client"
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 import Navbar from '@/components/layout/Navbar';
 import { Mail, AlertTriangle, UserX, Shield, Clock, FileText } from 'lucide-react';
 
 const DeleteAccount = () => {
-    const { t } = useTranslation();
+    const { t } = useLanguage();
 
     const contacts = [
         {
@@ -26,46 +26,46 @@ const DeleteAccount = () => {
     const sections = [
         {
             icon: <AlertTriangle className="w-6 h-6 text-red-600" />,
-            title: t('deleteAccount.sections.warning.title', 'Advertencia Importante'),
-            content: t('deleteAccount.sections.warning.content', 'La eliminación de tu cuenta es un proceso irreversible. Una vez completado, todos tus datos serán eliminados permanentemente y no podrán ser recuperados.'),
+            title: t('deleteAccount.sections.warning.title'),
+            content: t('deleteAccount.sections.warning.content'),
             type: 'warning'
         },
         {
             icon: <UserX className="w-6 h-6 text-gray-600" />,
-            title: t('deleteAccount.sections.whatHappens.title', '¿Qué sucede cuando eliminas tu cuenta?'),
-            content: t('deleteAccount.sections.whatHappens.content', 'Al eliminar tu cuenta, se eliminarán permanentemente:'),
+            title: t('deleteAccount.sections.whatHappens.title'),
+            content: t('deleteAccount.sections.whatHappens.content'),
             list: [
-                t('deleteAccount.sections.whatHappens.items.profile', 'Tu perfil de usuario y información personal'),
-                t('deleteAccount.sections.whatHappens.items.fields', 'Todos tus campos y establecimientos'),
-                t('deleteAccount.sections.whatHappens.items.measurements', 'Todas las mediciones y reportes'),
-                t('deleteAccount.sections.whatHappens.items.data', 'Todos los datos asociados a tu cuenta')
+                t('deleteAccount.sections.whatHappens.items.profile'),
+                t('deleteAccount.sections.whatHappens.items.fields'),
+                t('deleteAccount.sections.whatHappens.items.measurements'),
+                t('deleteAccount.sections.whatHappens.items.data')
             ]
         },
         {
             icon: <Shield className="w-6 h-6 text-green-600" />,
-            title: t('deleteAccount.sections.process.title', 'Proceso de Eliminación'),
-            content: t('deleteAccount.sections.process.content', 'Para proteger tu privacidad y asegurar que realmente deseas eliminar tu cuenta, seguimos un proceso específico:'),
+            title: t('deleteAccount.sections.process.title'),
+            content: t('deleteAccount.sections.process.content'),
             list: [
-                t('deleteAccount.sections.process.items.contact', 'Debes contactarnos directamente por correo electrónico'),
-                t('deleteAccount.sections.process.items.verification', 'Verificaremos tu identidad para confirmar la solicitud'),
-                t('deleteAccount.sections.process.items.confirmation', 'Te enviaremos una confirmación antes de proceder'),
-                t('deleteAccount.sections.process.items.deletion', 'Eliminaremos todos tus datos de forma permanente')
+                t('deleteAccount.sections.process.items.contact'),
+                t('deleteAccount.sections.process.items.verification'),
+                t('deleteAccount.sections.process.items.confirmation'),
+                t('deleteAccount.sections.process.items.deletion')
             ]
         },
         {
             icon: <Clock className="w-6 h-6 text-blue-600" />,
-            title: t('deleteAccount.sections.timeline.title', 'Tiempo de Procesamiento'),
-            content: t('deleteAccount.sections.timeline.content', 'El proceso de eliminación de cuenta se completará dentro de los siguientes plazos:'),
+            title: t('deleteAccount.sections.timeline.title'),
+            content: t('deleteAccount.sections.timeline.content'),
             list: [
-                t('deleteAccount.sections.timeline.items.response', 'Respuesta inicial: 24-48 horas hábiles'),
-                t('deleteAccount.sections.timeline.items.verification', 'Verificación de identidad: 1-2 días hábiles'),
-                t('deleteAccount.sections.timeline.items.deletion', 'Eliminación completa: 3-5 días hábiles')
+                t('deleteAccount.sections.timeline.items.response'),
+                t('deleteAccount.sections.timeline.items.verification'),
+                t('deleteAccount.sections.timeline.items.deletion')
             ]
         },
         {
             icon: <Mail className="w-6 h-6 text-green-600" />,
-            title: t('deleteAccount.sections.contact.title', 'Contacto para Eliminación'),
-            content: t('deleteAccount.sections.contact.content', 'Para solicitar la eliminación de tu cuenta, contacta a uno de nuestros representantes:'),
+            title: t('deleteAccount.sections.contact.title'),
+            content: t('deleteAccount.sections.contact.content'),
             contacts: contacts
         }
     ];
@@ -79,10 +79,10 @@ const DeleteAccount = () => {
                     {/* Header */}
                     <div className="text-center mb-12">
                         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                            {t('deleteAccount.title', 'Eliminar Cuenta')}
+                            {t('deleteAccount.title')}
                         </h1>
                         <p className="text-lg text-gray-600">
-                            {t('deleteAccount.subtitle', 'Información sobre el proceso de eliminación de cuenta')}
+                            {t('deleteAccount.subtitle')}
                         </p>
                     </div>
 
@@ -172,13 +172,13 @@ const DeleteAccount = () => {
                     {/* Additional Information */}
                     <div className="mt-12 bg-blue-50 border border-blue-200 rounded-xl p-6">
                         <h3 className="text-xl font-semibold text-blue-900 mb-3">
-                            {t('deleteAccount.additionalInfo.title', 'Información Adicional')}
+                            {t('deleteAccount.additionalInfo.title')}
                         </h3>
                         <p className="text-blue-800 mb-3">
-                            {t('deleteAccount.additionalInfo.content', 'Si tienes alguna pregunta sobre el proceso de eliminación de cuenta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ayudarte.')}
+                            {t('deleteAccount.additionalInfo.content')}
                         </p>
                         <p className="text-blue-800">
-                            {t('deleteAccount.additionalInfo.note', 'Nota: Este proceso es irreversible. Asegúrate de hacer una copia de seguridad de cualquier información importante antes de solicitar la eliminación.')}
+                            {t('deleteAccount.additionalInfo.note')}
                         </p>
                     </div>
                 </div>
@@ -188,7 +188,7 @@ const DeleteAccount = () => {
             <footer className="bg-white border-t border-gray-100 py-8">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     <p className="text-gray-600">
-                        {t('footer.copyright', 'MeasureMe. Todos los derechos reservados.')}
+                        {t('footer.copyright')}
                     </p>
                 </div>
             </footer>

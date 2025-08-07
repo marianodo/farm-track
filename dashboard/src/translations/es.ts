@@ -127,6 +127,27 @@ export const es = {
   'deleteAccount.additionalInfo.title': 'Información Adicional',
   'deleteAccount.additionalInfo.content': 'Si tienes alguna pregunta sobre el proceso de eliminación de cuenta o necesitas ayuda, no dudes en contactarnos. Estamos aquí para ayudarte.',
   'deleteAccount.additionalInfo.note': 'Nota: Este proceso es irreversible. Asegúrate de hacer una copia de seguridad de cualquier información importante antes de solicitar la eliminación.',
+  
+  // Delete Guide Page
+  'deleteGuide.title': 'Guía: Cómo Eliminar tus Datos',
+  'deleteGuide.subtitle': 'Sigue estos sencillos pasos para eliminar todos tus datos de la aplicación MeasureMe de forma permanente.',
+  'deleteGuide.warning.title': 'Advertencia Importante',
+  'deleteGuide.warning.content': 'Antes de proceder, ten en cuenta lo siguiente:',
+  'deleteGuide.warning.items.irreversible': 'Esta acción es irreversible y eliminará todos tus datos permanentemente',
+  'deleteGuide.warning.items.allData': 'Se eliminarán todos los campos, mediciones, reportes y configuraciones',
+  'deleteGuide.warning.items.backup': 'Asegúrate de hacer una copia de seguridad de cualquier información importante',
+  'deleteGuide.stepsTitle': 'Pasos para Eliminar tus Datos',
+  'deleteGuide.steps.step1.title': 'Abrir el Menú de Usuario',
+  'deleteGuide.steps.step1.description': 'En la pantalla principal de la aplicación, toca el ícono de perfil en la esquina superior izquierda para abrir el menú desplegable con las opciones de tu cuenta.',
+  'deleteGuide.steps.step2.title': 'Seleccionar "Delete data"',
+  'deleteGuide.steps.step2.description': 'En el menú desplegable, busca y selecciona la opción "Delete data" (Eliminar datos). Esta opción se encuentra entre las opciones de configuración de tu cuenta.',
+  'deleteGuide.steps.step3.title': 'Confirmar la Eliminación',
+  'deleteGuide.steps.step3.description': 'Aparecerá una ventana de confirmación preguntando si estás seguro de que quieres eliminar todos los datos. Lee cuidadosamente el mensaje y toca "Delete" para confirmar la acción.',
+  'deleteGuide.imagePlaceholder': 'Captura de pantalla del paso',
+  'deleteGuide.additionalInfo.title': 'Información Adicional',
+  'deleteGuide.additionalInfo.content': 'Una vez que confirmes la eliminación, todos tus datos serán removidos permanentemente de nuestros servidores. Este proceso no se puede deshacer.',
+  'deleteGuide.additionalInfo.support': 'Si tienes alguna pregunta o necesitas ayuda, puedes contactar a nuestro equipo de soporte antes de proceder con la eliminación.',
+  
   'login.register': 'Regístrate',
   'login.error': 'Por favor complete todos los campos'
 };
