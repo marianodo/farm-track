@@ -39,7 +39,6 @@
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.jpeg",
-        "backgroundImage": "./assets/images/icon.jpeg",
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
@@ -62,7 +61,16 @@
           "android": {
             "usesCleartextTraffic": true,
             "compileSdkVersion": 35,
-            "targetSdkVersion": 35
+            "targetSdkVersion": 35,
+            "edgeToEdgeEnabled": true
+          }
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "android": {
+            "splashScreenRound": false
           }
         }
       ],
