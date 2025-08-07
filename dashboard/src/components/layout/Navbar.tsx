@@ -1,12 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Sprout } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import LanguageSelector from '@/components/ui/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import Link from 'next/link';
 
 const Navbar = () => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   return (
     <nav className="w-full bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm py-4 border-b border-gray-100 dark:border-gray-800 fixed top-0 left-0 right-0 z-50">
@@ -19,9 +19,9 @@ const Navbar = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('navbar.features')}</a>
-          <a href="#benefits" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('navbar.benefits')}</a>
-          <a href="#metrics" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('navbar.metrics')}</a>
+          <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('nav.features')}</a>
+          <a href="#analytics" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('nav.analytics')}</a>
+          <a href="#pricing" className="text-gray-600 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-500 transition-colors">{t('nav.pricing')}</a>
         </div>
 
         <div className="flex items-center space-x-4">
@@ -32,7 +32,7 @@ const Navbar = () => {
               variant="outline"
               className="hidden md:inline-flex border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 cursor-pointer"
             >
-              {t('navbar.login')}
+              {t('nav.login')}
             </Button>
           </Link>
 
@@ -40,7 +40,7 @@ const Navbar = () => {
             <Button
               className="bg-green-600 hover:bg-green-700 text-white cursor-pointer"
             >
-              {t('navbar.getStarted')}
+              {t('nav.register')}
             </Button>
           </Link>
         </div>

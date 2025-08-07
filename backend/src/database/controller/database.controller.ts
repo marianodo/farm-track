@@ -6,12 +6,14 @@ import {
   Param,
 } from '@nestjs/common';
 import { DatabaseService } from '../service/database.service';
+import { Public } from '../../auth/decorator/public.decorator';
 
 @Controller('database')
 export class DatabaseController {
   constructor(private readonly databaseService: DatabaseService) {}
 
   @Delete('userData/:userId')
+  @Public()
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUserData(@Param('userId') userId: string) {
     try {
