@@ -276,6 +276,7 @@ const CreateMeasurement: React.FC = () => {
           },
         ];
       }
+      
       if (
         showWarningError &&
         errorsName.length > 0 &&
@@ -321,6 +322,16 @@ const CreateMeasurement: React.FC = () => {
           },
         ];
       }
+
+      // Botones por defecto para otros casos del modal
+      return [
+        {
+          text: 'Cancelar',
+          onPress: () => {
+            setModalVisible(null);
+          },
+        },
+      ];
     } catch (error) {
       saveLog('Error en getModalButtons', {
         error: error?.toString(),
@@ -329,12 +340,25 @@ const CreateMeasurement: React.FC = () => {
         errorsName,
         values
       }, 'error');
+      
+      // Retorno por defecto en caso de error
+      return [
+        {
+          text: 'OK',
+          onPress: () => {
+            setModalVisible(null);
+          },
+        },
+      ];
     }
   };
 
   const handleSubmit = async () => {
     try {
       const validationErrors = await validateValues();
+
+      // Actualizar errorsName con los errores de validación
+      setErrorsName(validationErrors);
 
       if (
         validationErrors.length > 0 &&
@@ -347,6 +371,19 @@ const CreateMeasurement: React.FC = () => {
         }, 'error');
         let title = 'Debes completar al menos un campo para guardar una medición.';
         let subtitle = '';
+        setTexts({ title, subtitle });
+        setModalVisible('modal');
+        return;
+      }
+
+      // Si hay errores pero no todos los campos están vacíos, mostrar modal de advertencia
+      if (
+        validationErrors.length > 0 &&
+        validationErrors.length < measurementVariablesData.length &&
+        showWarningError
+      ) {
+        let title = 'Algunos campos no están completados';
+        let subtitle = '¿Deseas continuar sin completar todos los campos?';
         setTexts({ title, subtitle });
         setModalVisible('modal');
         return;

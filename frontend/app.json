@@ -2,52 +2,28 @@
   "expo": {
     "name": "Measure Me",
     "slug": "farm-track",
-    "version": "1.0.12",
+    "version": "1.0.13",
     "orientation": "portrait",
-    "icon": "./assets/images/main-icon.png",
+    "icon": "./assets/images/icon.jpeg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": ["**/*"],
     "splash": {
-      "image": "./assets/images/main-icon.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#000000"
+      "image": "./assets/images/splash-bd-metrics.jpeg",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
     },
     "newArchEnabled": true,
     "ios": {
-      "icon": "./assets/images/main-icon.png",
-      "splash": {
-        "image": "./assets/images/main-icon.png",
-        "resizeMode": "cover",
-        "backgroundColor": "#000000"
-      },
       "supportsTablet": true,
       "bundleIdentifier": "com.bdmetrics.measureme",
       "runtimeVersion": "1.0.1"
     },
     "android": {
-      "icon": "./assets/images/main-icon.png",
-      "splash": {
-        "image": "./assets/images/main-icon.png",
-        "resizeMode": "cover",
-        "backgroundColor": "#000000"
-      },
-      "config": {
-        "googleMaps": {
-          "apiKey": "process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY"
-        }
-      },
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/main-icon.png",
-        "backgroundImage": "./assets/images/main-icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.bdmetrics.measureme",
       "versionCode": 3,
-      "runtimeVersion": "1.0.1",
-      "compileSdkVersion": 35,
-      "targetSdkVersion": 35
+      "runtimeVersion": "1.0.1"
     },
     "web": {
       "bundler": "metro",
@@ -74,6 +50,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "expoPublicGooglePlacesApiKey": "process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY",
       "router": {
         "origin": false
       },
