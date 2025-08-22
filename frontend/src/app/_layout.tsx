@@ -20,6 +20,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import useAuthStore from '@/store/authStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NetworkIndicator } from '@/components/NetworkIndicator';
+import OfflineIndicator from '@/components/OfflineIndicator';
 
 // SplashScreen.preventAutoHideAsync();
 const StackLayout = () => {
@@ -62,8 +63,9 @@ const StackLayout = () => {
               <Stack.Screen name="+not-found" />
             </Stack>
             
-            {/* Indicador de red global */}
+            {/* Indicadores globales */}
             <NetworkIndicator />
+            <OfflineIndicator />
           </SafeAreaView>
         </PaperProvider>
       </ThemeProvider>

@@ -354,9 +354,45 @@ const useReportStore = create<ReportState>((set) => ({
     set({ reportsLoading: true });
     
     try {
-      await useReportStore.getState().retryWithBackoff(async () => {
-        return await axiosInstance.post('/measurements', data);
-      });
+      // Importar dinámicamente las funciones offline
+      const { addMeasurementToQueue, isOnline } = await import('../offline/measurementQueue');
+      const { default: useOfflineStore } = await import('./offlineStore');
+      
+      // Verificar conectividad
+      const online = await isOnline();
+      
+      if (!online) {
+        // MODO OFFLINE: Agregar grupo de mediciones a la cola
+        console.log('📴 Offline mode: adding measurement group to queue');
+        
+        try {
+          await addMeasurementToQueue({
+            name: data.name,
+            type_of_object_id: data.type_of_object_id,
+            field_id: data.field_id,
+            measurements: data.measurements
+          });
+          
+          // Actualizar contador
+          const { getQueueCount } = await import('../offline/measurementQueue');
+          const count = await getQueueCount();
+          useOfflineStore.getState().setPendingCount(count);
+          
+          console.log(`✅ Measurement group with ${data.measurements.length} measurements added to offline queue`);
+          set({ reportsLoading: false });
+          return;
+          
+        } catch (offlineError) {
+          console.error('❌ Error saving measurement offline:', offlineError);
+          set({ reportsLoading: false });
+          throw new Error('Error al guardar la medición offline: ' + offlineError.message);
+        }
+      }
+      
+      // MODO ONLINE: Usar el endpoint original
+      console.log('🌐 Online mode: sending measurements to /measurements');
+      
+      await axiosInstance.post('/measurements', data);
       
       await invalidateCachePattern(CACHE_CONFIGS.reports.key);
       await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
@@ -365,7 +401,7 @@ const useReportStore = create<ReportState>((set) => ({
       set({ reportsLoading: false });
 
     } catch (error: any) {
-      await saveLog('Store: Error final en createMeasurementWithReportId después de todos los reintentos', {
+      await saveLog('Store: Error en createMeasurementWithReportId', {
         error: error?.toString(),
         errorMessage: error?.message,
         errorResponse: error?.response?.data,
@@ -383,7 +419,7 @@ const useReportStore = create<ReportState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error creating measurement with report id after retries');
+        throw new Error('Error creating measurement');
       }
     }
   },
