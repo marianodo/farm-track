@@ -3,6 +3,7 @@ import { axiosInstance } from './authStore';
 import MeasurementStats from './interface/measurementStats.interface';
 import useFieldStore from './fieldStore';
 import { CACHE_CONFIGS, getCacheData, setCacheData } from '../utils/cache';
+import NetInfo from '@react-native-community/netinfo';
 
 interface MeasurementStatsStore {
   stats: MeasurementStats | null;
@@ -130,7 +131,25 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
       set({ statsByField: response.data, statsLoading: false, isFromCache: false });
     } catch (error) {
       set({ statsLoading: false });
-      console.error('Error fetching stats by field:', error);
+      
+      // Verificar si hay conexión a internet
+      const netInfo = await NetInfo.fetch();
+      if (!netInfo.isConnected) {
+        console.log('📴 Offline: Cannot fetch stats by field');
+        // En modo offline, usar estadísticas vacías o del caché
+        const cachedStats = await getCacheData<MeasurementStats>(cacheKey);
+        if (cachedStats) {
+          set({ statsByField: cachedStats, isFromCache: true });
+        }
+        return;
+      }
+      
+      // Si hay conexión, loggear el error completo
+      console.error('Error fetching stats by field:', error?.message || error);
+      if (error?.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     }
   },
   getStatsByReport: async (reportId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen, forceRefresh = false) => {
