@@ -264,6 +264,28 @@ const useReportStore = create<ReportState>((set) => ({
         set({ reportById: response.data, reportsLoading: false, isFromCache: false });
       }
     } catch (error: any) {
+      set({ reportsLoading: false });
+      
+      // Verificar si hay conexión a internet
+      const NetInfo = await import('@react-native-community/netinfo');
+      const netInfo = await NetInfo.default.fetch();
+      if (!netInfo.isConnected) {
+        console.log('📴 Offline: Cannot fetch report by id');
+        // En modo offline, intentar usar caché aunque no hayamos hecho forceRefresh
+        if (id) {
+          const cacheKey = `${CACHE_CONFIGS.reportById.key}_${id}`;
+          const cachedReport = await getCacheData<ReportWithMeasurements2[]>(cacheKey);
+          if (cachedReport) {
+            set({ reportById: cachedReport, isFromCache: true });
+            return;
+          }
+        }
+        // Si no hay caché, no mostrar error - simplemente mantener estado vacío
+        console.log('📴 No cached data available for report offline');
+        return;
+      }
+      
+      // Si hay conexión, loggear el error
       await saveLog('Store: Error en getReportById', {
         error: error?.toString(),
         errorMessage: error?.message,
@@ -271,7 +293,6 @@ const useReportStore = create<ReportState>((set) => ({
         errorStatus: error?.response?.status,
         id
       }, 'error');
-      set({ reportsLoading: false });
     }
   },
   resetDetail: () => {
