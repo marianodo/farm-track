@@ -20,6 +20,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import useAuthStore from '@/store/authStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NetworkIndicator } from '@/components/NetworkIndicator';
+import OfflineIndicator from '@/components/OfflineIndicator';
+import WarmupIndicator from '@/components/WarmupIndicator';
+import { warmUpData, warmUpMeasurementData } from '@/offline/warmup';
 
 // SplashScreen.preventAutoHideAsync();
 const StackLayout = () => {
@@ -62,8 +65,10 @@ const StackLayout = () => {
               <Stack.Screen name="+not-found" />
             </Stack>
             
-            {/* Indicador de red global */}
+            {/* Indicadores globales */}
             <NetworkIndicator />
+            <OfflineIndicator />
+            <WarmupIndicator />
           </SafeAreaView>
         </PaperProvider>
       </ThemeProvider>
@@ -72,6 +77,30 @@ const StackLayout = () => {
 };
 
 export default function RootLayout() {
+  const { authenticated, userId } = useAuthStore((state) => ({
+    authenticated: state.authenticated,
+    userId: state.userId,
+  }));
+
+  // Warm-up después del login exitoso
+  useEffect(() => {
+    if (authenticated && userId) {
+      console.log('🔥 Starting warm-up after successful login...');
+      
+      // Ejecutar ambos warm-ups en paralelo
+      Promise.all([
+        warmUpData().catch(e => console.error('❌ Error in warmUpData:', e)),
+        warmUpMeasurementData().catch(e => console.error('❌ Error in warmUpMeasurementData:', e))
+      ])
+      .then(() => {
+        console.log('✅ Warm-up completed successfully');
+      })
+      .catch(e => {
+        console.error('❌ Error during warm-up:', e);
+      });
+    }
+  }, [authenticated, userId]);
+
   return (
     <SafeAreaProvider>
       <StackLayout />

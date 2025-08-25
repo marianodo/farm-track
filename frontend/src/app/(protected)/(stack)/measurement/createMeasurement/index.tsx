@@ -31,6 +31,7 @@ import useMeasurementStatsStore from '@/store/measurementStatsStore';
 import useFieldStore from '@/store/fieldStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveLog } from '@/utils/logger';
+import { isOnline } from '@/offline/measurementQueue';
 const { width, height } = Dimensions.get('window');
 
 export type NumericValue = {
@@ -200,8 +201,19 @@ const CreateMeasurement: React.FC = () => {
 
       await createMeasurementWithReportId(newMeasurement, fieldId as string);
 
+      // Refrescar estadísticas solo si está online (en offline ya se maneja internamente)
+      saveLog('DEBUG', {
+        message: "Verificando conectividad",
+      }, 'general');
+      const online = await isOnline();
+      if (online) {
+        await getStatsByField(fieldId, null, null, null, null, null, true, true); // true = forceRefresh
+      } else {
+        // En modo offline, incrementar el contador manualmente ya que las estadísticas no se actualizan
+        setMeasurementCount((prevCount: any) => prevCount + 1);
+      }
+
       setSliderVal(null);
-      setMeasurementCount((prevCount: any) => prevCount + 1);
       setFirstRender(false);
       setModalVisible('success');
 
@@ -574,10 +586,18 @@ const CreateMeasurement: React.FC = () => {
     }));
   };
 
+  // Cargar estadísticas al montar el componente
   useEffect(() => {
-    setMeasurementCount(statsByField?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] ?
-      statsByField.measurement_by_report[`${reportNameFind}`][`${penName}`][`${typeOfObjectName}`] + 1 : 1);
-  }, []);
+    if (fieldId) {
+      getStatsByField(fieldId, null, null, null, null, null, true, false); // false = no force refresh
+    }
+  }, [fieldId, getStatsByField]);
+
+  useEffect(() => {
+    // Calcular el contador basado en la cantidad de subjects únicos existentes en el reporte
+    const currentSubjectCount = statsByField?.measurement_by_report?.[`${reportNameFind}`]?.[`${penName}`]?.[`${typeOfObjectName}`] || 0;
+    setMeasurementCount(currentSubjectCount + 1);
+  }, [statsByField, reportNameFind, penName, typeOfObjectName]);
 
 
   useEffect(() => {
