@@ -6,6 +6,7 @@ import { getQueueCount, processQueue, clearQueue } from '../offline/measurementQ
 import useReportStore from '../store/reportStore';
 import useMeasurementStatsStore from '../store/measurementStatsStore';
 import useFieldStore from '../store/fieldStore';
+import { invalidateCachePattern } from '../utils/cache';
 
 const OfflineIndicator: React.FC = () => {
   const { 
@@ -55,10 +56,79 @@ const OfflineIndicator: React.FC = () => {
       if (result.success > 0) {
         console.log('🔄 Refreshing reports and stats after successful sync...');
         if (fieldId) {
-          // Refrescar reportes 
-          await getAllReportsByField(fieldId, true); // true = forceRefresh
-          // Refrescar estadísticas
-          await getStatsByField(fieldId, null, null, null, null, null, true, true); // true = forceRefresh
+          try {
+            // 1. Invalidar caché de reportes y mediciones (con timeout)
+            console.log('🔄 Step 1: Invalidating cache...');
+            
+            const cacheTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Cache invalidation timeout')), 10000); // 10 segundos
+            });
+            
+            await Promise.race([
+              Promise.all([
+                invalidateCachePattern('cache_reports'),
+                invalidateCachePattern('cache_report_by_id')
+              ]),
+              cacheTimeout
+            ]);
+            
+            console.log('✅ Cache invalidated');
+            
+            // 2. Refrescar reportes del campo (con timeout)
+            console.log('🔄 Step 2: Refreshing reports...');
+            const reportsTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Reports refresh timeout')), 15000); // 15 segundos
+            });
+            
+            await Promise.race([
+              getAllReportsByField(fieldId, true), // true = forceRefresh
+              reportsTimeout
+            ]);
+            console.log('✅ Reports refreshed');
+            
+            // 3. Refrescar estadísticas del campo (con timeout)
+            console.log('🔄 Step 3: Refreshing stats...');
+            const statsTimeout = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error('Stats refresh timeout')), 15000); // 15 segundos
+            });
+            
+            await Promise.race([
+              getStatsByField(fieldId, true, true, true, true, true, true, true), // true = forceRefresh
+              statsTimeout
+            ]);
+            console.log('✅ Stats refreshed');
+            
+            // 4. Si hay un reporte abierto, refrescarlo también (con timeout)
+            console.log('🔄 Step 4: Checking for open report...');
+            const currentReportId = useReportStore.getState().reportById?.[0]?.id;
+            
+            if (currentReportId) {
+              console.log(`🔄 Refreshing current report ${currentReportId}...`);
+              const reportTimeout = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Report refresh timeout')), 15000); // 15 segundos
+              });
+              
+              await Promise.race([
+                useReportStore.getState().getReportById(currentReportId, undefined, true),
+                reportTimeout
+              ]);
+              console.log('✅ Current report refreshed');
+            } else {
+              console.log('ℹ️ No open report to refresh');
+            }
+            
+            console.log('✅ All refresh operations completed successfully');
+            
+          } catch (refreshError) {
+            console.error('⚠️ Warning: Some refresh operations failed:', refreshError);
+            // No fallar el sync por errores en refresh
+            // Mostrar alerta de advertencia pero no bloquear
+            Alert.alert(
+              '⚠️ Advertencia',
+              'La sincronización fue exitosa, pero algunos datos podrían no estar completamente actualizados. Puedes refrescar manualmente si es necesario.',
+              [{ text: 'OK' }]
+            );
+          }
         }
       }
       
