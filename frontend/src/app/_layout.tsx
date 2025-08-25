@@ -89,8 +89,8 @@ export default function RootLayout() {
       
       // Ejecutar ambos warm-ups en paralelo
       Promise.all([
-        // warmUpData().catch(e => console.error('❌ Error in warmUpData:', e)),
-        // warmUpMeasurementData().catch(e => console.error('❌ Error in warmUpMeasurementData:', e))
+        warmUpData().catch(e => console.error('❌ Error in warmUpData:', e)),
+        warmUpMeasurementData().catch(e => console.error('❌ Error in warmUpMeasurementData:', e))
       ])
       .then(() => {
         console.log('✅ Warm-up completed successfully');

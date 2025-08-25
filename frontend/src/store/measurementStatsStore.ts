@@ -100,10 +100,11 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
   },
   getStatsByField: async (fieldId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen, byReport, forceRefresh = false) => {
     set({ statsLoading: true });
+    
+    // Crear clave de caché basada en los parámetros - MOVER FUERA DEL TRY
+    const cacheKey = `${CACHE_CONFIGS.measurementStatsByField.key}_${fieldId}_${totalMeasurement}_${byObject}_${byPen}_${byVariable}_${byVariableByPen}_${byReport}`;
+    
     try {
-      // Crear clave de caché basada en los parámetros
-      const cacheKey = `${CACHE_CONFIGS.measurementStatsByField.key}_${fieldId}_${totalMeasurement}_${byObject}_${byPen}_${byVariable}_${byVariableByPen}_${byReport}`;
-      
       // Intentar obtener del caché primero
       if (!forceRefresh) {
         const cachedStats = await getCacheData<MeasurementStats>(cacheKey);
