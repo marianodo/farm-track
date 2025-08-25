@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "expo-sqlite": "^15.2.14"
+  }
+}

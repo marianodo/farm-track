@@ -10,6 +10,7 @@ import {
 } from './interface/report.interface';
 import { saveLog } from '../utils/logger';
 import useOfflineStore from './offlineStore';
+import { addMeasurementToQueue, isOnline, getQueueCount } from '../offline/measurementQueue';
 
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
@@ -377,8 +378,7 @@ const useReportStore = create<ReportState>((set) => ({
     
     try {
       // Importar dinámicamente las funciones offline
-      const { addMeasurementToQueue, isOnline } = await import('../offline/measurementQueue');
-      const { default: useOfflineStore } = await import('./offlineStore');
+      // Se usa directamente la función importada estáticamente
       
       // Verificar conectividad
       const online = await isOnline();
@@ -396,7 +396,6 @@ const useReportStore = create<ReportState>((set) => ({
           });
           
           // Actualizar contador
-          const { getQueueCount } = await import('../offline/measurementQueue');
           const count = await getQueueCount();
           useOfflineStore.getState().setPendingCount(count);
           
@@ -409,18 +408,18 @@ const useReportStore = create<ReportState>((set) => ({
           set({ reportsLoading: false });
           throw new Error('Error al guardar la medición offline: ' + offlineError.message);
         }
+      } else {
+        // MODO ONLINE: Usar el endpoint original
+        console.log('🌐 Online mode: sending measurements to /measurements');
+        
+        await axiosInstance.post('/measurements', data);
+        
+        await invalidateCachePattern(CACHE_CONFIGS.reports.key);
+        await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
+        
+        useReportStore.getState().getAllReportsByField(field_id, true);
+        set({ reportsLoading: false });
       }
-      
-      // MODO ONLINE: Usar el endpoint original
-      console.log('🌐 Online mode: sending measurements to /measurements');
-      
-      await axiosInstance.post('/measurements', data);
-      
-      await invalidateCachePattern(CACHE_CONFIGS.reports.key);
-      await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
-      
-      useReportStore.getState().getAllReportsByField(field_id, true);
-      set({ reportsLoading: false });
 
     } catch (error: any) {
       await saveLog('Store: Error en createMeasurementWithReportId', {
