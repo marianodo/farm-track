@@ -202,7 +202,9 @@ const CreateMeasurement: React.FC = () => {
       await createMeasurementWithReportId(newMeasurement, fieldId as string);
 
       // Refrescar estadísticas solo si está online (en offline ya se maneja internamente)
-      const { isOnline } = await import('../../../../../offline/measurementQueue');
+      saveLog('DEBUG', {
+        message: "Verificando conectividad",
+      }, 'general');
       const online = await isOnline();
       if (online) {
         await getStatsByField(fieldId, null, null, null, null, null, true, true); // true = forceRefresh
