@@ -9,6 +9,7 @@ import {
   MeasurementEditData,
 } from './interface/report.interface';
 import { saveLog } from '../utils/logger';
+import useOfflineStore from './offlineStore';
 
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;

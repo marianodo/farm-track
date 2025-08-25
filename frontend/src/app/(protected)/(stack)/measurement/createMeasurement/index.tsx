@@ -31,6 +31,7 @@ import useMeasurementStatsStore from '@/store/measurementStatsStore';
 import useFieldStore from '@/store/fieldStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveLog } from '@/utils/logger';
+import { isOnline } from '@/offline/measurementQueue';
 const { width, height } = Dimensions.get('window');
 
 export type NumericValue = {
