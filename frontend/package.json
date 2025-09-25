@@ -43,7 +43,7 @@
     "expo-updates": "~29.0.11",
     "expo-vector-icons": "^10.0.1",
     "expo-web-browser": "~15.0.7",
-    "i18next": "^23.13.0",
+    "i18next": "^25.5.2",
     "jwt-decode": "^4.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
