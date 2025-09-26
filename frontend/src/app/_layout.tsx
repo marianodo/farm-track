@@ -23,6 +23,8 @@ import { NetworkIndicator } from '@/components/NetworkIndicator';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import WarmupIndicator from '@/components/WarmupIndicator';
 import { warmUpData, warmUpMeasurementData } from '@/offline/warmup';
+import { initOffline } from '@/offline';
+import useSyncStore from '@/store/syncStore';
 
 // SplashScreen.preventAutoHideAsync();
 const StackLayout = () => {
@@ -81,6 +83,25 @@ export default function RootLayout() {
     authenticated: state.authenticated,
     userId: state.userId,
   }));
+  const { setPending, setSyncing } = useSyncStore();
+
+  // Inicializar offline mode al cargar la app
+  useEffect(() => {
+    const initializeOffline = async () => {
+      try {
+        console.log('🔧 Initializing offline mode...');
+        await initOffline(() => process.env.EXPO_PUBLIC_API_URL || '', (syncing, pending) => {
+          setSyncing(syncing);
+          setPending(pending);
+        });
+        console.log('✅ Offline mode initialized successfully');
+      } catch (error) {
+        console.error('❌ Error initializing offline mode:', error);
+      }
+    };
+
+    initializeOffline();
+  }, []);
 
   // Warm-up después del login exitoso
   useEffect(() => {
