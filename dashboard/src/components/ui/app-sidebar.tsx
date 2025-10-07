@@ -14,13 +14,14 @@ import {
   LogOut, 
   ChevronDown,
   Grid,
-  Map
+  Map,
+  TrendingUp
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
 
 export function AppSidebar() {
-    const { logout, authLoading, user } = useAuthStore();
+    const { logout, authLoading, user, role } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
     
@@ -94,6 +95,21 @@ export function AppSidebar() {
                                 </div>
                             </Link>
                         ))}
+                        
+                        {/* Analytics button for admin users */}
+                        {role === 'ADMIN' && (
+                            <Link 
+                                href="/dashboard/analytics" 
+                                className={`flex items-center py-3 px-2 rounded-md ${pathname.includes('/analytics') ? 'text-green-700 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
+                            >
+                                <div className="mr-3">
+                                    <TrendingUp className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    Análisis de App
+                                </div>
+                            </Link>
+                        )}
                     </SidebarGroup>
                 </div>
                 
