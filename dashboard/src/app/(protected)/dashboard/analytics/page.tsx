@@ -55,6 +55,17 @@ interface UserStats {
   measurementsCount: number;
 }
 
+interface LastActivity {
+  activityType: string;
+  activityDate: string;
+  userEmail: string;
+  timeAgo: string;
+  diffSeconds: number;
+  diffMinutes: number;
+  diffHours: number;
+  diffDays: number;
+}
+
 interface AnalyticsData {
   basicStats: BasicStats;
   monthlyGrowth: MonthlyGrowth;
@@ -67,6 +78,7 @@ export default function AnalyticsPage() {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [userStats, setUserStats] = useState<UserStats[]>([]);
+  const [lastActivity, setLastActivity] = useState<LastActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,52 +87,68 @@ export default function AnalyticsPage() {
       setLoading(true);
       setError(null);
 
-      // Fetch all data in parallel
-      const [overviewResponse, monthlyResponse, userStatsResponse] = await Promise.all([
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/monthly-data`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/user-stats`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        })
-      ]);
+      // Fetch data sequentially to avoid database connection issues
+      const overviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (!overviewResponse.ok || !monthlyResponse.ok || !userStatsResponse.ok) {
+      if (!overviewResponse.ok) {
         throw new Error('Error al cargar los datos de analytics');
       }
 
-      const [overviewData, monthlyDataResult, userStatsResult] = await Promise.all([
-        overviewResponse.json(),
-        monthlyResponse.json(),
-        userStatsResponse.json()
-      ]);
-
+      const overviewData = await overviewResponse.json();
       setAnalyticsData(overviewData);
-      
-      // Format monthly data for charts
-      const formattedMonthlyData = monthlyDataResult.map((item: any) => ({
-        month: new Date(item.month).toLocaleDateString('es-ES', { 
-          year: 'numeric', 
-          month: 'short' 
-        }),
-        measurementsCount: item.measurementsCount,
-        reportsCount: item.reportsCount,
-        usersCount: item.usersCount
-      }));
-      setMonthlyData(formattedMonthlyData);
-      setUserStats(userStatsResult);
+
+      // Fetch last activity
+      const lastActivityResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/last-activity`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (lastActivityResponse.ok) {
+        const lastActivityResult = await lastActivityResponse.json();
+        setLastActivity(lastActivityResult);
+      }
+
+      // Fetch monthly data
+      const monthlyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/monthly-data`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (monthlyResponse.ok) {
+        const monthlyDataResult = await monthlyResponse.json();
+        const formattedMonthlyData = monthlyDataResult.map((item: any) => ({
+          month: new Date(item.month).toLocaleDateString('es-ES', { 
+            year: 'numeric', 
+            month: 'short' 
+          }),
+          measurementsCount: item.measurementsCount,
+          reportsCount: item.reportsCount,
+          usersCount: item.usersCount
+        }));
+        setMonthlyData(formattedMonthlyData);
+      }
+
+      // Fetch user stats
+      const userStatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/user-stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (userStatsResponse.ok) {
+        const userStatsResult = await userStatsResponse.json();
+        setUserStats(userStatsResult);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error desconocido');
     } finally {
@@ -342,6 +370,54 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Last Activity */}
+      {lastActivity && (
+        <Card className="border-l-4 border-blue-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-600" />
+              Última Actividad Registrada
+            </CardTitle>
+            <CardDescription>
+              Actividad más reciente en la aplicación
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <Activity className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-lg">{lastActivity.activityType}</p>
+                    <p className="text-sm text-gray-600">
+                      Por: {lastActivity.userEmail}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <Badge variant="outline" className="text-blue-600 border-blue-600">
+                    Hace {lastActivity.timeAgo}
+                  </Badge>
+                </div>
+              </div>
+              <div className="pt-2 border-t">
+                <p className="text-xs text-gray-500">
+                  Fecha: {new Date(lastActivity.activityDate).toLocaleString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Monthly Growth */}
       <Card>

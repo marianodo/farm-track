@@ -352,4 +352,101 @@ export class AnalyticsRepository {
       hasRegularActivity
     };
   }
+
+  async getLastActivity() {
+    // Obtener la última actividad de diferentes entidades
+    const result = await this.prisma.$queryRaw<Array<{
+      activity_type: string;
+      activity_date: Date;
+      user_email: string;
+    }>>`
+      WITH latest_activities AS (
+        SELECT 
+          'Medición' as activity_type,
+          m.created_at as activity_date,
+          u.email as user_email
+        FROM "Measurement" m
+        JOIN "Report" r ON m.report_id = r.id
+        JOIN "Field" f ON r.field_id = f.id
+        JOIN "User" u ON f."userId" = u.id
+        ORDER BY m.created_at DESC
+        LIMIT 1
+        
+        UNION ALL
+        
+        SELECT 
+          'Reporte' as activity_type,
+          r.created_at as activity_date,
+          u.email as user_email
+        FROM "Report" r
+        JOIN "Field" f ON r.field_id = f.id
+        JOIN "User" u ON f."userId" = u.id
+        ORDER BY r.created_at DESC
+        LIMIT 1
+        
+        UNION ALL
+        
+        SELECT 
+          'Campo' as activity_type,
+          f.created_at as activity_date,
+          u.email as user_email
+        FROM "Field" f
+        JOIN "User" u ON f."userId" = u.id
+        ORDER BY f.created_at DESC
+        LIMIT 1
+        
+        UNION ALL
+        
+        SELECT 
+          'Usuario registrado' as activity_type,
+          u.created_at as activity_date,
+          u.email as user_email
+        FROM "User" u
+        ORDER BY u.created_at DESC
+        LIMIT 1
+      )
+      SELECT *
+      FROM latest_activities
+      ORDER BY activity_date DESC
+      LIMIT 1
+    `;
+
+    if (result.length === 0) {
+      return null;
+    }
+
+    const lastActivity = result[0];
+    const now = new Date();
+    const activityDate = new Date(lastActivity.activity_date);
+    const diffMs = now.getTime() - activityDate.getTime();
+    
+    // Calcular diferencias
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    // Determinar el formato más apropiado
+    let timeAgo = '';
+    if (diffSeconds < 60) {
+      timeAgo = `${diffSeconds} segundo${diffSeconds !== 1 ? 's' : ''}`;
+    } else if (diffMinutes < 60) {
+      timeAgo = `${diffMinutes} minuto${diffMinutes !== 1 ? 's' : ''}`;
+    } else if (diffHours < 24) {
+      timeAgo = `${diffHours} hora${diffHours !== 1 ? 's' : ''}`;
+    } else {
+      timeAgo = `${diffDays} día${diffDays !== 1 ? 's' : ''}`;
+    }
+
+    return {
+      activityType: lastActivity.activity_type,
+      activityDate: lastActivity.activity_date,
+      userEmail: lastActivity.user_email,
+      timeAgo,
+      diffSeconds,
+      diffMinutes,
+      diffHours,
+      diffDays
+    };
+  }
 }

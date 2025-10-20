@@ -169,4 +169,15 @@ export class AnalyticsController {
       throw error;
     }
   }
+
+  @Get('last-activity')
+  @HttpCode(HttpStatus.OK)
+  @Roles('ADMIN')
+  async getLastActivity() {
+    try {
+      return await this.analyticsService.getLastActivity();
+    } catch (error) {
+      throw error;
+    }
+  }
 }

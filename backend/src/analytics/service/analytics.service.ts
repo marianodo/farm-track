@@ -71,6 +71,10 @@ export class AnalyticsService {
     return await this.analyticsRepository.getUserStats();
   }
 
+  async getLastActivity() {
+    return await this.analyticsRepository.getLastActivity();
+  }
+
   async getAllAnalytics() {
     // Hacer las consultas de forma secuencial para evitar problemas de conexión
     // Solo obtener los datos esenciales para el dashboard
