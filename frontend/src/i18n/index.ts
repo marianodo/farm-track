@@ -1,4 +1,5 @@
 import * as Localization from 'expo-localization';
+import { Platform } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from 'i18next';
@@ -14,9 +15,23 @@ const resources = {
 };
 
 const initI18n = async () => {
-  let savedLanguage = await AsyncStorage.getItem('language');
-  if (!savedLanguage) {
-    savedLanguage = Localization.getLocales()[0].languageTag;
+  let savedLanguage = 'es-ES'; // Idioma por defecto
+  
+  // Solo intentar acceder a AsyncStorage si estamos en una plataforma nativa
+  if (Platform.OS !== 'web' && typeof window !== 'undefined') {
+    try {
+      savedLanguage = await AsyncStorage.getItem('language') || Localization.getLocales()[0].languageTag;
+    } catch (error) {
+      console.warn('Error loading language from AsyncStorage:', error);
+      savedLanguage = Localization.getLocales()[0].languageTag;
+    }
+  } else {
+    // Para web o durante build, usar el idioma del dispositivo
+    try {
+      savedLanguage = Localization.getLocales()[0].languageTag;
+    } catch (error) {
+      savedLanguage = 'es-ES'; // Fallback
+    }
   }
 
   i18n.use(initReactI18next).init({
@@ -30,6 +45,20 @@ const initI18n = async () => {
   });
 };
 
-initI18n();
+// Solo inicializar si no estamos en un contexto de build
+if (typeof window !== 'undefined' || Platform.OS !== 'web') {
+  initI18n();
+} else {
+  // Inicialización síncrona para build
+  i18n.use(initReactI18next).init({
+    compatibilityJSON: 'v3',
+    resources,
+    lng: 'es-ES',
+    fallbackLng: 'es-ES',
+    interpolation: {
+      escapeValue: false,
+    },
+  });
+}
 
 export default i18n;
