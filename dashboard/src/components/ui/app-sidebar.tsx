@@ -72,7 +72,7 @@ export function AppSidebar() {
                     <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
                         <span className="font-bold text-xl">M</span>
                     </div>
-                    <h1 className="text-gray-700 font-bold text-xl">MeasureMe</h1>
+                    <h1 className="text-gray-700 font-bold text-xl">BD Metrics</h1>
                 </div>
                 
                 {/* Removed dropdown menus as requested */}

@@ -87,8 +87,8 @@ const variablesVeterinariasData = [
 ];
 
 const deteccionTempranaData = [
-  { name: 'Sin MeasureMe', value: 43 },
-  { name: 'Con MeasureMe', value: 87 },
+  { name: 'Sin BD Metrics', value: 43 },
+  { name: 'Con BD Metrics', value: 87 },
 ];
 
 export default function LandingPage() {
@@ -112,7 +112,7 @@ export default function LandingPage() {
             <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
               <span className="font-bold text-xl">M</span>
             </div>
-            <h1 className="text-gray-800 font-bold text-2xl">MeasureMe</h1>
+            <h1 className="text-gray-800 font-bold text-2xl">BD Metrics</h1>
           </div>
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#features" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.features')}</a>
@@ -695,7 +695,7 @@ export default function LandingPage() {
                 <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
                   <span className="font-bold text-xl">M</span>
                 </div>
-                <h1 className="text-white font-bold text-xl">MeasureMe</h1>
+                <h1 className="text-white font-bold text-xl">BD Metrics</h1>
               </div>
               <p className="text-gray-400 max-w-xs">
                 Herramienta de gestión agrícola para optimizar la producción y el seguimiento de métricas clave.
@@ -729,7 +729,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-6 text-center md:text-left">
-            <p className="text-gray-400">&copy; {new Date().getFullYear()} MeasureMe. {t('footer.copyright')}</p>
+            <p className="text-gray-400">&copy; {new Date().getFullYear()} BD Metrics. {t('footer.copyright')}</p>
           </div>
         </div>
       </footer>
