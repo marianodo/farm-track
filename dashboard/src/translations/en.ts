@@ -69,11 +69,11 @@ export const en = {
 
   // CTA
   'cta.title': 'Start optimizing your livestock management today',
-  'cta.subtitle': 'Join hundreds of ranchers who are already improving their productivity with MeasureMe.',
+  'cta.subtitle': 'Join hundreds of ranchers who are already improving their productivity with BD Metrics.',
   'cta.button': 'Start free',
 
   // Footer
-  'footer.copyright': 'MeasureMe. All rights reserved.',
+  'footer.copyright': 'BD Metrics. All rights reserved.',
   'footer.product': 'Product',
   'footer.features': 'Features',
   'footer.pricing': 'Pricing',
@@ -132,7 +132,7 @@ export const en = {
 
   // Delete Guide Page
   'deleteGuide.title': 'Guide: How to Delete Your Data',
-  'deleteGuide.subtitle': 'Follow these simple steps to permanently delete all your data from the MeasureMe application.',
+  'deleteGuide.subtitle': 'Follow these simple steps to permanently delete all your data from the BD Metrics application.',
   'deleteGuide.warning.title': 'Important Warning',
   'deleteGuide.warning.content': 'Before proceeding, please note the following:',
   'deleteGuide.warning.items.irreversible': 'This action is irreversible and will permanently delete all your data',

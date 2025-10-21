@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Measure Me",
+    "name": "BD Metrics",
     "slug": "farm-track",
     "version": "1.0.13",
     "orientation": "portrait",
@@ -60,7 +60,10 @@
     },
     "owner": "bdmetrics",
     "updates": {
-      "url": "https://u.expo.dev/683963ba-26c0-43fe-a449-8522761f6f88"
+      "url": "https://u.expo.dev/683963ba-26c0-43fe-a449-8522761f6f88",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

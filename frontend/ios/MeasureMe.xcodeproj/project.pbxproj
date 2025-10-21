@@ -10,26 +10,26 @@
 		0677BC7C9440539A1F3EE14C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 6DAA982F01DA858F52620BB8 /* PrivacyInfo.xcprivacy */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		65B1F898FEF714D527D91B6A /* libPods-MeasureMe.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EF3462C98E0AE9B7617169F7 /* libPods-MeasureMe.a */; };
+		65B1F898FEF714D527D91B6A /* libPods-BD Metrics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EF3462C98E0AE9B7617169F7 /* libPods-BD Metrics.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		FC60E4DCB309F7CEBA3D356F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A2B8A13B0550EB47297E81 /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		13B07F961A680F5B00A75B9A /* MeasureMe.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeasureMe.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MeasureMe/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MeasureMe/Info.plist; sourceTree = "<group>"; };
-		6DAA982F01DA858F52620BB8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = MeasureMe/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		76DA37043207ED10CC494A43 /* Pods-MeasureMe.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeasureMe.debug.xcconfig"; path = "Target Support Files/Pods-MeasureMe/Pods-MeasureMe.debug.xcconfig"; sourceTree = "<group>"; };
-		88A2B8A13B0550EB47297E81 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MeasureMe/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MeasureMe/SplashScreen.storyboard; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* BD Metrics.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BD Metrics.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BD Metrics/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BD Metrics/Info.plist; sourceTree = "<group>"; };
+		6DAA982F01DA858F52620BB8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = BD Metrics/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		76DA37043207ED10CC494A43 /* Pods-BD Metrics.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BD Metrics.debug.xcconfig"; path = "Target Support Files/Pods-BD Metrics/Pods-BD Metrics.debug.xcconfig"; sourceTree = "<group>"; };
+		88A2B8A13B0550EB47297E81 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-BD Metrics/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = BD Metrics/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		EF3462C98E0AE9B7617169F7 /* libPods-MeasureMe.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MeasureMe.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = MeasureMe/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* MeasureMe-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "MeasureMe-Bridging-Header.h"; path = "MeasureMe/MeasureMe-Bridging-Header.h"; sourceTree = "<group>"; };
-		FE68C68D2083B33A76C616E8 /* Pods-MeasureMe.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MeasureMe.release.xcconfig"; path = "Target Support Files/Pods-MeasureMe/Pods-MeasureMe.release.xcconfig"; sourceTree = "<group>"; };
+		EF3462C98E0AE9B7617169F7 /* libPods-BD Metrics.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BD Metrics.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BD Metrics/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* BD Metrics-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "BD Metrics-Bridging-Header.h"; path = "BD Metrics/BD Metrics-Bridging-Header.h"; sourceTree = "<group>"; };
+		FE68C68D2083B33A76C616E8 /* Pods-BD Metrics.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BD Metrics.release.xcconfig"; path = "Target Support Files/Pods-BD Metrics/Pods-BD Metrics.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,32 +37,32 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				65B1F898FEF714D527D91B6A /* libPods-MeasureMe.a in Frameworks */,
+				65B1F898FEF714D527D91B6A /* libPods-BD Metrics.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		13B07FAE1A68108700A75B9A /* MeasureMe */ = {
+		13B07FAE1A68108700A75B9A /* BD Metrics */ = {
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748442D0722820044C1D9 /* MeasureMe-Bridging-Header.h */,
+				F11748442D0722820044C1D9 /* BD Metrics-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				6DAA982F01DA858F52620BB8 /* PrivacyInfo.xcprivacy */,
 			);
-			name = MeasureMe;
+			name = BD Metrics;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				EF3462C98E0AE9B7617169F7 /* libPods-MeasureMe.a */,
+				EF3462C98E0AE9B7617169F7 /* libPods-BD Metrics.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -70,8 +70,8 @@
 		4F6E6868B3A9B007F871D596 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				76DA37043207ED10CC494A43 /* Pods-MeasureMe.debug.xcconfig */,
-				FE68C68D2083B33A76C616E8 /* Pods-MeasureMe.release.xcconfig */,
+				76DA37043207ED10CC494A43 /* Pods-BD Metrics.debug.xcconfig */,
+				FE68C68D2083B33A76C616E8 /* Pods-BD Metrics.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
@@ -87,7 +87,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				13B07FAE1A68108700A75B9A /* MeasureMe */,
+				13B07FAE1A68108700A75B9A /* BD Metrics */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
@@ -102,7 +102,7 @@
 		83CBBA001A601CBA00E9B192 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				13B07F961A680F5B00A75B9A /* MeasureMe.app */,
+				13B07F961A680F5B00A75B9A /* BD Metrics.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,17 +110,17 @@
 		96A421B4904DF2F301A23388 /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				9D09AF0E54C334D7BF0CCF59 /* MeasureMe */,
+				9D09AF0E54C334D7BF0CCF59 /* BD Metrics */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
-		9D09AF0E54C334D7BF0CCF59 /* MeasureMe */ = {
+		9D09AF0E54C334D7BF0CCF59 /* BD Metrics */ = {
 			isa = PBXGroup;
 			children = (
 				88A2B8A13B0550EB47297E81 /* ExpoModulesProvider.swift */,
 			);
-			name = MeasureMe;
+			name = BD Metrics;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -129,15 +129,15 @@
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
 			);
 			name = Supporting;
-			path = MeasureMe/Supporting;
+			path = BD Metrics/Supporting;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		13B07F861A680F5B00A75B9A /* MeasureMe */ = {
+		13B07F861A680F5B00A75B9A /* BD Metrics */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MeasureMe" */;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BD Metrics" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
 				370DD251AC515563E6FACF8B /* [Expo] Configure project */,
@@ -152,9 +152,9 @@
 			);
 			dependencies = (
 			);
-			name = MeasureMe;
-			productName = MeasureMe;
-			productReference = 13B07F961A680F5B00A75B9A /* MeasureMe.app */;
+			name = BD Metrics;
+			productName = BD Metrics;
+			productReference = 13B07F961A680F5B00A75B9A /* BD Metrics.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -170,7 +170,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "MeasureMe" */;
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BD Metrics" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -183,7 +183,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				13B07F861A680F5B00A75B9A /* MeasureMe */,
+				13B07F861A680F5B00A75B9A /* BD Metrics */,
 			);
 		};
 /* End PBXProject section */
@@ -233,7 +233,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-MeasureMe-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-BD Metrics-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -257,7 +257,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-MeasureMe/expo-configure-project.sh\"\n";
+			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-BD Metrics/expo-configure-project.sh\"\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -265,7 +265,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-MeasureMe/Pods-MeasureMe-resources.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-BD Metrics/Pods-BD Metrics-resources.sh",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXUpdates/EXUpdates.bundle",
@@ -309,7 +309,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MeasureMe/Pods-MeasureMe-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BD Metrics/Pods-BD Metrics-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E9D20FD04CC2D377E4AF8361 /* [CP] Embed Pods Frameworks */ = {
@@ -318,7 +318,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-MeasureMe/Pods-MeasureMe-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-BD Metrics/Pods-BD Metrics-frameworks.sh",
 				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -327,7 +327,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-MeasureMe/Pods-MeasureMe-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BD Metrics/Pods-BD Metrics-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -347,18 +347,18 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 76DA37043207ED10CC494A43 /* Pods-MeasureMe.debug.xcconfig */;
+			baseConfigurationReference = 76DA37043207ED10CC494A43 /* Pods-BD Metrics.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = MeasureMe/MeasureMe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = BD Metrics/BD Metrics.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"FB_SONARKIT_ENABLED=1",
 				);
-				INFOPLIST_FILE = MeasureMe/Info.plist;
+				INFOPLIST_FILE = BD Metrics/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -371,9 +371,9 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.bdmetrics.measureme;
-				PRODUCT_NAME = MeasureMe;
-				SWIFT_OBJC_BRIDGING_HEADER = "MeasureMe/MeasureMe-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bdmetrics.BD Metrics;
+				PRODUCT_NAME = BD Metrics;
+				SWIFT_OBJC_BRIDGING_HEADER = "BD Metrics/BD Metrics-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -383,13 +383,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = FE68C68D2083B33A76C616E8 /* Pods-MeasureMe.release.xcconfig */;
+			baseConfigurationReference = FE68C68D2083B33A76C616E8 /* Pods-BD Metrics.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = MeasureMe/MeasureMe.entitlements;
+				CODE_SIGN_ENTITLEMENTS = BD Metrics/BD Metrics.entitlements;
 				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = MeasureMe/Info.plist;
+				INFOPLIST_FILE = BD Metrics/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -402,9 +402,9 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.bdmetrics.measureme;
-				PRODUCT_NAME = MeasureMe;
-				SWIFT_OBJC_BRIDGING_HEADER = "MeasureMe/MeasureMe-Bridging-Header.h";
+				PRODUCT_BUNDLE_IDENTIFIER = com.bdmetrics.BD Metrics;
+				PRODUCT_NAME = BD Metrics;
+				SWIFT_OBJC_BRIDGING_HEADER = "BD Metrics/BD Metrics-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
@@ -538,7 +538,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MeasureMe" */ = {
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BD Metrics" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
@@ -547,7 +547,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "MeasureMe" */ = {
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "BD Metrics" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
