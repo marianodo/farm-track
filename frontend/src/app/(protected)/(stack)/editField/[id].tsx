@@ -16,7 +16,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import { MapWrapper } from '@/components/MapWrapper';
 import { rMS, rV } from '@/styles/responsive';
 import useFieldStore, { Field } from '@/store/fieldStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -378,34 +378,13 @@ export default function EditField() {
 
                 <View>
                   {isMapReady ? (
-                    <MapView
+                    <MapWrapper
                       ref={mapRef}
+                      latitude={fieldData.latitude}
+                      longitude={fieldData.longitude}
+                      onDragEnd={onDragEndChange}
                       style={{ width: width * 0.9, height: 239 }}
-                      initialRegion={{
-                        latitude: fieldData.latitude,
-                        longitude: fieldData.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }}
-                      region={{
-                        latitude: fieldData.latitude,
-                        longitude: fieldData.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }}
-                    >
-                      <Marker
-                        draggable
-                        coordinate={{
-                          latitude: fieldData.latitude,
-                          longitude: fieldData.longitude,
-                        }}
-                        onDragEnd={(e) => {
-                          onDragEndChange(e.nativeEvent.coordinate);
-                        }}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      />
-                    </MapView>
+                    />
                   ) : null}
                 </View>
 
