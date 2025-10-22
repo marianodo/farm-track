@@ -14,13 +14,14 @@ import {
   LogOut, 
   ChevronDown,
   Grid,
-  Map
+  Map,
+  TrendingUp
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import Image from "next/image";
 
 export function AppSidebar() {
-    const { logout, authLoading, user } = useAuthStore();
+    const { logout, authLoading, user, role } = useAuthStore();
     const router = useRouter();
     const pathname = usePathname();
     
@@ -71,7 +72,7 @@ export function AppSidebar() {
                     <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
                         <span className="font-bold text-xl">M</span>
                     </div>
-                    <h1 className="text-gray-700 font-bold text-xl">MeasureMe</h1>
+                    <h1 className="text-gray-700 font-bold text-xl">BD Metrics</h1>
                 </div>
                 
                 {/* Removed dropdown menus as requested */}
@@ -94,6 +95,21 @@ export function AppSidebar() {
                                 </div>
                             </Link>
                         ))}
+                        
+                        {/* Analytics button for admin users */}
+                        {role === 'ADMIN' && (
+                            <Link 
+                                href="/dashboard/analytics" 
+                                className={`flex items-center py-3 px-2 rounded-md ${pathname.includes('/analytics') ? 'text-green-700 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
+                            >
+                                <div className="mr-3">
+                                    <TrendingUp className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    Análisis de App
+                                </div>
+                            </Link>
+                        )}
                     </SidebarGroup>
                 </div>
                 

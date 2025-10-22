@@ -92,8 +92,8 @@ android {
         applicationId 'com.bdmetrics.measureme'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 21
-        versionName "1.0.13"
+        versionCode 22
+        versionName "1.0.14"
     }
     signingConfigs {
         debug {

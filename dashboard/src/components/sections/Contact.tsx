@@ -33,7 +33,7 @@ const Contact = () => {
             {t('contact.title', 'Contact Us')}
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            {t('contact.description', 'Have questions about MeasureMe? Our team is here to help you.')}
+            {t('contact.description', 'Have questions about BD Metrics? Our team is here to help you.')}
           </p>
         </div>
 

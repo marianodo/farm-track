@@ -61,7 +61,7 @@
   },
   "loginView": {
     "title": "Bienvenido",
-    "title2": "a Measure Me",
+    "title2": "a BD Metrics",
     "subtitle": "Inicia sesión en tu cuenta",
     "emailPlaceHolder": "Correo electrónico",
     "passwordPlaceHolder": "Contraseña",

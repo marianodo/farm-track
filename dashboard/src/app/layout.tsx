@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 // export const metadata: Metadata = {
-//   title: "Dashboard Measure Me",
+//   title: "Dashboard BD Metrics",
 //   description: "Aplication for measure",
 // };
 

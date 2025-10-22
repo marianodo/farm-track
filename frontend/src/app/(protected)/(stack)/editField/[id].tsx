@@ -16,7 +16,6 @@ import {
   useColorScheme,
 } from 'react-native';
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
-import MapView, { Marker } from 'react-native-maps';
 import { rMS, rV } from '@/styles/responsive';
 import useFieldStore, { Field } from '@/store/fieldStore';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -52,7 +51,6 @@ export default function EditField() {
   const [showMessageModal, setShowMessageModal] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(true);
   const [messageModalText, setMessageModalText] = useState<string | null>(null);
-  const mapRef = useRef(null);
 
   // Estado local para guardar los inputs
   const [fieldData, setFieldData] = useState<{
@@ -178,27 +176,6 @@ export default function EditField() {
     })
   }, [selectedValues])
 
-  const onDragEndChange = async (coordinate: any) => {
-    try {
-      const { latitude, longitude } = coordinate;
-
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY}&language=${lang}`
-      );
-      const data = await response.json();
-      if (data.results) {
-        setFieldData({
-          ...fieldData,
-          latitude: latitude,
-          longitude: longitude,
-          location:
-            data.results[2]?.formatted_address || 'Dirección no encontrada',
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching geocode data:', error);
-    }
-  };
 
   const handleInputChange = (key: string, value?: any) => {
     if (key === 'production_type') {
@@ -212,28 +189,6 @@ export default function EditField() {
       [key]: value,
     });
   };
-  const [isMapReady, setIsMapReady] = useState(false);
-
-  useEffect(() => {
-    // Verifica si fieldData tiene latitude y longitude antes de marcar el mapa como listo
-    if (fieldData.latitude && fieldData.longitude) {
-      setIsMapReady(true);
-    }
-  }, [fieldData]);
-
-  useEffect(() => {
-    if (fieldData?.latitude && fieldData?.longitude) {
-      mapRef?.current?.animateToRegion(
-        {
-          latitude: fieldData.latitude,
-          longitude: fieldData.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        },
-        1500
-      );
-    }
-  }, [fieldData.latitude, fieldData.longitude, onDragEndChange]);
 
   const handlePress = async () => {
     try {
@@ -374,42 +329,6 @@ export default function EditField() {
                   selection={{ start: 0, end: 0 }}
                   style={styles.input}
                 />
-                {/* mapa */}
-
-                <View>
-                  {isMapReady ? (
-                    <MapView
-                      ref={mapRef}
-                      style={{ width: width * 0.9, height: 239 }}
-                      initialRegion={{
-                        latitude: fieldData.latitude,
-                        longitude: fieldData.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }}
-                      region={{
-                        latitude: fieldData.latitude,
-                        longitude: fieldData.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                      }}
-                    >
-                      <Marker
-                        draggable
-                        coordinate={{
-                          latitude: fieldData.latitude,
-                          longitude: fieldData.longitude,
-                        }}
-                        onDragEnd={(e) => {
-                          onDragEndChange(e.nativeEvent.coordinate);
-                        }}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      />
-                    </MapView>
-                  ) : null}
-                </View>
-
-                {/* fin mapa */}
                 </View>
                 <Selector
                 key={fieldData?.name}
