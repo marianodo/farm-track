@@ -26,10 +26,25 @@ try {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  // Configuración CORS para Railway
   app.enableCors({
-    origin: '*', // Permite cualquier origen
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
-    allowedHeaders: 'Content-Type, Accept, Authorization', // Encabezados permitidos
+    origin: [
+      'https://www.bd-metrics.com',
+      'https://bd-metrics.com',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type', 
+      'Accept', 
+      'Authorization', 
+      'X-Requested-With',
+      'Origin'
+    ],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
   });
   app.use(morgan('dev'));
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -49,6 +64,8 @@ async function bootstrap() {
       },
     }),
   );
-  await app.listen(4000);
+  const port = process.env.PORT || 4000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`🚀 Application is running on port ${port}`);
 }
 bootstrap();

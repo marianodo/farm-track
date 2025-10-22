@@ -4,7 +4,7 @@ export const fillTemplate = (body) => `
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Account Verification - Measure Me</title>
+      <title>Account Verification - BD Metrics</title>
       <style>
           body {
               font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -107,10 +107,10 @@ export const fillTemplate = (body) => `
                                   <tr>
                                       <td class="content" align="center" style="padding: 30px; text-align: center;">
                                        <!-- Logo image -->
-                                          <img src="https://res.cloudinary.com/dpcbpbhgl/image/upload/v1748273520/main-icon_pzuvdr.png" alt="Measure Me Logo" style="max-width: 120px; height: auto; margin-bottom: 20px;">
-                                          <h1 style="color: #487632; font-size: 24px; margin-bottom: 10px;">Welcome to Measure Me!</h1>
+                                          <img src="https://res.cloudinary.com/dpcbpbhgl/image/upload/v1748273520/main-icon_pzuvdr.png" alt="BD Metrics Logo" style="max-width: 120px; height: auto; margin-bottom: 20px;">
+                                          <h1 style="color: #487632; font-size: 24px; margin-bottom: 10px;">Welcome to BD Metrics!</h1>
                                           <h2 style="color: #555; font-size: 18px; margin-bottom: 20px;">Thank you for joining our platform</h2>
-                                          <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px; color: #555;">We are very happy to have you with us. To start using all Measure Me services, please verify your account by clicking the button below:</p>
+                                          <p style="font-size: 16px; line-height: 1.5; margin-bottom: 25px; color: #555;">We are very happy to have you with us. To start using all BD Metrics services, please verify your account by clicking the button below:</p>
                                           <a href="${process.env.BACKEND_URL}/auth/verify?token=${body.verification_token}" class="button" style="background-color: #487632; color: white; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 16px; margin: 15px 0; display: inline-block;">Verify my account</a>
                                           <p style="font-size: 14px; margin-top: 30px; line-height: 1.5; color: #555;">If you have trouble with the button, you can copy and paste the following link into your browser:</p>
                                           <p style="font-size: 12px; color: #777; word-break: break-all; line-height: 1.5;">${process.env.BACKEND_URL}/auth/verify?token=${body.verification_token}</p>
@@ -118,8 +118,8 @@ export const fillTemplate = (body) => `
                                   </tr>
                                   <tr>
                                       <td class="footer" align="center" bgcolor="#f5f5f5" style="padding: 15px; text-align: center; font-size: 12px; color: #777;">
-                                          <p style="margin: 0;">&copy; ${new Date().getFullYear()} Measure Me. All rights reserved.</p>
-                                          <p style="margin: 5px 0 0;">This email was sent because someone registered this address on Measure Me. If it wasn't you, you can ignore this message.</p>
+                                          <p style="margin: 0;">&copy; ${new Date().getFullYear()} BD Metrics. All rights reserved.</p>
+                                          <p style="margin: 5px 0 0;">This email was sent because someone registered this address on BD Metrics. If it wasn't you, you can ignore this message.</p>
                                       </td>
                                   </tr>
                               </table>
