@@ -26,25 +26,10 @@ try {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Configuración CORS para Railway
   app.enableCors({
-    origin: [
-      'https://www.bd-metrics.com',
-      'https://bd-metrics.com',
-      'http://localhost:3000',
-      'http://localhost:3001'
-    ],
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type', 
-      'Accept', 
-      'Authorization', 
-      'X-Requested-With',
-      'Origin'
-    ],
-    credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 204
+    origin: '*', // Permite cualquier origen
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // Métodos permitidos
+    allowedHeaders: 'Content-Type, Accept, Authorization', // Encabezados permitidos
   });
   app.use(morgan('dev'));
   app.useGlobalFilters(new HttpExceptionFilter());
