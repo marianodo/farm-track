@@ -2,7 +2,7 @@
   "expo": {
     "name": "BD Metrics",
     "slug": "farm-track",
-    "version": "1.0.14",
+    "version": "1.0.15",
     "orientation": "portrait",
     "icon": "./assets/images/icon.jpeg",
     "scheme": "myapp",
@@ -22,7 +22,7 @@
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.bdmetrics.measureme",
-      "versionCode": 3,
+      "versionCode": 4,
       "runtimeVersion": "1.0.1"
     },
     "web": {
@@ -38,7 +38,10 @@
           "android": {
             "usesCleartextTraffic": true,
             "compileSdkVersion": 35,
-            "targetSdkVersion": 35
+            "targetSdkVersion": 35,
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "memoryPageSize": "16KB"
           }
         }
       ],
