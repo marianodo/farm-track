@@ -3,6 +3,7 @@ import { axiosInstance } from './authStore';
 import MeasurementStats from './interface/measurementStats.interface';
 import useFieldStore from './fieldStore';
 import { CACHE_CONFIGS, getCacheData, setCacheData } from '../utils/cache';
+import NetInfo from '@react-native-community/netinfo';
 
 interface MeasurementStatsStore {
   stats: MeasurementStats | null;
@@ -99,10 +100,11 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
   },
   getStatsByField: async (fieldId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen, byReport, forceRefresh = false) => {
     set({ statsLoading: true });
+    
+    // Crear clave de caché basada en los parámetros - MOVER FUERA DEL TRY
+    const cacheKey = `${CACHE_CONFIGS.measurementStatsByField.key}_${fieldId}_${totalMeasurement}_${byObject}_${byPen}_${byVariable}_${byVariableByPen}_${byReport}`;
+    
     try {
-      // Crear clave de caché basada en los parámetros
-      const cacheKey = `${CACHE_CONFIGS.measurementStatsByField.key}_${fieldId}_${totalMeasurement}_${byObject}_${byPen}_${byVariable}_${byVariableByPen}_${byReport}`;
-      
       // Intentar obtener del caché primero
       if (!forceRefresh) {
         const cachedStats = await getCacheData<MeasurementStats>(cacheKey);
@@ -130,7 +132,25 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
       set({ statsByField: response.data, statsLoading: false, isFromCache: false });
     } catch (error) {
       set({ statsLoading: false });
-      console.error('Error fetching stats by field:', error);
+      
+      // Verificar si hay conexión a internet
+      const netInfo = await NetInfo.fetch();
+      if (!netInfo.isConnected) {
+        console.log('📴 Offline: Cannot fetch stats by field');
+        // En modo offline, usar estadísticas vacías o del caché
+        const cachedStats = await getCacheData<MeasurementStats>(cacheKey);
+        if (cachedStats) {
+          set({ statsByField: cachedStats, isFromCache: true });
+        }
+        return;
+      }
+      
+      // Si hay conexión, loggear el error completo
+      console.error('Error fetching stats by field:', error?.message || error);
+      if (error?.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     }
   },
   getStatsByReport: async (reportId: string, totalMeasurement, byObject, byPen, byVariable, byVariableByPen, forceRefresh = false) => {
@@ -168,7 +188,27 @@ const useMeasurementStatsStore = create<MeasurementStatsStore>((set) => ({
       set({ statsByReport: response.data, statsLoading: false, isFromCache: false });
     } catch (error) {
       set({ statsLoading: false });
-      console.error('Error fetching stats by report:', error);
+      
+      // Verificar si hay conexión a internet
+      const netInfo = await NetInfo.fetch();
+      if (!netInfo.isConnected) {
+        console.log('📴 Offline: Cannot fetch stats by report');
+        // En modo offline, usar estadísticas del caché
+        const fieldId = useFieldStore.getState().fieldId;
+        const cacheKey = `${CACHE_CONFIGS.measurementStatsByReport.key}_${reportId}_${fieldId}_${totalMeasurement}_${byObject}_${byPen}_${byVariable}_${byVariableByPen}`;
+        const cachedStats = await getCacheData<MeasurementStats>(cacheKey);
+        if (cachedStats) {
+          set({ statsByReport: cachedStats, isFromCache: true });
+        }
+        return;
+      }
+      
+      // Si hay conexión, loggear el error completo
+      console.error('Error fetching stats by report:', error?.message || error);
+      if (error?.response) {
+        console.error('Response status:', error.response.status);
+        console.error('Response data:', error.response.data);
+      }
     }
   },
   resetStats: () => set({ stats: null }),

@@ -9,6 +9,8 @@ import {
   MeasurementEditData,
 } from './interface/report.interface';
 import { saveLog } from '../utils/logger';
+import useOfflineStore from './offlineStore';
+import { addMeasurementToQueue, isOnline, getQueueCount } from '../offline/measurementQueue';
 
 interface ReportState {
   reportsByFielId: { [fieldId: string]: Report[] } | null;
@@ -264,6 +266,28 @@ const useReportStore = create<ReportState>((set) => ({
         set({ reportById: response.data, reportsLoading: false, isFromCache: false });
       }
     } catch (error: any) {
+      set({ reportsLoading: false });
+      
+      // Verificar si hay conexión a internet
+      const NetInfo = await import('@react-native-community/netinfo');
+      const netInfo = await NetInfo.default.fetch();
+      if (!netInfo.isConnected) {
+        console.log('📴 Offline: Cannot fetch report by id');
+        // En modo offline, intentar usar caché aunque no hayamos hecho forceRefresh
+        if (id) {
+          const cacheKey = `${CACHE_CONFIGS.reportById.key}_${id}`;
+          const cachedReport = await getCacheData<ReportWithMeasurements2[]>(cacheKey);
+          if (cachedReport) {
+            set({ reportById: cachedReport, isFromCache: true });
+            return;
+          }
+        }
+        // Si no hay caché, no mostrar error - simplemente mantener estado vacío
+        console.log('📴 No cached data available for report offline');
+        return;
+      }
+      
+      // Si hay conexión, loggear el error
       await saveLog('Store: Error en getReportById', {
         error: error?.toString(),
         errorMessage: error?.message,
@@ -271,7 +295,6 @@ const useReportStore = create<ReportState>((set) => ({
         errorStatus: error?.response?.status,
         id
       }, 'error');
-      set({ reportsLoading: false });
     }
   },
   resetDetail: () => {
@@ -354,18 +377,52 @@ const useReportStore = create<ReportState>((set) => ({
     set({ reportsLoading: true });
     
     try {
-      await useReportStore.getState().retryWithBackoff(async () => {
-        return await axiosInstance.post('/measurements', data);
-      });
+      // Importar dinámicamente las funciones offline
+      // Se usa directamente la función importada estáticamente
       
-      await invalidateCachePattern(CACHE_CONFIGS.reports.key);
-      await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
+      // Verificar conectividad
+      const online = await isOnline();
       
-      useReportStore.getState().getAllReportsByField(field_id, true);
-      set({ reportsLoading: false });
+      if (!online) {
+        // MODO OFFLINE: Agregar grupo de mediciones a la cola
+        console.log('📴 Offline mode: adding measurement group to queue');
+        
+        try {
+          await addMeasurementToQueue({
+            name: data.name,
+            type_of_object_id: data.type_of_object_id,
+            field_id: data.field_id,
+            measurements: data.measurements
+          });
+          
+          // Actualizar contador
+          const count = await getQueueCount();
+          useOfflineStore.getState().setPendingCount(count);
+          
+          console.log(`✅ Measurement group with ${data.measurements.length} measurements added to offline queue`);
+          set({ reportsLoading: false });
+          return;
+          
+        } catch (offlineError) {
+          console.error('❌ Error saving measurement offline:', offlineError);
+          set({ reportsLoading: false });
+          throw new Error('Error al guardar la medición offline: ' + offlineError.message);
+        }
+      } else {
+        // MODO ONLINE: Usar el endpoint original
+        console.log('🌐 Online mode: sending measurements to /measurements');
+        
+        await axiosInstance.post('/measurements', data);
+        
+        await invalidateCachePattern(CACHE_CONFIGS.reports.key);
+        await invalidateCachePattern(CACHE_CONFIGS.reportById.key);
+        
+        useReportStore.getState().getAllReportsByField(field_id, true);
+        set({ reportsLoading: false });
+      }
 
     } catch (error: any) {
-      await saveLog('Store: Error final en createMeasurementWithReportId después de todos los reintentos', {
+      await saveLog('Store: Error en createMeasurementWithReportId', {
         error: error?.toString(),
         errorMessage: error?.message,
         errorResponse: error?.response?.data,
@@ -383,7 +440,7 @@ const useReportStore = create<ReportState>((set) => ({
       ) {
         throw new Error(error.response.data.message);
       } else {
-        throw new Error('Error creating measurement with report id after retries');
+        throw new Error('Error creating measurement');
       }
     }
   },
