@@ -19,7 +19,7 @@ export class AuthService {
 
       // Enviar el correo electrónico utilizando el servicio de correo
       const sendEmailDto = {
-        from: `Welcome Measure Me <${process.env.MAIL_USER}>`,
+        from: `Welcome BD Metrics <${process.env.MAIL_USER}>`,
         subjectEmail: 'Automatic mail sending!',
         sendTo: user.email,
         template: 'welcome',

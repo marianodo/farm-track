@@ -32,7 +32,7 @@ const Login = () => {
         //     if (success) {
         //         toast({
         //             title: "Inicio de sesión exitoso",
-        //             description: "Bienvenido a Measure Me"
+        //             description: "Bienvenido a BD Metrics"
         //         });
         //         navigate('/dashboard');
         //     } else {
@@ -58,7 +58,7 @@ const Login = () => {
             <div className="w-full max-w-lg shadow-lg border bg-white px-8 rounded-lg py-6">
                 <div className="space-y-1">
                     <div className="flex justify-center pb-2">
-                        <h1 className="text-3xl font-bold text-green-dark">Measure Me</h1>
+                        <h1 className="text-3xl font-bold text-green-dark">BD Metrics</h1>
                     </div>
                     <div className="text-2xl font-bold text-center text-black">Crear Cuenta</div>
                     <div className="text-center text-parrafos">
