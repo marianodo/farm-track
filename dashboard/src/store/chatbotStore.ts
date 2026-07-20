@@ -63,14 +63,26 @@ export const useChatbotStore = create<ChatbotState>((set, get) => ({
         throw new Error('No field selected. Please select a field first.');
       }
 
-      // Send message to backend
-      const response = await fetch('/api/chatbot/message', {
+      // Send message to backend (directly to avoid Next.js proxy timeout)
+      let apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      // Remove trailing /api if present
+      apiUrl = apiUrl.replace(/\/api\/?$/, '');
+      const response = await fetch(`${apiUrl}/api/chatbot/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ message, fieldId: targetFieldId }),
+        body: JSON.stringify({
+          message,
+          fieldId: targetFieldId,
+          // Previous turns (excluding the one just added) so Claude can
+          // follow up on questions like "¿y el corral 2?".
+          history: messages.slice(-20).map((m) => ({
+            role: m.isUser ? 'user' : 'assistant',
+            content: m.text,
+          })),
+        }),
       });
 
       console.log('Response status:', response.status);
@@ -114,6 +126,12 @@ export const useChatbotStore = create<ChatbotState>((set, get) => ({
   },
 
   setSelectedFieldId: (fieldId: string | null) => {
-    set({ selectedFieldId: fieldId });
+    // Switching fields starts a fresh conversation: the history belongs to the
+    // previous field and would give Claude the wrong context.
+    if (get().selectedFieldId !== fieldId) {
+      set({ selectedFieldId: fieldId, messages: [], error: null });
+    } else {
+      set({ selectedFieldId: fieldId });
+    }
   },
 })); 

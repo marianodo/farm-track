@@ -9,16 +9,17 @@ export class ChatbotController {
 
   @Get('health')
   async healthCheck() {
-    const requiredVars = ['OPENAI_API_KEY', 'DATABASE_URL', 'JWT_SECRET'];
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
-    
+    const requiredVars = ['ANTHROPIC_API_KEY', 'DATABASE_URL', 'JWT_SECRET'];
+    const missingVars = requiredVars.filter((varName) => !process.env[varName]);
+
     return {
       status: missingVars.length > 0 ? 'error' : 'ok',
       timestamp: new Date().toISOString(),
-      openaiConfigured: !!process.env.OPENAI_API_KEY,
+      anthropicConfigured: !!process.env.ANTHROPIC_API_KEY,
+      model: process.env.ANTHROPIC_MODEL || 'claude-opus-4-8',
       databaseConfigured: !!process.env.DATABASE_URL,
       jwtConfigured: !!process.env.JWT_SECRET,
-      missingVariables: missingVars
+      missingVariables: missingVars,
     };
   }
 
@@ -28,16 +29,8 @@ export class ChatbotController {
     @Body() chatMessageDto: ChatMessageDto,
     @Request() req: any
   ): Promise<ChatResponseDto> {
-    console.log('Chatbot request received:', {
-      message: chatMessageDto.message,
-      fieldId: chatMessageDto.fieldId,
-      user: req.user,
-      headers: req.headers.authorization ? 'Present' : 'Missing'
-    });
-    
     const userId = req.user?.userId || req.user?.id;
-    console.log('Extracted userId:', userId);
-    
+
     if (!userId) {
       throw new Error('User ID not found in request');
     }

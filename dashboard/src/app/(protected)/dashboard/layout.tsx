@@ -1,25 +1,36 @@
 "use client"
 
+import { useState } from "react";
+import { Menu, Leaf } from "lucide-react";
 import { AppSidebar } from "@/components/ui/app-sidebar";
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function ProtectedLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const isMobile = useIsMobile()
+    const [open, setOpen] = useState(false);
+
     return (
-        <SidebarProvider>
-            <section className="flex min-h-screen w-full bg-gray-50">
-                <AppSidebar />
-                {isMobile && <SidebarTrigger className="absolute top-0" />}
-                <div className="flex-grow px-20 pr-10">
+        <div className="rd-shell">
+            <AppSidebar open={open} onNavigate={() => setOpen(false)} />
+            <div
+                className={`rd-scrim${open ? ' show' : ''}`}
+                onClick={() => setOpen(false)}
+                aria-hidden="true"
+            />
+            <div className="rd-main">
+                <div className="rd-mobilebar">
+                    <button className="rd-hamb" aria-label="Abrir menú" onClick={() => setOpen(true)}>
+                        <Menu size={20} />
+                    </button>
+                    <Leaf size={18} />
+                    <span style={{ fontWeight: 700 }}>BD Metrics</span>
+                </div>
+                <div className="rd-content">
                     {children}
                 </div>
-            </section>
-        </SidebarProvider>
+            </div>
+        </div>
     );
 }
