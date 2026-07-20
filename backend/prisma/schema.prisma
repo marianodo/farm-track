@@ -173,6 +173,18 @@ enum Role {
   ADMIN
 }
 
+model DocumentChunk {
+  id            Int      @id @default(autoincrement())
+  document_name String
+  chunk_index   Int
+  content       String
+  embedding     Unsupported("vector(768)")?
+  metadata      Json?
+  created_at    DateTime @default(now())
+
+  @@index([document_name])
+}
+
 enum VariableType {
   NUMBER
   CATEGORICAL

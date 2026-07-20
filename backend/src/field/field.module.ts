@@ -9,5 +9,6 @@ import { TypeOfObjectsModule } from 'src/type_of_objects/type_of_objects.module'
   imports: [TypeOfObjectsModule],
   controllers: [FieldController],
   providers: [FieldService, FieldRepository, PrismaService],
+  exports: [FieldRepository],
 })
 export class FieldModule {}

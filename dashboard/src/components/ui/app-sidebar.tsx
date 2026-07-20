@@ -1,155 +1,108 @@
 "use client"
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { usePathname, useRouter } from 'next/navigation'
-import { 
-  Home, 
-  Layers, 
-  BarChart2, 
-  Calendar, 
-  FileBarChart,
-  RefreshCw, 
-  Settings, 
-  LogOut, 
-  ChevronDown,
-  Grid,
+import {
+  LayoutGrid,
+  Home,
   Map,
-  TrendingUp
+  Layers,
+  BarChart2,
+  FileText,
+  LineChart,
+  TrendingUp,
+  Settings,
+  LogOut,
+  Leaf,
 } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
-import Image from "next/image";
 
-export function AppSidebar() {
-    const { logout, authLoading, user, role } = useAuthStore();
-    const router = useRouter();
-    const pathname = usePathname();
-    
-    // Navigation items matching the provided design
-    const navItems = [
-        {
-            name: 'General',
-            path: '/dashboard/general',
-            icon: <Home className="h-5 w-5" />
-        },
-        {
-            name: 'Campos',
-            path: '/dashboard/fields',
-            icon: <Map className="h-5 w-5" />
-        },
-        {
-            name: 'Corrales',
-            path: '/dashboard/pens',
-            icon: <Layers className="h-5 w-5" />
-        },
-        {
-            name: 'Variables',
-            path: '/dashboard/variables',
-            icon: <BarChart2 className="h-5 w-5" />
-        },
-        {
-            name: 'Reportes',
-            path: '/dashboard/reports',
-            icon: <Calendar className="h-5 w-5" />
-        },
-        {
-            name: 'Análisis',
-            path: '/dashboard',
-            icon: <FileBarChart className="h-5 w-5" />
-        }
-    ];
-    
-    const handleLogout = () => {
-        logout();
-        router.replace('/login');
-    }
-    
-    return (
-        <Sidebar className="w-72 border-r border-gray-200" style={{ backgroundColor: '#f1f1f1' }}>
-            <SidebarContent>
-                {/* Logo/Title */}
-                <div className="p-4 flex items-center gap-2">
-                    <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
-                        <span className="font-bold text-xl">M</span>
-                    </div>
-                    <h1 className="text-gray-700 font-bold text-xl">BD Metrics</h1>
-                </div>
-                
-                {/* Removed dropdown menus as requested */}
-                
-                {/* Navigation Section */}
-                <div className="px-4 pt-6">
-                    <h2 className="text-gray-500 text-sm font-medium mb-2">Navegación</h2>
-                    <SidebarGroup className="flex flex-col">
-                        {navItems.map((item) => (
-                            <Link 
-                                key={item.name} 
-                                href={item.path} 
-                                className={`flex items-center py-3 px-2 rounded-md ${pathname.includes(item.path) ? 'text-green-700 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
-                            >
-                                <div className="mr-3">
-                                    {item.icon}
-                                </div>
-                                <div>
-                                    {item.name}
-                                </div>
-                            </Link>
-                        ))}
-                        
-                        {/* Analytics button for admin users */}
-                        {role === 'ADMIN' && (
-                            <Link 
-                                href="/dashboard/analytics" 
-                                className={`flex items-center py-3 px-2 rounded-md ${pathname.includes('/analytics') ? 'text-green-700 font-medium' : 'text-gray-600 hover:text-gray-800'}`}
-                            >
-                                <div className="mr-3">
-                                    <TrendingUp className="h-5 w-5" />
-                                </div>
-                                <div>
-                                    Análisis de App
-                                </div>
-                            </Link>
-                        )}
-                    </SidebarGroup>
-                </div>
-                
-                {/* Action Buttons removed */}
-                
-                {/* Configuration Link */}
-                <div className="px-4 pt-4">
-                    <Link 
-                        href="/dashboard/configuration" 
-                        className="flex items-center py-3 px-2 text-gray-600 hover:text-gray-800"
-                    >
-                        <Settings className="h-5 w-5 mr-3" />
-                        <span>Configuración</span>
-                    </Link>
-                </div>
-            </SidebarContent>
-            
-            {/* User Profile and Logout */}
-            <SidebarFooter>
-                <SidebarGroupContent>
-                    <div className="px-4 pb-4 border-t border-gray-200 pt-4">
-                        {/* User name display */}
-                        {user && (
-                            <div className="mb-3 py-2 px-2 flex items-center">
-                                <div className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center mr-3">
-                                    <span className="font-medium text-sm">{(user.username || user.name)?.[0]?.toUpperCase() || 'U'}</span>
-                                </div>
-                                <span className="text-gray-800 font-medium">{user.username || user.name || 'Usuario'}</span>
-                            </div>
-                        )}
-                        <button 
-                            onClick={handleLogout}
-                            className="w-full flex items-center py-2 px-2 text-gray-600 hover:text-red-600"
-                        >
-                            <LogOut className="h-5 w-5 mr-3" />
-                            <span>Cerrar Sesión</span>
-                        </button>
-                    </div>
-                </SidebarGroupContent>
-            </SidebarFooter>
-        </Sidebar>
-    )
+type NavItem = { name: string; path: string; icon: React.ReactNode; exact?: boolean };
+
+const operacion: NavItem[] = [
+  { name: 'Resumen', path: '/dashboard', icon: <LayoutGrid />, exact: true },
+  { name: 'General', path: '/dashboard/general', icon: <Home /> },
+  { name: 'Campos', path: '/dashboard/fields', icon: <Map /> },
+  { name: 'Corrales', path: '/dashboard/pens', icon: <Layers /> },
+  { name: 'Variables', path: '/dashboard/variables', icon: <BarChart2 /> },
+  { name: 'Reportes', path: '/dashboard/reports', icon: <FileText /> },
+  { name: 'Análisis', path: '/dashboard/analisis', icon: <LineChart /> },
+];
+
+export function AppSidebar({ open = false, onNavigate }: { open?: boolean; onNavigate?: () => void }) {
+  const { logout, user, role } = useAuthStore();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const isActive = (item: { path: string; exact?: boolean }) =>
+    item.exact ? pathname === item.path : pathname.startsWith(item.path);
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
+  };
+
+  const displayName = user?.username || user?.name || 'Usuario';
+  const initial = displayName?.[0]?.toUpperCase() || 'U';
+
+  return (
+    <aside className={`rd-sidebar${open ? ' open' : ''}`}>
+      <div className="rd-brand">
+        <div className="rd-brand-mark"><Leaf size={20} strokeWidth={2} /></div>
+        <div>
+          <div className="rd-brand-name">BD Metrics</div>
+          <div className="rd-brand-sub">Bienestar ganadero</div>
+        </div>
+      </div>
+
+      <div className="rd-navlabel">Operación</div>
+      {operacion.map((item) => (
+        <Link
+          key={item.path}
+          href={item.path}
+          onClick={onNavigate}
+          className={`rd-nav${isActive(item) ? ' active' : ''}`}
+        >
+          {item.icon}
+          {item.name}
+        </Link>
+      ))}
+
+      {role === 'ADMIN' && (
+        <>
+          <div className="rd-navlabel">Inteligencia</div>
+          <Link
+            href="/dashboard/analytics"
+            onClick={onNavigate}
+            className={`rd-nav${pathname.startsWith('/dashboard/analytics') ? ' active' : ''}`}
+          >
+            <TrendingUp />
+            Analítica
+          </Link>
+        </>
+      )}
+
+      <div className="rd-sb-foot">
+        <Link
+          href="/dashboard/configuration"
+          onClick={onNavigate}
+          className={`rd-nav${pathname.startsWith('/dashboard/configuration') ? ' active' : ''}`}
+        >
+          <Settings />
+          Configuración
+        </Link>
+        <button type="button" onClick={handleLogout} className="rd-nav logout" style={{ background: 'transparent', border: 0, width: '100%', textAlign: 'left' }}>
+          <LogOut />
+          Cerrar sesión
+        </button>
+        <div className="rd-sb-user">
+          <div className="rd-avatar">{initial}</div>
+          <div>
+            <div className="who">{displayName}</div>
+            <div className="role">{role === 'ADMIN' ? 'Administrador' : 'Usuario'}</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
 }

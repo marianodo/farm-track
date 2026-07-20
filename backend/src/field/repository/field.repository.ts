@@ -113,6 +113,30 @@ export class FieldRepository {
     }
   }
 
+  // Railway's public proxy occasionally drops the DB connection mid-flight;
+  // retry raw queries a few times on transient connection errors.
+  private async queryRawWithRetry(query: string, ...params: any[]): Promise<any> {
+    let lastErr: unknown;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        return await this.db.$queryRawUnsafe(query, ...params);
+      } catch (err) {
+        lastErr = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        const transient =
+          /closed|connection|P1001|P1017|ECONNRESET|terminating|reset by peer/i.test(
+            msg,
+          );
+        if (!transient || attempt === 3) break;
+        console.warn(
+          `[FieldRepository] transient DB error (attempt ${attempt}/3), retrying: ${msg}`,
+        );
+        await new Promise((r) => setTimeout(r, 400 * attempt));
+      }
+    }
+    throw lastErr;
+  }
+
   async getFieldDataset(fieldId: string) {
     console.log(`[FieldRepository] Getting dataset for field ID: ${fieldId}`);
     
@@ -155,7 +179,7 @@ export class FieldRepository {
         ORDER BY m.created_at DESC
       `;
       console.log('[FieldRepository] Executing query:', query);
-      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      const measurements = await this.queryRawWithRetry(query, fieldId);
       return measurements;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -215,7 +239,7 @@ export class FieldRepository {
       AND r.field_id = $1;
       `;
       console.log('[FieldRepository] Executing query:', query);
-      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      const measurements = await this.queryRawWithRetry(query, fieldId);
       return measurements;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -278,7 +302,7 @@ export class FieldRepository {
       AND r.field_id = $1;
       `;
       console.log('[FieldRepository] Executing query:', query);
-      const measurements = await this.db.$queryRawUnsafe(query, fieldId);
+      const measurements = await this.queryRawWithRetry(query, fieldId);
       return measurements;
     } catch (error) {
       if (error instanceof NotFoundException) {
