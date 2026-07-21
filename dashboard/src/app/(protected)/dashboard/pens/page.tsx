@@ -88,14 +88,13 @@ export default function PensPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center">
+                  <td colSpan={3} className="px-6 py-4 text-center">
                     <div className="flex justify-center items-center space-x-2">
                       <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
                       <span>Cargando corrales...</span>
@@ -104,7 +103,7 @@ export default function PensPage() {
                 </tr>
               ) : penError ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center">
+                  <td colSpan={3} className="px-6 py-4 text-center">
                     <div className="text-red-500">
                       <p>Error: {penError}</p>
                       <button onClick={handleRefresh} className="mt-2 text-blue-500 hover:underline">
@@ -122,9 +121,6 @@ export default function PensPage() {
                         <Home className="h-4 w-4 mr-2 text-gray-400" />
                         {pen.fieldName || '-'}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {pen.description || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex space-x-2">
@@ -147,7 +143,7 @@ export default function PensPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="px-6 py-4 text-center">
+                  <td colSpan={3} className="px-6 py-4 text-center">
                     <p className="text-gray-500">No hay corrales disponibles. Crea un nuevo corral para comenzar.</p>
                   </td>
                 </tr>

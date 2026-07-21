@@ -1,278 +1,237 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { RefreshCw, Map, Layers, BarChart3, FileText, ArrowUpRight } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import useFieldStore from '@/store/fieldStore';
 import penStore from '@/store/penStore';
 import variableStore from '@/store/variableStore';
 import useReportStore from '@/store/reportStore';
-import Link from 'next/link';
 
-// Definición de tipos
-interface SectionProps {
+const PROD_LABEL: Record<string, string> = {
+  bovine_of_milk: 'Leche',
+  bovine_of_meat: 'Carne',
+  swine: 'Porcino',
+  posture_poultry: 'Aves postura',
+  broil_poultry: 'Aves engorde',
+};
+
+type SectionKey = 'campos' | 'corrales' | 'variables' | 'reportes';
+
+interface SectionConfig {
+  key: SectionKey;
   title: string;
   path: string;
-  count: number;
+  icon: React.ReactNode;
   items: any[];
   loading: boolean;
   onRefresh: () => Promise<void>;
+  columns: string[];
+  /** Renders one row's cells, aligned with `columns`. */
+  renderRow: (item: any) => React.ReactNode[];
 }
 
-// Renderización personalizada para cada tipo de elemento
-const renderItem = (item: any, sectionTitle: string) => {
-  switch(sectionTitle) {
-    case 'Campos':
-      return (
-        <div className="grid grid-cols-3 gap-2 w-full">
-          <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
-          <div className="text-xs text-gray-600 truncate">{item.description || '-'}</div>
-          <div className="text-xs text-gray-600 truncate">{item.location || '-'}</div>
-        </div>
-      );
-    case 'Corrales':
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full">
-          <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
-          <div className="text-xs text-gray-600 truncate">{item.fieldName || '-'}</div>
-        </div>
-      );
-    case 'Variables':
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full">
-          <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
-          <div className="text-xs text-gray-600 truncate">{item.type || '-'}</div>
-        </div>
-      );
-    case 'Reportes':
-      return (
-        <div className="grid grid-cols-3 gap-2 w-full">
-          <div className="text-xs text-gray-600 truncate">ID: {item.id}</div>
-          <div className="text-xs text-gray-600 truncate">
-            {item.created_at ? new Date(item.created_at).toLocaleDateString() : '-'}
-          </div>
-          <div className="text-xs text-gray-600 truncate">{item.fieldName || '-'}</div>
-        </div>
-      );
-    default:
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full">
-          <div className="text-sm font-medium text-gray-800 truncate">{item.name}</div>
-          <div className="text-xs text-gray-500 truncate">
-            {item.description || item.comment || item.location || item.fieldName || '-'}
-          </div>
-        </div>
-      );
-  }
-};
+function SectionCard({ section }: { section: SectionConfig }) {
+  const { title, path, icon, items, loading, onRefresh, columns, renderRow } = section;
+  const gridStyle = { gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` };
 
-// Headers para cada tipo de sección
-const getSectionHeaders = (title: string) => {
-  switch(title) {
-    case 'Campos':
-      return (
-        <div className="grid grid-cols-3 gap-2 w-full px-6 py-2 bg-gray-50 text-xs font-semibold text-gray-600">
-          <div>Nombre</div>
-          <div>Descripción</div>
-          <div>Ubicación</div>
-        </div>
-      );
-    case 'Corrales':
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full px-6 py-2 bg-gray-50 text-xs font-semibold text-gray-600">
-          <div>Nombre</div>
-          <div>Campo</div>
-        </div>
-      );
-    case 'Variables':
-      return (
-        <div className="grid grid-cols-2 gap-2 w-full px-6 py-2 bg-gray-50 text-xs font-semibold text-gray-600">
-          <div>Nombre</div>
-          <div>Tipo</div>
-        </div>
-      );
-    case 'Reportes':
-      return (
-        <div className="grid grid-cols-3 gap-2 w-full px-6 py-2 bg-gray-50 text-xs font-semibold text-gray-600">
-          <div>ID</div>
-          <div>Fecha</div>
-          <div>Campo</div>
-        </div>
-      );
-    default:
-      return null;
-  }
-};
-
-// Componente de sección simplificado
-const DashboardSection = ({ title, path, count, items, loading, onRefresh }: SectionProps) => {
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-      <div className="bg-gray-50 px-6 py-4">
-        <div className="flex justify-between items-center">
-          <Link href={path} className="text-lg font-semibold text-gray-800">
-            {title} ({count})
-          </Link>
-          <button 
-            onClick={onRefresh} 
-            className="p-1 rounded hover:bg-gray-100"
+    <section className="rd-card">
+      <div className="rd-cardh">
+        <span className="r-ic" style={{
+          width: 34, height: 34, borderRadius: 10, background: 'var(--pasture-50)',
+          color: 'var(--pasture-600)', display: 'grid', placeItems: 'center', flex: 'none',
+        }}>
+          {icon}
+        </span>
+        <div>
+          <div className="eyebrow">{items.length} en total</div>
+          <h3>{title}</h3>
+        </div>
+        <div className="h-right">
+          <button
+            onClick={onRefresh}
+            className="rd-iconbtn"
             disabled={loading}
+            aria-label={`Actualizar ${title.toLowerCase()}`}
           >
-            <RefreshCw size={18} className={loading ? 'animate-spin text-gray-400' : 'text-gray-600'} />
+            <RefreshCw size={16} className={loading ? 'rd-spin' : ''} />
           </button>
+          <Link href={path} className="rd-link" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            Ver todo <ArrowUpRight size={14} />
+          </Link>
         </div>
       </div>
-      
-      <div className="h-[260px] overflow-y-auto pr-1">
+
+      <div style={{ padding: '10px 20px 18px' }}>
         {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <div className="animate-pulse flex space-x-2">
-              <div className="h-2.5 w-2.5 bg-gray-300 rounded-full"></div>
-              <div className="h-2.5 w-2.5 bg-gray-300 rounded-full"></div>
-              <div className="h-2.5 w-2.5 bg-gray-300 rounded-full"></div>
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rd-skel" style={{ height: 34 }} />
+            ))}
           </div>
         ) : items.length > 0 ? (
-          <>
-            {getSectionHeaders(title)}
-            <ul className="divide-y divide-gray-200">
-              {items.map((item) => (
-                <li key={item.id} className="px-6 py-3 hover:bg-gray-50">
-                  {renderItem(item, title)}
-                </li>
+          <div>
+            <div
+              className="rd-genrow rd-genhead"
+              style={gridStyle}
+            >
+              {columns.map((c) => <span key={c}>{c}</span>)}
+            </div>
+            <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+              {items.slice(0, 50).map((item, idx) => (
+                <div key={item.id ?? idx} className="rd-genrow" style={gridStyle}>
+                  {renderRow(item).map((cell, i) => (
+                    <span key={i} className={i === 0 ? 'rd-genrow-main' : undefined}>{cell}</span>
+                  ))}
+                </div>
               ))}
-            </ul>
-          </>
+            </div>
+            {items.length > 50 && (
+              <div style={{ paddingTop: 10, fontSize: 12, color: 'var(--ink-3)' }}>
+                Mostrando 50 de {items.length}. <Link href={path} className="rd-link">Ver todo</Link>
+              </div>
+            )}
+          </div>
         ) : (
-          <div className="flex justify-center items-center h-full">
-            <p className="text-gray-500">No hay {title.toLowerCase()} disponibles</p>
+          <div className="rd-empty" style={{ padding: '36px 16px' }}>
+            No hay {title.toLowerCase()} todavía.{' '}
+            <Link href={path} className="rd-link">Ir a {title}</Link>
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
-};
+}
 
 export default function GeneralPage() {
   const { user } = useAuthStore();
-  const { getFieldsByUser, fieldsByUserId, fieldLoading } = useFieldStore();
-  const { getPensByUser, pensByUser, penLoading } = penStore();
-  const { getVariablesByUser, variablesByUser, variableLoading } = variableStore();
-  const { getReportsByUser, reportsByUser, reportLoading } = useReportStore();
-  
-  const [fieldsLoading, setFieldsLoading] = useState(true);
-  const [pensLoading, setPensLoading] = useState(true);
-  const [variablesLoading, setVariablesLoading] = useState(true);
-  const [reportsLoading, setReportsLoading] = useState(true);
+  const { getFieldsByUser, fieldsByUserId } = useFieldStore();
+  const { getPensByUser, pensByUser } = penStore();
+  const { getVariablesByUser, variablesByUser } = variableStore();
+  const { getReportsByUser, reportsByUser } = useReportStore();
+
+  const [loading, setLoading] = useState({
+    fields: true, pens: true, variables: true, reports: true,
+  });
+
+  const setSectionLoading = (key: keyof typeof loading, value: boolean) =>
+    setLoading((prev) => ({ ...prev, [key]: value }));
+
+  const refreshFields = useCallback(async () => {
+    setSectionLoading('fields', true);
+    await getFieldsByUser();
+    setSectionLoading('fields', false);
+  }, [getFieldsByUser]);
+
+  const refreshPens = useCallback(async () => {
+    setSectionLoading('pens', true);
+    await getPensByUser();
+    setSectionLoading('pens', false);
+  }, [getPensByUser]);
+
+  const refreshVariables = useCallback(async () => {
+    setSectionLoading('variables', true);
+    await getVariablesByUser();
+    setSectionLoading('variables', false);
+  }, [getVariablesByUser]);
+
+  const refreshReports = useCallback(async () => {
+    setSectionLoading('reports', true);
+    await getReportsByUser();
+    setSectionLoading('reports', false);
+  }, [getReportsByUser]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      console.log('Iniciando carga de datos del dashboard');
-      
-      // Cargar campos
-      setFieldsLoading(true);
-      await getFieldsByUser();
-      setFieldsLoading(false);
-      
-      // Cargar corrales
-      setPensLoading(true);
-      await getPensByUser();
-      setPensLoading(false);
-      
-      // Cargar variables
-      setVariablesLoading(true);
-      await getVariablesByUser();
-      setVariablesLoading(false);
-      
-      // Cargar reportes
-      setReportsLoading(true);
-      await getReportsByUser();
-      setReportsLoading(false);
-    };
+    // Load every section in parallel — they don't depend on each other.
+    void Promise.all([refreshFields(), refreshPens(), refreshVariables(), refreshReports()]);
+  }, [refreshFields, refreshPens, refreshVariables, refreshReports]);
 
-    fetchData();
-  }, [getFieldsByUser, getPensByUser, getVariablesByUser, getReportsByUser]);
+  const displayName = user?.username || user?.name || user?.email?.split('@')[0] || 'Usuario';
 
-  const handleRefreshFields = async () => {
-    setFieldsLoading(true);
-    await getFieldsByUser();
-    setFieldsLoading(false);
-  };
-  
-  const handleRefreshPens = async () => {
-    setPensLoading(true);
-    await getPensByUser();
-    setPensLoading(false);
-  };
-  
-  const handleRefreshVariables = async () => {
-    setVariablesLoading(true);
-    await getVariablesByUser();
-    setVariablesLoading(false);
-  };
-  
-  const handleRefreshReports = async () => {
-    setReportsLoading(true);
-    await getReportsByUser();
-    setReportsLoading(false);
-  };
-
-  // Secciones del dashboard
-  const sections = [
+  const sections: SectionConfig[] = [
     {
+      key: 'campos',
       title: 'Campos',
       path: '/dashboard/fields',
-      count: fieldsByUserId?.length || 0,
+      icon: <Map size={17} />,
       items: fieldsByUserId || [],
-      loading: fieldsLoading,
-      onRefresh: handleRefreshFields
+      loading: loading.fields,
+      onRefresh: refreshFields,
+      columns: ['Nombre', 'Producción', 'Animales'],
+      renderRow: (f) => [
+        f.name,
+        f.production_type ? (PROD_LABEL[f.production_type] ?? f.production_type) : '—',
+        f.number_of_animals ? Number(f.number_of_animals).toLocaleString('es-AR') : '—',
+      ],
     },
     {
+      key: 'corrales',
       title: 'Corrales',
       path: '/dashboard/pens',
-      count: pensByUser?.length || 0,
+      icon: <Layers size={17} />,
       items: pensByUser || [],
-      loading: pensLoading,
-      onRefresh: handleRefreshPens
+      loading: loading.pens,
+      onRefresh: refreshPens,
+      columns: ['Nombre', 'Campo'],
+      renderRow: (p) => [p.name, p.fieldName || '—'],
     },
     {
+      key: 'variables',
       title: 'Variables',
       path: '/dashboard/variables',
-      count: variablesByUser?.length || 0,
+      icon: <BarChart3 size={17} />,
       items: variablesByUser || [],
-      loading: variablesLoading,
-      onRefresh: handleRefreshVariables
+      loading: loading.variables,
+      onRefresh: refreshVariables,
+      columns: ['Nombre', 'Tipo', 'Rango óptimo'],
+      renderRow: (v) => {
+        const inner = v.defaultValue?.value ?? {};
+        const optimal = Array.isArray(inner.optimal_values) && inner.optimal_values.length
+          ? inner.optimal_values.join(', ')
+          : inner.optimal_min != null || inner.optimal_max != null
+            ? `${inner.optimal_min ?? '—'}–${inner.optimal_max ?? '—'}`
+            : '—';
+        return [
+          v.name,
+          v.type === 'NUMBER' ? 'Numérica' : 'Categórica',
+          optimal,
+        ];
+      },
     },
     {
+      key: 'reportes',
       title: 'Reportes',
       path: '/dashboard/reports',
-      count: reportsByUser?.length || 0,
+      icon: <FileText size={17} />,
       items: reportsByUser || [],
-      loading: reportsLoading,
-      onRefresh: handleRefreshReports
-    }
+      loading: loading.reports,
+      onRefresh: refreshReports,
+      columns: ['Reporte', 'Campo', 'Fecha'],
+      renderRow: (r) => [
+        r.name || `#${r.id}`,
+        r.fieldName || '—',
+        r.created_at ? new Date(r.created_at).toLocaleDateString('es-AR') : '—',
+      ],
+    },
   ];
 
   return (
-    <div className="p-6">
-      {/* Sección de bienvenida */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Bienvenido, {user?.name || user?.username || user?.email.split('@')[0] || 'Usuario'}</h1>
-        <p className="text-gray-600 mt-2">Resumen de administración agrícola</p>
+    <div className="rd-page">
+      <div className="rd-greet">
+        <div>
+          <h1>Bienvenido, {displayName} 🌿</h1>
+          <div className="sub">
+            Todo lo que tenés cargado, de un vistazo. Para el análisis de bienestar, andá a{' '}
+            <Link href="/dashboard" className="rd-link">Resumen</Link>.
+          </div>
+        </div>
       </div>
 
-      {/* Dashboard principal */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="rd-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
         {sections.map((section) => (
-          <DashboardSection
-            key={section.title}
-            title={section.title}
-            path={section.path}
-            count={section.count}
-            items={section.items}
-            loading={section.loading}
-            onRefresh={section.onRefresh}
-          />
+          <SectionCard key={section.key} section={section} />
         ))}
       </div>
     </div>

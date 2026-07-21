@@ -5,6 +5,44 @@ import { AnalyticsRepository } from '../repository/analytics.repository';
 export class AnalyticsService {
   constructor(private readonly analyticsRepository: AnalyticsRepository) {}
 
+  /**
+   * Single source of truth for the analytics dashboard.
+   *
+   * The usage verdict used to be computed twice — once here and once inline in
+   * the controller — which meant the two could drift. It now lives only in the
+   * repository, where it is derived from time-windowed activity.
+   */
+  async getOverview() {
+    const [
+      basicStats,
+      monthlyGrowth,
+      activity,
+      engagement,
+      usageEvaluation,
+      lastActivity,
+      concentration,
+    ] = await Promise.all([
+      this.analyticsRepository.getBasicStats(),
+      this.analyticsRepository.getMonthlyGrowth(),
+      this.analyticsRepository.getWindowedActivity(),
+      this.analyticsRepository.getEngagementBreakdown(),
+      this.analyticsRepository.getUsageEvaluation(),
+      this.analyticsRepository.getLastActivity(),
+      this.analyticsRepository.getConcentration(),
+    ]);
+
+    return {
+      basicStats,
+      monthlyGrowth,
+      activity,
+      engagement,
+      usageEvaluation,
+      lastActivity,
+      concentration,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
   async getBasicStats() {
     return await this.analyticsRepository.getBasicStats();
   }
@@ -13,26 +51,34 @@ export class AnalyticsService {
     return await this.analyticsRepository.getMonthlyGrowth();
   }
 
-  async getActivityAnalysis() {
-    // Hacer las consultas de forma secuencial
-    const topUsers = await this.analyticsRepository.getTopActiveUsers();
-    const dailyActivity = await this.analyticsRepository.getDailyActivity();
+  async getWindowedActivity() {
+    return await this.analyticsRepository.getWindowedActivity();
+  }
 
-    return {
-      topUsers,
-      dailyActivity
-    };
+  async getEngagementBreakdown() {
+    return await this.analyticsRepository.getEngagementBreakdown();
+  }
+
+  async getConcentration() {
+    return await this.analyticsRepository.getConcentration();
+  }
+
+  async getActivityAnalysis() {
+    const [topUsers, dailyActivity] = await Promise.all([
+      this.analyticsRepository.getTopActiveUsers(),
+      this.analyticsRepository.getDailyActivity(),
+    ]);
+
+    return { topUsers, dailyActivity };
   }
 
   async getGeographicDistribution() {
-    // Hacer las consultas de forma secuencial
-    const locations = await this.analyticsRepository.getGeographicDistribution();
-    const fieldsWithCoords = await this.analyticsRepository.getFieldsWithCoordinates();
+    const [locations, fieldsWithCoords] = await Promise.all([
+      this.analyticsRepository.getGeographicDistribution(),
+      this.analyticsRepository.getFieldsWithCoordinates(),
+    ]);
 
-    return {
-      locations,
-      fieldsWithCoords
-    };
+    return { locations, fieldsWithCoords };
   }
 
   async getProductivityMetrics() {
@@ -40,27 +86,13 @@ export class AnalyticsService {
   }
 
   async getUsageSummary() {
-    // Hacer las consultas de forma secuencial
-    const basicStats = await this.analyticsRepository.getBasicStats();
-    const monthlyGrowth = await this.analyticsRepository.getMonthlyGrowth();
-    const usageEvaluation = await this.analyticsRepository.getUsageEvaluation();
+    const [basicStats, monthlyGrowth, usageEvaluation] = await Promise.all([
+      this.analyticsRepository.getBasicStats(),
+      this.analyticsRepository.getMonthlyGrowth(),
+      this.analyticsRepository.getUsageEvaluation(),
+    ]);
 
-    return {
-      basicStats,
-      monthlyGrowth,
-      usageEvaluation
-    };
-  }
-
-  async getGrowthTrends() {
-    // Hacer las consultas de forma secuencial
-    const userGrowth = await this.analyticsRepository.getUserGrowthOverTime();
-    const measurementActivity = await this.analyticsRepository.getMeasurementActivityOverTime();
-
-    return {
-      userGrowth,
-      measurementActivity
-    };
+    return { basicStats, monthlyGrowth, usageEvaluation };
   }
 
   async getMonthlyData() {
@@ -75,18 +107,8 @@ export class AnalyticsService {
     return await this.analyticsRepository.getLastActivity();
   }
 
+  /** Kept for backwards compatibility with existing callers. */
   async getAllAnalytics() {
-    // Hacer las consultas de forma secuencial para evitar problemas de conexión
-    // Solo obtener los datos esenciales para el dashboard
-    const basicStats = await this.getBasicStats();
-    const monthlyGrowth = await this.getMonthlyGrowth();
-    const usageSummary = await this.getUsageSummary();
-
-    return {
-      basicStats,
-      monthlyGrowth,
-      usageEvaluation: usageSummary.usageEvaluation,
-      generatedAt: new Date().toISOString()
-    };
+    return await this.getOverview();
   }
 }

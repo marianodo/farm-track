@@ -6,20 +6,28 @@ import { useAuthStore } from './authStore';
 export type Pen = {
   id: string;
   name: string;
-  description?: string;
   fieldId: string;
-  fieldName?: string; // To store the field name
+  fieldName?: string; // Added client-side from the field list
 };
+
+/** Payload accepted by the backend when creating/updating a pen. */
+export type PenInput = {
+  name: string;
+  fieldId: string;
+  type_of_object_ids: number[];
+};
+
+export type PenUpdateInput = Partial<Pick<PenInput, 'name' | 'type_of_object_ids'>>;
 
 type PenStore = {
   pens: Pen[];
   pensByUser: Pen[];
   penLoading: boolean;
   penError: string | null;
-  
+
   // CRUD actions
-  createPen: (pen: Omit<Pen, 'id'>) => Promise<Pen | undefined>;
-  updatePen: (id: string, pen: Partial<Pen>) => Promise<Pen | undefined>;
+  createPen: (pen: PenInput) => Promise<Pen | undefined>;
+  updatePen: (id: string, pen: PenUpdateInput) => Promise<Pen | undefined>;
   deletePen: (id: string) => Promise<boolean>;
   getPenById: (id: string) => Promise<Pen | undefined>;
   
@@ -37,7 +45,7 @@ const penStore = create<PenStore>((set, get) => ({
   penError: null,
   
   // Create a new pen
-  createPen: async (pen: { name: string; fieldId: string; type_of_object_ids: number[] }) => {
+  createPen: async (pen: PenInput) => {
     set({ penLoading: true, penError: null });
     try {
       const response = await axios.post(

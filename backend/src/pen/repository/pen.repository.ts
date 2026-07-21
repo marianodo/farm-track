@@ -244,9 +244,12 @@ export class PenRepository {
         });
 
         // Obtener los type_of_object_ids que no estan en la lista actualizada
-        const typeOfObjectsToDelete = previousTypeOfObjects
-          .map((obj) => obj.typeOfObjectId)
-          .filter((id) => !type_of_object_ids.includes(id));
+        // (si no se envían, se conservan las asociaciones existentes)
+        const typeOfObjectsToDelete = type_of_object_ids
+          ? previousTypeOfObjects
+              .map((obj) => obj.typeOfObjectId)
+              .filter((id) => !type_of_object_ids.includes(id))
+          : [];
 
         // Borrar los registros en pen_variable_type-of-objects para los type_of_object_ids eliminados
         for (const typeOfObjectId of typeOfObjectsToDelete) {
@@ -265,16 +268,10 @@ export class PenRepository {
         if (type_of_object_ids?.length) {
           // Obtener los type_of_object_ids que se agregaron
           const typeOfObjectsToAdd = type_of_object_ids.filter(
-            (typeOfObjectId) => {
-              const exists = previousTypeOfObjects.some(
+            (typeOfObjectId) =>
+              !previousTypeOfObjects.some(
                 (obj) => obj.typeOfObjectId === typeOfObjectId,
-              );
-              console.log(
-                `Checking if ${typeOfObjectId} exists in previousTypeOfObjects:`,
-                exists,
-              );
-              return !exists;
-            },
+              ),
           );
 
           if (typeOfObjectsToAdd.length > 0) {

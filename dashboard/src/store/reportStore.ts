@@ -23,6 +23,7 @@ interface ReportState {
   
   getReportsByUser: () => Promise<Report[] | undefined>;
   getReportsByField: (fieldId: string) => Promise<Report[] | undefined>;
+  deleteReport: (id: string) => Promise<boolean>;
 }
 
 const useReportStore = create<ReportState>((set, get) => ({
@@ -49,38 +50,29 @@ const useReportStore = create<ReportState>((set, get) => ({
       try {
         if (userId) {
           // Primero obtenemos todos los campos del usuario
-          console.log('Obteniendo campos del usuario');
           const fieldsResponse = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/fields/byUserId/${userId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          
+
           const fields = fieldsResponse.data || [];
-          console.log(`Encontrados ${fields.length} campos para el usuario ${userId}`);
-          
+
           if (fields.length === 0) {
             set({ reportsByUser: [], reportLoading: false });
             return [];
           }
-          
+
           // Obtenemos reportes para cada campo
           const allReports: Report[] = [];
           for (const field of fields) {
             try {
-              console.log(`Obteniendo reportes para el campo ${field.id} (${field.name})`);
               const reportResponse = await axios.get(
                 `${process.env.NEXT_PUBLIC_API_URL}/reports/byField/${field.id}`,
                 { headers: { Authorization: `Bearer ${token}` } }
               );
-              
+
               const fieldReports = reportResponse.data || [];
-              console.log(`- ${fieldReports.length} reportes encontrados para ${field.name}`);
-              
-              // Log de información de muestra para depuración
-              if (fieldReports.length > 0) {
-                console.log('- Muestra de reporte:', fieldReports[0]);
-              }
-              
+
               // Añadir nombre del campo y validar fechas
               const reportsWithFieldName = fieldReports.map((report: Report) => {
                 // Aseguramos que created_at tenga formato ISO correcto
@@ -117,7 +109,6 @@ const useReportStore = create<ReportState>((set, get) => ({
             return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
           });
           
-          console.log(`Total: ${allReports.length} reportes obtenidos de todos los campos`);
           set({ reportsByUser: allReports, reportLoading: false });
           return allReports;
         } else {
@@ -170,7 +161,26 @@ const useReportStore = create<ReportState>((set, get) => ({
       set({ reportLoading: false, reportError: `Failed to load reports for field ${fieldId}` });
       return [];
     }
-  }
+  },
+
+  deleteReport: async (id: string) => {
+    set({ reportLoading: true, reportError: null });
+    try {
+      const { token } = useAuthStore.getState();
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/reports/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      set((state) => ({
+        reportsByUser: (state.reportsByUser || []).filter((r) => r.id !== id),
+        reportLoading: false,
+      }));
+      return true;
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Error al eliminar el reporte';
+      set({ reportLoading: false, reportError: message });
+      return false;
+    }
+  },
 }));
 
 export default useReportStore;

@@ -14,15 +14,21 @@ export type Variable = {
   updatedAt?: string;
 };
 
+/** Payload accepted by the backend when creating/updating a variable. */
+export type VariableInput = Omit<Variable, 'id'> & {
+  /** Which pen object types (Animal, Instalación, etc.) this variable applies to. */
+  type_of_object_ids: number[];
+};
+
 type VariableStore = {
   variables: Variable[];
   variablesByUser: Variable[];
   variableLoading: boolean;
   variableError: string | null;
-  
+
   // CRUD operations
-  createVariable: (variable: Omit<Variable, 'id'>) => Promise<Variable | undefined>;
-  updateVariable: (id: string, variable: Partial<Variable>) => Promise<Variable | undefined>;
+  createVariable: (variable: VariableInput) => Promise<Variable | undefined>;
+  updateVariable: (id: string, variable: Partial<VariableInput>) => Promise<Variable | undefined>;
   deleteVariable: (id: string) => Promise<boolean>;
   getVariableById: (id: string) => Promise<Variable | undefined>;
   
@@ -40,7 +46,7 @@ const variableStore = create<VariableStore>((set) => ({
   variableError: null,
   
   // Create a new variable
-  createVariable: async (variable: Omit<Variable, 'id'>) => {
+  createVariable: async (variable: VariableInput) => {
     set({ variableLoading: true, variableError: null });
     try {
       const userId = useAuthStore.getState().user?.id;
@@ -67,7 +73,7 @@ const variableStore = create<VariableStore>((set) => ({
   },
   
   // Update an existing variable
-  updateVariable: async (id: string, variable: Partial<Variable>) => {
+  updateVariable: async (id: string, variable: Partial<VariableInput>) => {
     set({ variableLoading: true, variableError: null });
     try {
       const response = await axios.patch(

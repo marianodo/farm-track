@@ -1,673 +1,430 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { RefreshCw, Users, MapPin, Layers, BarChart3, FileText, Activity, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  RefreshCw, Users, MapPin, Layers, BarChart3, FileText, Activity,
+  TrendingUp, TrendingDown, AlertTriangle, CheckCircle, Clock, Minus, UserX,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  ResponsiveContainer, Line, ComposedChart,
+} from 'recharts';
+
+type UsageLevel = 'dormant' | 'declining' | 'low' | 'medium' | 'high';
+type UserStatus = 'active' | 'idle' | 'churned' | 'never_activated';
 
 interface BasicStats {
-  totalUsers: number;
-  verifiedUsers: number;
-  activeUsers: number;
-  totalFields: number;
-  totalPens: number;
-  totalMeasurements: number;
-  totalReports: number;
-  totalSubjects: number;
-  totalProductivity: number;
+  totalUsers: number; verifiedUsers: number; totalFields: number; totalPens: number;
+  totalMeasurements: number; totalReports: number; totalSubjects: number; totalProductivity: number;
 }
-
+interface WindowedActivity {
+  activeUsers30d: number; activeUsers90d: number; measurements30d: number;
+  measurements90d: number; reports30d: number; reports90d: number;
+}
+interface Engagement {
+  totalUsers: number; everMeasured: number; neverMeasured: number; activatedRate: number;
+}
 interface MonthlyGrowth {
-  newUsersMonth: number;
-  newFieldsMonth: number;
-  newMeasurementsMonth: number;
-  newReportsMonth: number;
+  newUsersMonth: number; newFieldsMonth: number; newMeasurementsMonth: number;
+  newReportsMonth: number; prevMeasurements: number; prevUsers: number;
+  measurementTrendPct: number | null;
 }
-
 interface UsageEvaluation {
-  adoptionRate: number;
-  avgFieldsPerUser: number;
-  avgPensPerField: number;
-  avgMeasurementsPerReport: number;
-  usageLevel: 'low' | 'medium' | 'high';
-  hasGrowth: boolean;
-  hasRegularActivity: boolean;
+  usageLevel: UsageLevel; usageReason: string; daysSinceLastActivity: number | null;
+  activationRate: number; retention30d: number; avgFieldsPerActivatedUser: number;
+  avgPensPerField: number; avgMeasurementsPerReport: number;
+  hasGrowth: boolean; hasRegularActivity: boolean; window: number;
 }
-
-interface MonthlyData {
-  month: string;
-  measurementsCount: number;
-  reportsCount: number;
-  usersCount: number;
-}
-
-interface UserStats {
-  userId: string;
-  username: string;
-  email: string;
-  fieldsCount: number;
-  pensCount: number;
-  reportsCount: number;
-  measurementsCount: number;
-}
-
 interface LastActivity {
-  activityType: string;
-  activityDate: string;
-  userEmail: string;
-  timeAgo: string;
-  diffSeconds: number;
-  diffMinutes: number;
-  diffHours: number;
-  diffDays: number;
+  activityType: string; activityDate: string; userEmail: string;
+  timeAgo: string; diffDays: number;
+}
+interface Concentration {
+  topUserEmail: string; topUserMeasurements: number;
+  totalMeasurements: number; sharePct: number;
+}
+interface MonthlyData {
+  month: string; measurementsCount: number; reportsCount: number;
+  usersCount: number; activeUsers: number;
+}
+interface UserStats {
+  userId: string; username: string; email: string; registeredAt: string;
+  fieldsCount: number; pensCount: number; reportsCount: number; measurementsCount: number;
+  lastMeasurement: string | null; daysSinceLastMeasurement: number | null; status: UserStatus;
+}
+interface Overview {
+  basicStats: BasicStats; monthlyGrowth: MonthlyGrowth; activity: WindowedActivity;
+  engagement: Engagement; usageEvaluation: UsageEvaluation;
+  lastActivity: LastActivity | null; concentration: Concentration | null;
+  generatedAt: string;
 }
 
-interface AnalyticsData {
-  basicStats: BasicStats;
-  monthlyGrowth: MonthlyGrowth;
-  usageEvaluation: UsageEvaluation;
-  generatedAt: string;
+const USAGE_META: Record<UsageLevel, { label: string; tone: 'crit' | 'warn' | 'ok'; icon: React.ReactNode }> = {
+  dormant:   { label: 'Sin uso',        tone: 'crit', icon: <AlertTriangle size={20} /> },
+  declining: { label: 'En caída',       tone: 'crit', icon: <TrendingDown size={20} /> },
+  low:       { label: 'Uso bajo',       tone: 'warn', icon: <AlertTriangle size={20} /> },
+  medium:    { label: 'Uso moderado',   tone: 'warn', icon: <Clock size={20} /> },
+  high:      { label: 'Uso alto',       tone: 'ok',   icon: <CheckCircle size={20} /> },
+};
+
+const STATUS_META: Record<UserStatus, { label: string; color: string; bg: string }> = {
+  active:          { label: 'Activo',          color: 'var(--st-ok-ink)',   bg: 'var(--st-ok-bg)' },
+  idle:            { label: 'Inactivo',        color: 'var(--st-warn-ink)', bg: 'var(--st-warn-bg)' },
+  churned:         { label: 'Abandonó',        color: 'var(--st-crit-ink)', bg: 'var(--st-crit-bg)' },
+  never_activated: { label: 'Nunca usó',       color: 'var(--ink-3)',       bg: 'var(--surface-sunk)' },
+};
+
+const TONE_COLOR: Record<'crit' | 'warn' | 'ok', string> = {
+  crit: 'var(--st-crit)', warn: 'var(--st-warn)', ok: 'var(--st-ok)',
+};
+
+function Kpi({ icon, label, value, unit, foot }: {
+  icon: React.ReactNode; label: string; value: React.ReactNode;
+  unit?: string; foot?: React.ReactNode;
+}) {
+  return (
+    <div className="rd-kpi">
+      <div className="k-top">
+        <span className="k-ic">{icon}</span>
+        <span className="k-label">{label}</span>
+      </div>
+      <div className="k-val">{value}{unit && <small>{unit}</small>}</div>
+      {foot && <div className="k-foot">{foot}</div>}
+    </div>
+  );
+}
+
+function StatusPill({ status }: { status: UserStatus }) {
+  const meta = STATUS_META[status];
+  return (
+    <span style={{
+      fontSize: 11.5, fontWeight: 700, padding: '3px 9px', borderRadius: 999,
+      color: meta.color, background: meta.bg, whiteSpace: 'nowrap',
+    }}>
+      {meta.label}
+    </span>
+  );
 }
 
 export default function AnalyticsPage() {
   const { token } = useAuthStore();
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [overview, setOverview] = useState<Overview | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [userStats, setUserStats] = useState<UserStats[]>([]);
-  const [lastActivity, setLastActivity] = useState<LastActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAnalytics = async () => {
+  const fetchAll = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    setError(null);
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+    const base = process.env.NEXT_PUBLIC_API_URL;
+
     try {
-      setLoading(true);
-      setError(null);
+      const [ovRes, monthRes, usersRes] = await Promise.all([
+        fetch(`${base}/analytics/overview`, { headers }),
+        fetch(`${base}/analytics/monthly-data`, { headers }),
+        fetch(`${base}/analytics/user-stats`, { headers }),
+      ]);
 
-      // Fetch data sequentially to avoid database connection issues
-      const overviewResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/overview`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      if (!ovRes.ok) throw new Error('No se pudieron cargar las métricas');
+      setOverview(await ovRes.json());
 
-      if (!overviewResponse.ok) {
-        throw new Error('Error al cargar los datos de analytics');
+      if (monthRes.ok) {
+        const raw = await monthRes.json();
+        setMonthlyData(
+          (raw as MonthlyData[]).map((m) => ({
+            ...m,
+            month: new Date(m.month).toLocaleDateString('es-AR', {
+              month: 'short', year: '2-digit',
+            }),
+          })),
+        );
       }
-
-      const overviewData = await overviewResponse.json();
-      setAnalyticsData(overviewData);
-
-      // Fetch last activity
-      const lastActivityResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/last-activity`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (lastActivityResponse.ok) {
-        const lastActivityResult = await lastActivityResponse.json();
-        setLastActivity(lastActivityResult);
-      }
-
-      // Fetch monthly data
-      const monthlyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/monthly-data`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (monthlyResponse.ok) {
-        const monthlyDataResult = await monthlyResponse.json();
-        const formattedMonthlyData = monthlyDataResult.map((item: any) => ({
-          month: new Date(item.month).toLocaleDateString('es-ES', { 
-            year: 'numeric', 
-            month: 'short' 
-          }),
-          measurementsCount: item.measurementsCount,
-          reportsCount: item.reportsCount,
-          usersCount: item.usersCount
-        }));
-        setMonthlyData(formattedMonthlyData);
-      }
-
-      // Fetch user stats
-      const userStatsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/user-stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (userStatsResponse.ok) {
-        const userStatsResult = await userStatsResponse.json();
-        setUserStats(userStatsResult);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido');
+      if (usersRes.ok) setUserStats(await usersRes.json());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Error desconocido');
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, []);
-
-  const getUsageLevelColor = (level: string) => {
-    switch (level) {
-      case 'high': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getUsageLevelText = (level: string) => {
-    switch (level) {
-      case 'high': return 'Alto Uso';
-      case 'medium': return 'Uso Moderado';
-      case 'low': return 'Bajo Uso';
-      default: return 'Desconocido';
-    }
-  };
+  useEffect(() => { void fetchAll(); }, [fetchAll]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
-          <span className="text-lg">Cargando análisis de la aplicación...</span>
+      <div className="rd-page">
+        <div className="rd-kpis">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rd-skel" style={{ height: 108 }} />
+          ))}
         </div>
+        <div className="rd-skel" style={{ height: 320, marginTop: 22 }} />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !overview) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Error</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={fetchAnalytics} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Reintentar
-          </Button>
+      <div className="rd-page">
+        <div className="rd-card rd-empty">
+          <AlertTriangle />
+          <div style={{ fontWeight: 600, marginBottom: 6 }}>
+            {error ?? 'Sin datos'}
+          </div>
+          <button className="rd-btn" onClick={fetchAll} style={{ marginTop: 12 }}>
+            <RefreshCw size={15} /> Reintentar
+          </button>
         </div>
       </div>
     );
   }
 
-  if (!analyticsData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">Sin datos</h2>
-          <p className="text-gray-500">No se encontraron datos de analytics</p>
-        </div>
-      </div>
-    );
-  }
+  const { basicStats, activity, engagement, usageEvaluation, lastActivity,
+          concentration, monthlyGrowth } = overview;
+  const usage = USAGE_META[usageEvaluation.usageLevel];
+  const tone = TONE_COLOR[usage.tone];
 
-  const { basicStats, monthlyGrowth, usageEvaluation } = analyticsData;
+  const trend = monthlyGrowth.measurementTrendPct;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <div className="rd-page">
+      <div className="rd-greet">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Análisis de la Aplicación</h1>
-          <p className="text-gray-600 mt-1">
-            Estadísticas y métricas de uso de Farm Track
-          </p>
+          <h1>Uso de la aplicación</h1>
+          <div className="sub">
+            Actividad real medida en ventanas de tiempo. Una cuenta cuenta como
+            activa solo si registró mediciones.
+          </div>
         </div>
-        <Button onClick={fetchAnalytics} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Actualizar
-        </Button>
+        <button className="rd-btn rd-btn-outline" onClick={fetchAll} style={{ marginLeft: 'auto' }}>
+          <RefreshCw size={15} /> Actualizar
+        </button>
       </div>
 
-      {/* Usage Level Alert */}
-      <Card className={`border-l-4 ${
-        usageEvaluation.usageLevel === 'high' ? 'border-green-500 bg-green-50' :
-        usageEvaluation.usageLevel === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-        'border-red-500 bg-red-50'
-      }`}>
-        <CardContent className="pt-6">
-          <div className="flex items-center space-x-3">
-            {usageEvaluation.usageLevel === 'high' ? (
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            ) : usageEvaluation.usageLevel === 'medium' ? (
-              <Clock className="h-6 w-6 text-yellow-600" />
-            ) : (
-              <AlertCircle className="h-6 w-6 text-red-600" />
+      {/* Veredicto */}
+      <div className="rd-card" style={{ borderLeft: `4px solid ${tone}`, marginBottom: 22 }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '18px 20px' }}>
+          <span style={{ color: tone, flex: 'none', marginTop: 2 }}>{usage.icon}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>
+              Estado: {usage.label}
+            </div>
+            <div style={{ fontSize: 13.5, color: 'var(--ink-2)', marginTop: 4 }}>
+              {usageEvaluation.usageReason}
+            </div>
+            {lastActivity && (
+              <div style={{ fontSize: 12.5, color: 'var(--ink-3)', marginTop: 8 }}>
+                Última actividad: <strong>{lastActivity.activityType}</strong> hace{' '}
+                <strong>{lastActivity.timeAgo}</strong> — {lastActivity.userEmail}{' '}
+                ({new Date(lastActivity.activityDate).toLocaleDateString('es-AR')})
+              </div>
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* KPIs de actividad real */}
+      <div className="rd-kpis">
+        <Kpi
+          icon={<Activity size={16} />}
+          label="Usuarios activos (30d)"
+          value={activity.activeUsers30d}
+          unit={`/ ${engagement.everMeasured}`}
+          foot={
+            <span style={{ color: activity.activeUsers30d === 0 ? 'var(--st-crit-ink)' : 'var(--ink-2)' }}>
+              {activity.activeUsers90d} en los últimos 90 días
+            </span>
+          }
+        />
+        <Kpi
+          icon={<BarChart3 size={16} />}
+          label="Mediciones (30d)"
+          value={activity.measurements30d.toLocaleString('es-AR')}
+          foot={
+            trend === null ? (
+              <span style={{ color: 'var(--ink-3)' }}>
+                <Minus size={13} style={{ verticalAlign: -2 }} /> sin base de comparación
+              </span>
+            ) : (
+              <span style={{ color: trend >= 0 ? 'var(--st-ok-ink)' : 'var(--st-crit-ink)' }}>
+                {trend >= 0 ? <TrendingUp size={13} style={{ verticalAlign: -2 }} />
+                            : <TrendingDown size={13} style={{ verticalAlign: -2 }} />}{' '}
+                {trend >= 0 ? '+' : ''}{trend.toFixed(0)}% vs. 30d previos
+              </span>
+            )
+          }
+        />
+        <Kpi
+          icon={<Users size={16} />}
+          label="Activación"
+          value={engagement.activatedRate.toFixed(0)}
+          unit="%"
+          foot={
+            <span style={{ color: 'var(--ink-2)' }}>
+              {engagement.everMeasured} de {engagement.totalUsers} midieron alguna vez
+            </span>
+          }
+        />
+        <Kpi
+          icon={<UserX size={16} />}
+          label="Nunca activados"
+          value={engagement.neverMeasured}
+          foot={
+            <span style={{ color: 'var(--ink-2)' }}>
+              se registraron y no midieron nunca
+            </span>
+          }
+        />
+      </div>
+
+      {/* Concentración */}
+      {concentration && concentration.sharePct > 40 && (
+        <div className="rd-card" style={{ marginTop: 22, borderLeft: '4px solid var(--st-warn)' }}>
+          <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '16px 20px' }}>
+            <AlertTriangle size={19} style={{ color: 'var(--st-warn)', flex: 'none', marginTop: 2 }} />
             <div>
-              <h3 className="font-semibold">
-                Estado de la Aplicación: {getUsageLevelText(usageEvaluation.usageLevel)}
-              </h3>
-              <p className="text-sm text-gray-600">
-                {usageEvaluation.usageLevel === 'high' && '✅ La aplicación está siendo utilizada activamente'}
-                {usageEvaluation.usageLevel === 'medium' && '⚠️ La aplicación tiene uso moderado'}
-                {usageEvaluation.usageLevel === 'low' && '❌ La aplicación tiene muy poco uso'}
-              </p>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>
+                Uso concentrado en un solo usuario
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink-2)', marginTop: 4 }}>
+                <strong>{concentration.topUserEmail}</strong> generó{' '}
+                {concentration.topUserMeasurements.toLocaleString('es-AR')} de{' '}
+                {concentration.totalMeasurements.toLocaleString('es-AR')} mediciones
+                (<strong>{concentration.sharePct.toFixed(0)}%</strong>). Los totales
+                acumulados reflejan sobre todo a esta cuenta, no al conjunto.
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Basic Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usuarios</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              {basicStats.verifiedUsers} verificados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Usuarios Activos</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.activeUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              {usageEvaluation.adoptionRate.toFixed(1)}% tasa de adopción
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Campos</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalFields}</div>
-            <p className="text-xs text-muted-foreground">
-              {usageEvaluation.avgFieldsPerUser.toFixed(1)} por usuario activo
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Corrales</CardTitle>
-            <Layers className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalPens}</div>
-            <p className="text-xs text-muted-foreground">
-              {usageEvaluation.avgPensPerField.toFixed(1)} por campo
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Mediciones</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalMeasurements.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              {usageEvaluation.avgMeasurementsPerReport.toFixed(1)} por reporte
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reportes</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalReports}</div>
-            <p className="text-xs text-muted-foreground">
-              Reportes generados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Animales</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalSubjects}</div>
-            <p className="text-xs text-muted-foreground">
-              Animales registrados
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productividad</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{basicStats.totalProductivity}</div>
-            <p className="text-xs text-muted-foreground">
-              Registros de productividad
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Last Activity */}
-      {lastActivity && (
-        <Card className="border-l-4 border-blue-500">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-blue-600" />
-              Última Actividad Registrada
-            </CardTitle>
-            <CardDescription>
-              Actividad más reciente en la aplicación
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <Activity className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-lg">{lastActivity.activityType}</p>
-                    <p className="text-sm text-gray-600">
-                      Por: {lastActivity.userEmail}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="text-blue-600 border-blue-600">
-                    Hace {lastActivity.timeAgo}
-                  </Badge>
-                </div>
-              </div>
-              <div className="pt-2 border-t">
-                <p className="text-xs text-gray-500">
-                  Fecha: {new Date(lastActivity.activityDate).toLocaleString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
-      {/* Monthly Growth */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Crecimiento del Último Mes</CardTitle>
-          <CardDescription>
-            Nuevos registros agregados en los últimos 30 días
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex items-center space-x-2">
-              <Users className="h-5 w-5 text-blue-600" />
-              <div>
-                <p className="font-semibold">{monthlyGrowth.newUsersMonth}</p>
-                <p className="text-sm text-gray-600">Nuevos usuarios</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5 text-green-600" />
-              <div>
-                <p className="font-semibold">{monthlyGrowth.newFieldsMonth}</p>
-                <p className="text-sm text-gray-600">Nuevos campos</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5 text-purple-600" />
-              <div>
-                <p className="font-semibold">{monthlyGrowth.newMeasurementsMonth}</p>
-                <p className="text-sm text-gray-600">Nuevas mediciones</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <FileText className="h-5 w-5 text-orange-600" />
-              <div>
-                <p className="font-semibold">{monthlyGrowth.newReportsMonth}</p>
-                <p className="text-sm text-gray-600">Nuevos reportes</p>
-              </div>
-            </div>
+      {/* Evolución mensual */}
+      <div className="rd-card" style={{ marginTop: 22 }}>
+        <div className="rd-cardh">
+          <div>
+            <div className="eyebrow">Últimos 12 meses</div>
+            <h3>Evolución de la actividad</h3>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Growth Indicators */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Indicadores de Crecimiento</CardTitle>
-          <CardDescription>
-            Tendencias y patrones de uso de la aplicación
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Crecimiento de usuarios</span>
-              <Badge variant={usageEvaluation.hasGrowth ? "default" : "secondary"}>
-                {usageEvaluation.hasGrowth ? (
-                  <>
-                    <TrendingUp className="h-3 w-3 mr-1" />
-                    Positivo
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Estable
-                  </>
-                )}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Actividad regular</span>
-              <Badge variant={usageEvaluation.hasRegularActivity ? "default" : "secondary"}>
-                {usageEvaluation.hasRegularActivity ? (
-                  <>
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Activa
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Baja
-                  </>
-                )}
-              </Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Tasa de adopción</span>
-              <Badge variant={usageEvaluation.adoptionRate > 50 ? "default" : usageEvaluation.adoptionRate > 25 ? "secondary" : "destructive"}>
-                {usageEvaluation.adoptionRate.toFixed(1)}%
-              </Badge>
-            </div>
+        </div>
+        <div style={{ padding: '16px 12px 20px' }}>
+          <ResponsiveContainer width="100%" height={320}>
+            <ComposedChart data={monthlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--pasture-line)" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'var(--ink-3)' }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="left" tick={{ fontSize: 12, fill: 'var(--ink-3)' }} tickLine={false} axisLine={false} />
+              <YAxis yAxisId="right" orientation="right" allowDecimals={false}
+                     tick={{ fontSize: 12, fill: 'var(--ink-3)' }} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 12, border: '1px solid var(--pasture-line)',
+                  background: 'var(--surface-card)', fontSize: 13,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 12.5 }} />
+              <Bar yAxisId="left" dataKey="measurementsCount" name="Mediciones"
+                   fill="var(--pasture-500)" radius={[5, 5, 0, 0]} />
+              <Bar yAxisId="left" dataKey="reportsCount" name="Reportes"
+                   fill="var(--pasture-300)" radius={[5, 5, 0, 0]} />
+              <Line yAxisId="right" type="monotone" dataKey="activeUsers" name="Usuarios activos"
+                    stroke="var(--st-warn)" strokeWidth={2.5} dot={{ r: 3 }} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <div style={{ fontSize: 12, color: 'var(--ink-3)', padding: '4px 8px 0' }}>
+            Los meses sin actividad se muestran en cero — no se omiten.
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Monthly Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Measurements Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Mediciones por Mes</CardTitle>
-            <CardDescription>
-              Cantidad de mediciones registradas mensualmente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="measurementsCount" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Reports Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Reportes por Mes</CardTitle>
-            <CardDescription>
-              Cantidad de reportes generados mensualmente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="reportsCount" fill="#82ca9d" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Users Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Usuarios por Mes</CardTitle>
-            <CardDescription>
-              Nuevos usuarios registrados mensualmente
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="usersCount" fill="#ffc658" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        </div>
       </div>
 
-      {/* Combined Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Actividad Mensual Comparada</CardTitle>
-          <CardDescription>
-            Comparación de mediciones, reportes y usuarios por mes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="measurementsCount" fill="#8884d8" name="Mediciones" />
-              <Bar dataKey="reportsCount" fill="#82ca9d" name="Reportes" />
-              <Bar dataKey="usersCount" fill="#ffc658" name="Usuarios" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* User Stats Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Estadísticas por Usuario</CardTitle>
-          <CardDescription>
-            Detalle de actividad por usuario registrado
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Campos</TableHead>
-                  <TableHead>Corrales</TableHead>
-                  <TableHead>Reportes</TableHead>
-                  <TableHead>Mediciones</TableHead>
-                  <TableHead>Actividad</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userStats.map((user) => {
-                  const totalActivity = user.fieldsCount + user.pensCount + user.reportsCount + user.measurementsCount;
-                  const activityLevel = totalActivity > 50 ? 'high' : totalActivity > 10 ? 'medium' : 'low';
-                  
-                  return (
-                    <TableRow key={user.userId}>
-                      <TableCell className="font-medium">{user.username}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{user.fieldsCount}</TableCell>
-                      <TableCell>{user.pensCount}</TableCell>
-                      <TableCell>{user.reportsCount}</TableCell>
-                      <TableCell>{user.measurementsCount}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={activityLevel === 'high' ? 'default' : activityLevel === 'medium' ? 'secondary' : 'outline'}
-                          className={
-                            activityLevel === 'high' ? 'bg-green-100 text-green-800' :
-                            activityLevel === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }
-                        >
-                          {activityLevel === 'high' ? 'Alta' : activityLevel === 'medium' ? 'Media' : 'Baja'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+      {/* Inventario acumulado */}
+      <div className="rd-card" style={{ marginTop: 22 }}>
+        <div className="rd-cardh">
+          <div>
+            <div className="eyebrow">Histórico — no indica uso actual</div>
+            <h3>Datos acumulados</h3>
           </div>
-          
-          {userStats.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No hay datos de usuarios disponibles
+        </div>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: 2, padding: '14px 20px 20px',
+        }}>
+          {[
+            { icon: <Users size={15} />, label: 'Usuarios', value: basicStats.totalUsers, sub: `${basicStats.verifiedUsers} verificados` },
+            { icon: <MapPin size={15} />, label: 'Campos', value: basicStats.totalFields, sub: `${usageEvaluation.avgPensPerField.toFixed(1)} corrales c/u` },
+            { icon: <Layers size={15} />, label: 'Corrales', value: basicStats.totalPens },
+            { icon: <FileText size={15} />, label: 'Reportes', value: basicStats.totalReports, sub: `${usageEvaluation.avgMeasurementsPerReport.toFixed(0)} mediciones c/u` },
+            { icon: <BarChart3 size={15} />, label: 'Mediciones', value: basicStats.totalMeasurements.toLocaleString('es-AR') },
+            { icon: <Users size={15} />, label: 'Animales', value: basicStats.totalSubjects },
+          ].map((s) => (
+            <div key={s.label} style={{ padding: '10px 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--ink-2)', fontSize: 12.5, fontWeight: 600 }}>
+                <span style={{ color: 'var(--pasture-600)' }}>{s.icon}</span>{s.label}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--ink)', marginTop: 5 }}>{s.value}</div>
+              {s.sub && <div style={{ fontSize: 11.5, color: 'var(--ink-3)', marginTop: 2 }}>{s.sub}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Usuarios */}
+      <div className="rd-card" style={{ marginTop: 22 }}>
+        <div className="rd-cardh">
+          <div>
+            <div className="eyebrow">{userStats.length} cuentas</div>
+            <h3>Detalle por usuario</h3>
+          </div>
+        </div>
+        <div style={{ padding: '10px 20px 20px', overflowX: 'auto' }}>
+          {userStats.length === 0 ? (
+            <div className="rd-empty" style={{ padding: '36px 16px' }}>Sin usuarios.</div>
+          ) : (
+            <div style={{ minWidth: 720 }}>
+              <div className="rd-genrow rd-genhead" style={{ gridTemplateColumns: '2fr 1fr 70px 70px 90px 110px' }}>
+                <span>Usuario</span><span>Estado</span><span>Campos</span>
+                <span>Reportes</span><span>Mediciones</span><span>Última medición</span>
+              </div>
+              {userStats.map((u) => (
+                <div key={u.userId} className="rd-genrow" style={{ gridTemplateColumns: '2fr 1fr 70px 70px 90px 110px' }}>
+                  <span className="rd-genrow-main" style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {u.username || u.email}
+                    </span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-3)', fontWeight: 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {u.email}
+                    </span>
+                  </span>
+                  <span><StatusPill status={u.status} /></span>
+                  <span>{u.fieldsCount}</span>
+                  <span>{u.reportsCount}</span>
+                  <span style={{ fontWeight: u.measurementsCount > 0 ? 600 : 400 }}>
+                    {u.measurementsCount.toLocaleString('es-AR')}
+                  </span>
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-2)' }}>
+                    {u.lastMeasurement
+                      ? `${new Date(u.lastMeasurement).toLocaleDateString('es-AR')}`
+                      : '—'}
+                    {u.daysSinceLastMeasurement !== null && (
+                      <span style={{ display: 'block', fontSize: 11, color: 'var(--ink-3)' }}>
+                        hace {u.daysSinceLastMeasurement}d
+                      </span>
+                    )}
+                  </span>
+                </div>
+              ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Footer */}
-      <div className="text-center text-sm text-gray-500 pt-4 border-t">
-        Última actualización: {new Date(analyticsData.generatedAt).toLocaleString('es-ES')}
+      <div className="rd-foot" style={{ marginTop: 18 }}>
+        Actualizado: {new Date(overview.generatedAt).toLocaleString('es-AR')}
       </div>
     </div>
   );
