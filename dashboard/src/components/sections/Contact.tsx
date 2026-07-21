@@ -1,7 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Mail, Phone, MapPin, Linkedin, Twitter } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const Contact = () => {
   const { t } = useTranslation();
@@ -26,25 +25,30 @@ const Contact = () => {
   ];
 
   return (
-    <section id="contact" className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4 md:px-6">
+    <section id="contact" className="mk-sec">
+      <div className="mk-wrap">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 mb-4">
+          <h2 className="mk-h2 mx-auto max-w-2xl">
             {t('contact.title', 'Contact Us')}
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="mk-lede mx-auto mt-4" style={{ textAlign: 'center' }}>
             {t('contact.description', 'Have questions about BD Metrics? Our team is here to help you.')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {contacts.map((contact, index) => (
-            <div 
+            <div
               key={index}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="rounded-2xl p-6 transition-shadow hover:shadow-md"
+              style={{ background: 'var(--mk-paper)', border: '1px solid var(--mk-line)' }}
             >
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{contact.name}</h3>
-              <p className="text-green-600 font-medium mb-4">{contact.position}</p>
+              <h3 className="text-lg font-bold mb-1" style={{ color: 'var(--mk-ink)' }}>
+                {contact.name}
+              </h3>
+              <p className="font-semibold mb-4 text-sm" style={{ color: 'var(--pasture-600)' }}>
+                {contact.position}
+              </p>
               
               <div className="space-y-3">
                 <div className="flex items-center">
@@ -82,13 +86,9 @@ const Contact = () => {
         </div>
 
         <div className="text-center mt-12">
-          <Button 
-            size="lg"
-            variant="default"
-            className="bg-green-600 text-white hover:bg-green-700 transition-colors"
-          >
+          <a href={`mailto:${contacts[0]?.email ?? ''}`} className="mk-btn mk-btn-primary">
             {t('contact.sendMessage', 'Send a Message')}
-          </Button>
+          </a>
         </div>
       </div>
     </section>

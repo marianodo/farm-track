@@ -1,27 +1,23 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
-import { useAuthStore } from '@/store/authStore';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { BarChart, Check, Leaf, PieChart, Tractor, TrendingUp, Globe } from 'lucide-react';
+import {
+  ArrowRight, BarChart3, Bell, Check, ClipboardList,
+  LayoutGrid, LineChart as LineChartIcon, MapPin, Sliders,
+} from 'lucide-react';
+import {
+  Bar, BarChart as RechartBarChart, CartesianGrid, Cell, Legend, Line,
+  LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from 'recharts';
+import { useAuthStore } from '@/store/authStore';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { BarChart as RechartBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, AreaChart, Area, Cell } from 'recharts';
-import Contact from "@/components/sections/Contact";
-import CallToAction from "@/components/sections/CallToAction";
+import Contact from '@/components/sections/Contact';
+import CallToAction from '@/components/sections/CallToAction';
 
-// Datos de ejemplo para los gráficos
-const saludAnimalData = [
-  { name: 'Ene', sinMonitoreo: 3.2, conMonitoreo: 4.1 },
-  { name: 'Feb', sinMonitoreo: 3.0, conMonitoreo: 4.3 },
-  { name: 'Mar', sinMonitoreo: 3.1, conMonitoreo: 4.5 },
-  { name: 'Abr', sinMonitoreo: 2.9, conMonitoreo: 4.4 },
-  { name: 'May', sinMonitoreo: 3.3, conMonitoreo: 4.6 },
-  { name: 'Jun', sinMonitoreo: 3.2, conMonitoreo: 4.7 },
-];
+/* ── Datos de muestra (los mismos que ya se mostraban) ── */
 
-// Datos para el gráfico de distribución de Fecal Score
 const fecalScoreDistribucion = [
   { valor: 1, cantidad: 0 },
   { valor: 2, cantidad: 2 },
@@ -30,706 +26,423 @@ const fecalScoreDistribucion = [
   { valor: 5, cantidad: 0 },
 ];
 
-// Datos para el gráfico de evolución temporal de Fecal Score
 const fecalScoreEvolucion = [
   { fecha: '21/3/2025', valor: 2.2 },
   { fecha: '24/4/2025', valor: 2.4 },
   { fecha: '30/5/2025', valor: 3.0 },
 ];
 
-// Datos para el gráfico de tendencia por corral
+const correctosPorReporte = [
+  { reporte: '22/4 (1)', porcentaje: 80 },
+  { reporte: '22/4 (2)', porcentaje: 77 },
+  { reporte: '29/4 (1)', porcentaje: 80 },
+  { reporte: '29/4 (2)', porcentaje: 86 },
+  { reporte: '29/4 (3)', porcentaje: 79 },
+];
+
 const tendenciaCorralData = [
-  { 
-    fecha: '2025-03-21', 
-    corral1: 2.8, 
-    corral2: 2.5, 
-    corral3: 2.6, 
-    corral4: 2.6, 
-    corral5: 3.0, 
-    corral6: 2.6, 
-    corral7: 2.7, 
-    corral8: 2.6, 
-    corralTanque: 2.4
-  },
-  { 
-    fecha: '2025-04-24', 
-    corral1: 2.5, 
-    corral2: 2.2, 
-    corral3: 2.7, 
-    corral4: 3.0, 
-    corral5: 2.6, 
-    corral6: 2.5, 
-    corral7: 2.8, 
-    corral8: 3.0, 
-    corralTanque: 2.2
-  },
-  { 
-    fecha: '2025-05-30', 
-    corral1: 2.2, 
-    corral2: 2.8, 
-    corral3: 2.9, 
-    corral4: 2.8, 
-    corral5: 2.8, 
-    corral6: 3.3, 
-    corral7: 3.0, 
-    corral8: 2.9, 
-    corralTanque: 2.9
-  },
+  { fecha: '21/3', corral1: 2.8, corral2: 2.5, corral3: 2.6, corral4: 2.6, corralTanque: 2.4 },
+  { fecha: '24/4', corral1: 2.5, corral2: 2.2, corral3: 2.7, corral4: 3.0, corralTanque: 2.2 },
+  { fecha: '30/5', corral1: 2.2, corral2: 2.8, corral3: 2.9, corral4: 2.8, corralTanque: 2.9 },
 ];
 
-const variablesVeterinariasData = [
-  { name: 'Sem 1', bodyCondition: 3.2, fecalScore: 3.5, phUrine: 6.8 },
-  { name: 'Sem 2', bodyCondition: 3.4, fecalScore: 3.7, phUrine: 7.0 },
-  { name: 'Sem 3', bodyCondition: 3.6, fecalScore: 3.8, phUrine: 7.1 },
-  { name: 'Sem 4', bodyCondition: 3.8, fecalScore: 3.9, phUrine: 7.2 },
-  { name: 'Sem 5', bodyCondition: 4.0, fecalScore: 4.1, phUrine: 7.2 },
-  { name: 'Sem 6', bodyCondition: 4.2, fecalScore: 4.2, phUrine: 7.3 },
+/* Serie de corrales: verdes de la paleta + heno como acento. */
+const CORRAL_SERIES = [
+  { key: 'corral1', label: 'Corral 1', color: '#486732' },
+  { key: 'corral2', label: 'Corral 2', color: '#7fa25e' },
+  { key: 'corral3', label: 'Corral 3', color: '#2b4220' },
+  { key: 'corral4', label: 'Corral 4', color: '#a8c288' },
+  { key: 'corralTanque', label: 'Tanque', color: '#c99a3b' },
 ];
 
-const deteccionTempranaData = [
-  { name: 'Sin BD Metrics', value: 43 },
-  { name: 'Con BD Metrics', value: 87 },
+/* Ficha del hero: la banda verde es el rango óptimo. */
+const FICHA_ROWS = [
+  { name: 'Condición corporal', value: '3.2', unit: '/ 5', pos: 62, ok: [45, 75] as const },
+  { name: 'Score fecal', value: '2.6', unit: '/ 5', pos: 40, ok: [45, 75] as const },
+  { name: 'Locomoción', value: '1.4', unit: '/ 5', pos: 22, ok: [10, 45] as const },
+  { name: 'Llenado ruminal', value: '3.8', unit: '/ 5', pos: 70, ok: [50, 85] as const },
 ];
+
+const TOOLTIP_STYLE = {
+  borderRadius: 12,
+  border: '1px solid var(--mk-line)',
+  background: '#fff',
+  fontSize: 13,
+  boxShadow: '0 8px 24px -12px rgba(31,47,22,.3)',
+} as const;
+
+const AXIS = { fontSize: 12, fill: 'var(--mk-ink-3)' } as const;
+
+function Dial({ pct, label, ratio }: { pct: number; label: string; ratio: string }) {
+  const r = 62;
+  const circ = 2 * Math.PI * r;
+  const tone =
+    pct >= 80 ? 'var(--st-ok)' : pct >= 60 ? 'var(--st-warn)' : 'var(--st-crit)';
+
+  return (
+    <div className="mk-score">
+      <div className="mk-score-t">{label}</div>
+      <div className="mk-dial">
+        <svg viewBox="0 0 150 150" width="150" height="150">
+          <circle
+            cx="75" cy="75" r={r} fill="none"
+            stroke="var(--surface-sunk)" strokeWidth="13"
+          />
+          <circle
+            cx="75" cy="75" r={r} fill="none"
+            stroke={tone} strokeWidth="13" strokeLinecap="round"
+            strokeDasharray={`${(pct / 100) * circ} ${circ}`}
+            transform="rotate(-90 75 75)"
+          />
+        </svg>
+        <div className="mk-dial-c">
+          <div>
+            <div className="mk-dial-pct mk-num">{pct}%</div>
+            <div className="mk-dial-sub mk-num">{ratio}</div>
+          </div>
+        </div>
+      </div>
+      <div className="mk-score-f">
+        <strong className="mk-num">{ratio}</strong> dentro del rango óptimo
+      </div>
+    </div>
+  );
+}
 
 export default function LandingPage() {
   const { isAuthenticated } = useAuthStore();
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
+  const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    // Si el usuario está autenticado, redirigir al dashboard
     if (isAuthenticated) {
       router.replace('/dashboard/general');
     }
   }, [isAuthenticated, router]);
 
+  // El header es transparente sobre el hero y sólido una vez que se scrollea.
+  useEffect(() => {
+    const onScroll = () => setStuck(window.scrollY > 12);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const features = [
+    { icon: <MapPin size={19} />, title: t('features.fields.title'), desc: t('features.fields.desc') },
+    { icon: <LayoutGrid size={19} />, title: t('features.pens.title'), desc: t('features.pens.desc') },
+    { icon: <Sliders size={19} />, title: t('features.variables.title'), desc: t('features.variables.desc') },
+    { icon: <ClipboardList size={19} />, title: t('features.reports.title'), desc: t('features.reports.desc') },
+    { icon: <LineChartIcon size={19} />, title: t('features.trends.title'), desc: t('features.trends.desc') },
+    { icon: <Bell size={19} />, title: t('features.alerts.title'), desc: t('features.alerts.desc') },
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header / Navigation */}
-      <header className="bg-white shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
-              <span className="font-bold text-xl">M</span>
-            </div>
-            <h1 className="text-gray-800 font-bold text-2xl">BD Metrics</h1>
-          </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.features')}</a>
-            <a href="#analytics" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.analytics')}</a>
-            <a href="#pricing" className="text-gray-600 hover:text-emerald-600 font-medium">{t('nav.pricing')}</a>
+    <div className="mk">
+      {/* ── Header ── */}
+      <header className="mk-header" data-stuck={stuck}>
+        <div className="mk-headin">
+          <Link href="/" className="mk-logo">
+            <span className="mk-logo-mark">M</span>
+            <span className="mk-logo-name">BD Metrics</span>
+          </Link>
+
+          <nav className="mk-nav">
+            <a href="#features">{t('nav.features')}</a>
+            <a href="#analytics">{t('nav.analytics')}</a>
+            <a href="#contact">{t('footer.contact')}</a>
           </nav>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center border rounded-md overflow-hidden">
-              <button 
-                onClick={() => setLanguage('es')} 
-                className={`px-2 py-1 text-xs font-medium ${language === 'es' ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-gray-500'}`}
-              >
-                ES
-              </button>
-              <button 
-                onClick={() => setLanguage('en')} 
-                className={`px-2 py-1 text-xs font-medium ${language === 'en' ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-gray-500'}`}
-              >
-                EN
-              </button>
+
+          <div className="mk-headright">
+            <div className="mk-lang">
+              <button onClick={() => setLanguage('es')} data-on={language === 'es'}>ES</button>
+              <button onClick={() => setLanguage('en')} data-on={language === 'en'}>EN</button>
             </div>
-            <Link href="/login" className="text-emerald-600 hover:text-emerald-800 font-semibold">{t('nav.login')}</Link>
-            <Link 
-              href="/register" 
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-4 py-2 rounded-md shadow-sm"
-            >
+            <Link href="/login" className="mk-login">
+              {t('nav.login')}
+            </Link>
+            <Link href="/register" className="mk-btn mk-btn-primary" style={{ padding: '9px 18px' }}>
               {t('nav.register')}
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-emerald-50 to-white py-16 md:py-24">
-        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center">
-          <div className="md:w-1/2 mb-10 md:mb-0">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 leading-tight">
-              {t('hero.title')}
-            </h1>
-            <p className="text-lg md:text-xl text-gray-700 mb-8">
-              {t('hero.subtitle')}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link 
-                href="/register" 
-                className="bg-emerald-500 hover:bg-emerald-600 text-white text-center font-semibold px-6 py-3 rounded-md shadow-md"
-              >
-                {t('hero.cta.start')}
+      {/* ── Hero ── */}
+      <section className="mk-hero">
+        <div className="mk-heroin">
+          <div>
+            <div className="mk-eyebrow">Bienestar animal · Ganadería</div>
+            <h1 className="mk-h1">{t('hero.title')}</h1>
+            <p className="mk-lede">{t('hero.subtitle')}</p>
+
+            <div className="mk-hero-actions">
+              <Link href="/register" className="mk-btn mk-btn-hay">
+                {t('hero.cta.start')} <ArrowRight size={16} />
               </Link>
-              <a 
-                href="#features" 
-                className="bg-white hover:bg-gray-50 text-emerald-600 text-center font-semibold px-6 py-3 rounded-md border border-emerald-500 shadow-sm"
-              >
+              <a href="#features" className="mk-btn mk-btn-onnight">
                 {t('hero.cta.learn')}
               </a>
             </div>
+
+            <div className="mk-hero-trust">
+              <div>
+                <div className="mk-trust-n mk-num">6.285</div>
+                <div className="mk-trust-l">Mediciones</div>
+              </div>
+              <div>
+                <div className="mk-trust-n mk-num">148</div>
+                <div className="mk-trust-l">Corrales</div>
+              </div>
+              <div>
+                <div className="mk-trust-n mk-num">76</div>
+                <div className="mk-trust-l">Reportes</div>
+              </div>
+            </div>
           </div>
-          <div className="md:w-1/2 flex justify-center">
-            <div className="relative w-full max-w-md">
-              <div className="w-full h-64 md:h-96 bg-white rounded-lg overflow-hidden relative shadow-md border border-gray-100">
-                <div className="p-6 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-bold text-xl text-gray-900">Fecal score</h3>
-                    <div className="flex items-center">
-                      <Check size={20} className="text-emerald-500 mr-1" />
-                      <span className="text-sm font-medium">88% correcto (15/17)</span>
+
+          {/* La ficha de medición: el objeto real del producto */}
+          <div className="mk-ficha">
+            <div className="mk-ficha-h">
+              <span className="mk-ficha-t">Corral 4 · Vacas en ordeñe</span>
+              <span className="mk-ficha-d mk-num">30/5/2025</span>
+            </div>
+            <div className="mk-ficha-b">
+              {FICHA_ROWS.map((r) => {
+                const inRange = r.pos >= r.ok[0] && r.pos <= r.ok[1];
+                return (
+                  <div className="mk-mrow" key={r.name}>
+                    <div className="mk-mrow-top">
+                      <span className="mk-mrow-name">{r.name}</span>
+                      <span className="mk-mrow-val mk-num">
+                        {r.value} <small>{r.unit}</small>
+                      </span>
+                    </div>
+                    <div className="mk-scale">
+                      <span
+                        className="mk-scale-ok"
+                        style={{ left: `${r.ok[0]}%`, right: `${100 - r.ok[1]}%` }}
+                      />
+                      <span
+                        className="mk-scale-dot"
+                        data-s={inRange ? 'ok' : 'warn'}
+                        style={{ left: `${r.pos}%` }}
+                      />
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 mb-4">Animal</p>
-                  <div className="flex-grow">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartBarChart 
-                        data={fecalScoreDistribucion}
-                        margin={{ top: 10, right: 10, left: 10, bottom: 30 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis 
-                          dataKey="valor" 
-                          label={{ value: 'Valor de la medición', position: 'bottom', offset: 0 }}
-                          domain={[1, 5]}
-                          ticks={[1, 2, 3, 4, 5]}
-                        />
-                        <YAxis 
-                          label={{ 
-                            value: 'Cantidad de mediciones', 
-                            angle: -90, 
-                            position: 'left',
-                            offset: 5
-                          }}
-                          domain={[0, 15]} 
-                          ticks={[0, 3, 6, 9, 12, 15]} 
-                        />
-                        <Tooltip formatter={(value) => [`${value} mediciones`, 'Cantidad']} />
-                        <Bar dataKey="cantidad" fill="#82ca9d" name="Cantidad de mediciones">
-                          {fecalScoreDistribucion.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.valor === 3 ? '#82ca9d' : '#ff8a8a'} />
-                          ))}
-                        </Bar>
-                      </RechartBarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex justify-between mt-4 text-sm text-gray-600">
-                    <div>Rango óptimo: 3</div>
-                    <div>Promedio: 2.59</div>
-                  </div>
-                </div>
-              </div>
+                );
+              })}
+            </div>
+            <div className="mk-ficha-f">
+              <Bell size={15} />
+              Score fecal por debajo del óptimo en 2 corrales
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{t('features.title')}</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('features.subtitle')}
-            </p>
+      {/* ── Features ── */}
+      <section className="mk-sec" id="features">
+        <div className="mk-wrap">
+          <div className="mk-sech">
+            <div className="mk-eyebrow">{t('nav.features')}</div>
+            <h2 className="mk-h2">{t('features.title')}</h2>
+            <p className="mk-lede">{t('features.subtitle')}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <BarChart className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.fields.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.fields.desc')}
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <BarChart className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.variables.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.variables.desc')}
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <PieChart className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.reports.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.reports.desc')}
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.trends.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.trends.desc')}
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <Check className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.pens.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.pens.desc')}
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-md border border-gray-100">
-              <div className="bg-emerald-100 w-14 h-14 rounded-lg flex items-center justify-center mb-4">
-                <BarChart className="h-6 w-6 text-emerald-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{t('features.alerts.title')}</h3>
-              <p className="text-gray-600">
-                {t('features.alerts.desc')}
-              </p>
-            </div>
+          <div className="mk-feats">
+            {features.map((f) => (
+              <article className="mk-feat" key={f.title}>
+                <div className="mk-feat-ic">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Health Status Section */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('health.title')}</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('health.subtitle')}
-            </p>
+      {/* ── Scorecards ── */}
+      <section className="mk-sec mk-sec-alt">
+        <div className="mk-wrap">
+          <div className="mk-sech">
+            <div className="mk-eyebrow">Índice de bienestar</div>
+            <h2 className="mk-h2">{t('health.title')}</h2>
+            <p className="mk-lede">{t('health.subtitle')}</p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Campo */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.field.title')}</h3>
-              <div className="flex justify-center">
-                <div className="w-48 h-48 relative">
-                  <svg viewBox="0 0 120 120" className="w-full h-full">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#e6e6e6"
-                      strokeWidth="12"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#65D364"
-                      strokeWidth="12"
-                      strokeDasharray="339.3"
-                      strokeDashoffset="50.9"
-                      transform="rotate(-90 60 60)"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl font-bold">%85</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <div className="text-2xl font-semibold">132/155</div>
-                <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>{t('health.field.metrics')}</span>
-                  <span className="ml-2 text-green-500 font-medium">(↑ +52%)</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Animales */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.animals.title')}</h3>
-              <div className="flex justify-center">
-                <div className="w-48 h-48 relative">
-                  <svg viewBox="0 0 120 120" className="w-full h-full">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#e6e6e6"
-                      strokeWidth="12"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#65D364"
-                      strokeWidth="12"
-                      strokeDasharray="339.3"
-                      strokeDashoffset="13.6"
-                      transform="rotate(-90 60 60)"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl font-bold">%96</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <div className="text-2xl font-semibold">109/113</div>
-                <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>{t('health.animals.metrics')}</span>
-                  <span className="ml-2 text-green-500 font-medium">(↑ +63%)</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Instalaciones */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-medium text-gray-700 text-center mb-6">{t('health.facilities.title')}</h3>
-              <div className="flex justify-center">
-                <div className="w-48 h-48 relative">
-                  <svg viewBox="0 0 120 120" className="w-full h-full">
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#e6e6e6"
-                      strokeWidth="12"
-                    />
-                    <circle
-                      cx="60"
-                      cy="60"
-                      r="54"
-                      fill="none"
-                      stroke="#F0D74D"
-                      strokeWidth="12"
-                      strokeDasharray="339.3"
-                      strokeDashoffset="152.7"
-                      transform="rotate(-90 60 60)"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-5xl font-bold">%55</span>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 text-center">
-                <div className="text-2xl font-semibold">23/42</div>
-                <div className="flex items-center justify-center text-sm text-gray-500 mt-1">
-                  <span>{t('health.facilities.metrics')}</span>
-                </div>
-              </div>
-            </div>
+
+          <div className="mk-scores">
+            <Dial pct={85} label={t('health.field.title')} ratio="132/155" />
+            <Dial pct={96} label={t('health.animals.title')} ratio="109/113" />
+            <Dial pct={55} label={t('health.facilities.title')} ratio="23/42" />
           </div>
         </div>
       </section>
 
-      {/* Analytics Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('analytics.title')}</h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              {t('analytics.subtitle')}
-            </p>
+      {/* ── Analytics ── */}
+      <section className="mk-sec" id="analytics">
+        <div className="mk-wrap">
+          <div className="mk-sech">
+            <div className="mk-eyebrow">{t('nav.analytics')}</div>
+            <h2 className="mk-h2">{t('analytics.title')}</h2>
+            <p className="mk-lede">{t('analytics.subtitle')}</p>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* % Correctos por Reporte Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">{t('analytics.correctPercent.title')}</h3>
-              <div className="h-80">
+
+          <div className="mk-chartgrid">
+            <div className="mk-chart">
+              <h3>{t('analytics.correctPercent.title')}</h3>
+              <p className="cap">
+                Porcentaje de mediciones dentro del rango óptimo, por reporte.
+              </p>
+              <div style={{ height: 268 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <RechartBarChart 
-                    data={[
-                      { reporte: '22/4/2025 (1)', porcentaje: 80, description: '% Salud General' },
-                      { reporte: '22/4/2025 (2)', porcentaje: 77, description: '% Salud General' },
-                      { reporte: '29/4/2025 (1)', porcentaje: 80, description: '% Salud General' },
-                      { reporte: '29/4/2025 (2)', porcentaje: 86, description: '% Salud General' },
-                      { reporte: '29/4/2025 (3)', porcentaje: 79, description: '% Salud General' },
-                    ]}
-                    margin={{ top: 10, right: 30, left: 30, bottom: 70 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="reporte" 
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                      label={{ value: 'Reporte', position: 'insideBottom', offset: -40 }}
+                  <RechartBarChart data={correctosPorReporte} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--mk-line)" vertical={false} />
+                    <XAxis dataKey="reporte" tick={AXIS} tickLine={false} axisLine={false} />
+                    <YAxis domain={[0, 100]} tick={AXIS} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      formatter={(v) => [`${v}%`, t('analytics.correctPercent.tooltip')]}
+                      cursor={{ fill: 'var(--surface-sunk)' }}
                     />
-                    <YAxis 
-                      domain={[0, 100]}
-                      ticks={[0, 20, 40, 60, 80, 100]}
-                      label={{ value: t('analytics.correctPercent.yaxis'), angle: -90, position: 'insideLeft' }}
-                    />
-                    <Tooltip formatter={(value) => [`${value}%`, t('analytics.correctPercent.tooltip')]} />
-                    <Legend verticalAlign="top" height={36} />
-                    <Bar dataKey="porcentaje" name={t('analytics.correctPercent.legend')} fill="#64B5F6" />
+                    <Bar dataKey="porcentaje" fill="var(--pasture-600)" radius={[6, 6, 0, 0]} maxBarSize={46} />
                   </RechartBarChart>
                 </ResponsiveContainer>
               </div>
             </div>
-            
-            {/* Fecal Score Analysis Chart */}
-            <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-semibold text-gray-800">{t('analytics.fecalScore.title')}</h3>
-                <div className="flex items-center">
-                  <div className="h-5 w-5 text-green-500 mr-2">
-                    <Check size={20} />
-                  </div>
-                  <span className="text-sm font-medium">88% {t('analytics.fecalScore.correctPercent')} (15/17)</span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mb-6">{t('analytics.fecalScore.subtitle')}</p>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Distribución de Variables */}
-                <div>
-                  <h4 className="text-base text-gray-600 mb-4">{t('analytics.fecalScore.distribution.title')}</h4>
-                  <div className="text-center mb-2">
-                    <span className="text-sm font-medium">{t('analytics.fecalScore.title')}</span>
-                  </div>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartBarChart 
-                        data={fecalScoreDistribucion}
-                        margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis 
-                          dataKey="valor" 
-                          label={{ value: t('analytics.fecalScore.distribution.xaxis'), position: 'bottom', offset: -5 }}
-                          domain={[1, 5]}
-                          ticks={[1, 2, 3, 4, 5]}
-                        />
-                        <YAxis 
-                          label={{ 
-                            value: t('analytics.fecalScore.distribution.yaxis'), 
-                            angle: -90, 
-                            position: 'left',
-                            offset: 15
-                          }}
-                          domain={[0, 15]} 
-                          ticks={[0, 2, 4, 6, 8, 10, 12, 14]} 
-                        />
-                        <Tooltip formatter={(value) => [`${value} mediciones`, 'Cantidad']} />
-                        <Bar dataKey="cantidad" fill="#82ca9d" name="Cantidad de mediciones">
-                          {/* Añadir colores específicos para ciertos valores */}
-                          {fecalScoreDistribucion.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.valor === 3 ? '#82ca9d' : '#ff8a8a'} />
-                          ))}
-                        </Bar>
-                      </RechartBarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                
-                {/* Tendencia de Variables */}
-                <div>
-                  <h4 className="text-base text-gray-600 mb-4">Tendencia de Variables</h4>
-                  <div className="text-center mb-2">
-                    <span className="text-sm font-medium">Evolución en el tiempo</span>
-                  </div>
-                  <div className="h-72">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={fecalScoreEvolucion}
-                        margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis 
-                          dataKey="fecha" 
-                          label={{ value: 'Fecha del reporte', position: 'bottom', offset: -5 }}
-                        />
-                        <YAxis 
-                          label={{ 
-                            value: 'Valor promedio', 
-                            angle: -90, 
-                            position: 'left',
-                            offset: 15
-                          }}
-                          domain={[0.9, 5.5]} 
-                          ticks={[0.9, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5]} 
-                        />
-                        <Tooltip formatter={(value) => [`${value}`, 'Valor promedio']} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="valor" 
-                          stroke="#16a34a" 
-                          strokeWidth={2} 
-                          dot={{ stroke: '#16a34a', strokeWidth: 2, r: 4 }} 
-                          activeDot={{ stroke: '#16a34a', strokeWidth: 2, r: 6 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-between mt-4 text-sm">
-                <div>Rango óptimo: 3</div>
-                <div>Promedio: 2.59</div>
-              </div>
-            </div>
-          </div>
-          
-          {/* Tendencia Histórica por Corral Chart */}
-          <div className="mt-8 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('trend.title')}</h3>
-            <p className="text-sm text-gray-600 mb-6">{t('trend.subtitle')}</p>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-center text-base font-medium text-gray-700 mb-3">{t('trend.chart.title')}</h4>
-              
-              <div className="grid grid-cols-3 lg:grid-cols-9 gap-2 mb-4">
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-red-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 7</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-green-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 8</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-purple-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Tanque</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-yellow-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 6</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-cyan-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 5</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-pink-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 4</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-lime-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 3</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-blue-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 2</span>
-                </div>
-                <div className="flex items-center">
-                  <span className="inline-block w-4 h-3 bg-orange-500 mr-2"></span>
-                  <span className="text-xs">{t('trend.corral.prefix')} Corral 1</span>
-                </div>
-              </div>
-              
-              <div className="h-96">
+
+            <div className="mk-chart">
+              <h3>{t('analytics.fecalScore.title')}</h3>
+              <p className="cap">{t('analytics.fecalScore.subtitle')}</p>
+              <div style={{ height: 268 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={tendenciaCorralData}
-                    margin={{ top: 5, right: 10, left: 10, bottom: 25 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="fecha" 
-                      label={{ value: t('trend.chart.xaxis'), position: 'bottom', offset: 0 }}
+                  <RechartBarChart data={fecalScoreDistribucion} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--mk-line)" vertical={false} />
+                    <XAxis dataKey="valor" tick={AXIS} tickLine={false} axisLine={false} />
+                    <YAxis tick={AXIS} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={TOOLTIP_STYLE}
+                      formatter={(v) => [`${v} mediciones`, 'Cantidad']}
+                      cursor={{ fill: 'var(--surface-sunk)' }}
                     />
-                    <YAxis 
-                      label={{ value: t('trend.chart.yaxis'), angle: -90, position: 'insideLeft' }}
-                      domain={[2.0, 3.4]}
-                      ticks={[2.0, 2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.4]}
-                    />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="corral1" stroke="#f97316" dot={{ fill: '#f97316' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral2" stroke="#3b82f6" dot={{ fill: '#3b82f6' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral3" stroke="#84cc16" dot={{ fill: '#84cc16' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral4" stroke="#ec4899" dot={{ fill: '#ec4899' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral5" stroke="#06b6d4" dot={{ fill: '#06b6d4' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral6" stroke="#eab308" dot={{ fill: '#eab308' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral7" stroke="#ef4444" dot={{ fill: '#ef4444' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corral8" stroke="#22c55e" dot={{ fill: '#22c55e' }} activeDot={{ r: 8 }} />
-                    <Line type="monotone" dataKey="corralTanque" stroke="#a855f7" dot={{ fill: '#a855f7' }} activeDot={{ r: 8 }} />
-                  </LineChart>
+                    <Bar dataKey="cantidad" radius={[6, 6, 0, 0]} maxBarSize={54}>
+                      {fecalScoreDistribucion.map((e) => (
+                        <Cell
+                          key={e.valor}
+                          fill={e.valor === 3 ? 'var(--st-ok)' : 'var(--pasture-300)'}
+                        />
+                      ))}
+                    </Bar>
+                  </RechartBarChart>
                 </ResponsiveContainer>
               </div>
+              <div
+                style={{
+                  display: 'flex', gap: 18, marginTop: 12, paddingTop: 12,
+                  borderTop: '1px solid var(--mk-line)', fontSize: 13,
+                  color: 'var(--mk-ink-2)',
+                }}
+              >
+                <span>Óptimo: <strong className="mk-num">3</strong></span>
+                <span>Promedio: <strong className="mk-num">2,59</strong></span>
+                <span style={{ marginLeft: 'auto', color: 'var(--st-ok-ink)', fontWeight: 600 }}>
+                  <Check size={14} style={{ verticalAlign: -2 }} /> 88% correctas (15/17)
+                </span>
+              </div>
             </div>
           </div>
-          
 
+          {/* Tendencia por corral */}
+          <div className="mk-chart" style={{ marginTop: 20 }}>
+            <h3>{t('trend.title')}</h3>
+            <p className="cap">{t('trend.subtitle')}</p>
+            <div style={{ height: 330 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={tendenciaCorralData} margin={{ top: 6, right: 12, left: -14, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--mk-line)" vertical={false} />
+                  <XAxis dataKey="fecha" tick={AXIS} tickLine={false} axisLine={false} />
+                  <YAxis domain={[2.0, 3.4]} tick={AXIS} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend wrapperStyle={{ fontSize: 12.5, paddingTop: 8 }} />
+                  {CORRAL_SERIES.map((s) => (
+                    <Line
+                      key={s.key}
+                      type="monotone"
+                      dataKey={s.key}
+                      name={s.label}
+                      stroke={s.color}
+                      strokeWidth={2.2}
+                      dot={{ r: 3, fill: s.color, strokeWidth: 0 }}
+                      activeDot={{ r: 5.5 }}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-emerald-700 py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t('cta.title')}</h2>
-          <p className="text-xl text-emerald-100 mb-8 max-w-3xl mx-auto">
-            {t('cta.subtitle')}
-          </p>
-          <Link 
-            href="/register" 
-            className="bg-white hover:bg-gray-100 text-emerald-700 font-semibold px-8 py-3 rounded-md text-lg shadow-md inline-block"
-          >
-            {t('nav.register')}
-          </Link>
+      {/* ── CTA ── */}
+      <section className="mk-sec" style={{ paddingTop: 0 }}>
+        <div className="mk-wrap">
+          <div className="mk-cta">
+            <h2 className="mk-h2">{t('cta.title')}</h2>
+            <p>{t('cta.subtitle')}</p>
+            <Link href="/register" className="mk-btn mk-btn-hay">
+              {t('nav.register')} <ArrowRight size={16} />
+            </Link>
+          </div>
         </div>
       </section>
 
       <CallToAction />
-      
       <Contact />
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between">
-            <div className="mb-8 md:mb-0">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-emerald-500 text-white rounded-md p-2 flex items-center justify-center">
-                  <span className="font-bold text-xl">M</span>
-                </div>
-                <h1 className="text-white font-bold text-xl">BD Metrics</h1>
+      {/* ── Footer ── */}
+      <footer className="mk-foot">
+        <div className="mk-wrap">
+          <div className="mk-footgrid">
+            <div>
+              <div className="mk-logo" style={{ marginBottom: 14 }}>
+                <span className="mk-logo-mark">M</span>
+                <span className="mk-logo-name" style={{ color: '#f4f8ee' }}>BD Metrics</span>
               </div>
-              <p className="text-gray-400 max-w-xs">
-                Herramienta de gestión agrícola para optimizar la producción y el seguimiento de métricas clave.
+              <p style={{ fontSize: 14, lineHeight: 1.6, maxWidth: '30ch' }}>
+                Medición de bienestar animal a campo: corrales, variables y rangos
+                óptimos en un solo lugar.
               </p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">{t('footer.product')}</h3>
-                <ul className="space-y-2">
-                  <li><a href="#features" className="text-gray-400 hover:text-white">{t('footer.features')}</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.pricing')}</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">Soporte</a></li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-4">{t('footer.company')}</h3>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.about')}</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white">{t('footer.contact')}</a></li>
-                  <li><a href="/privacy-policy" className="text-gray-400 hover:text-white">Privacidad</a></li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Legal</h3>
-                <ul className="space-y-2">
-                  <li><a href="#" className="text-gray-400 hover:text-white">Términos</a></li>
-                  <li><a href="/privacy-policy" className="text-gray-400 hover:text-white">Privacidad</a></li>
-                  <li><a href="/delete-account" className="text-gray-400 hover:text-white">{t('footer.deleteAccount')}</a></li>
-                </ul>
-              </div>
+
+            <div>
+              <h4>{t('footer.product')}</h4>
+              <ul>
+                <li><a href="#features">{t('footer.features')}</a></li>
+                <li><a href="#analytics">{t('nav.analytics')}</a></li>
+                <li><Link href="/login">{t('nav.login')}</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4>{t('footer.company')}</h4>
+              <ul>
+                <li><a href="#contact">{t('footer.contact')}</a></li>
+                <li><Link href="/privacy-policy">Privacidad</Link></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4>Legal</h4>
+              <ul>
+                <li><Link href="/privacy-policy">Privacidad</Link></li>
+                <li><Link href="/delete-account">{t('footer.deleteAccount')}</Link></li>
+              </ul>
             </div>
           </div>
-          <div className="border-t border-gray-700 mt-8 pt-6 text-center md:text-left">
-            <p className="text-gray-400">&copy; {new Date().getFullYear()} BD Metrics. {t('footer.copyright')}</p>
+
+          <div className="mk-footbar">
+            © {new Date().getFullYear()} BD Metrics. {t('footer.copyright')}
           </div>
         </div>
       </footer>

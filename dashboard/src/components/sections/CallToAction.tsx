@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Download, ArrowRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { FcAndroidOs } from "react-icons/fc";
@@ -10,36 +9,33 @@ const CallToAction = () => {
   const { t } = useTranslation();
 
   return (
-    <section className="py-16 md:py-24 bg-gradient-to-br from-green-600 to-blue-500">
-      <div className="container mx-auto px-4 md:px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 max-w-2xl mx-auto text-gray-100">
+    <section className="mk-sec mk-sec-alt">
+      <div className="mk-wrap text-center">
+        <h2 className="mk-h2 mx-auto max-w-2xl">
           {t('callToAction.title')}
         </h2>
-        <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto">
+        <p className="mk-lede mx-auto mt-4 mb-8" style={{ textAlign: 'center' }}>
           {t('callToAction.description')}
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto">
-          <Button
-            size="lg"
-            variant="default"
-            className="bg-green-600 text-white hover:bg-green-700 transition-colors cursor-pointer"
-          >
-            <Download className="mr-2 h-5 w-5" />
+        <div className="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+          <button type="button" className="mk-btn mk-btn-primary">
+            <Download className="h-4 w-4" />
             {t('callToAction.downloadApp')}
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="border-green-600 text-green-600 hover:bg-green-50 hover:text-green-600 cursor-pointer"
-          >
+          </button>
+          <a href="#features" className="mk-btn mk-btn-ghost">
             {t('callToAction.learnMore')}
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+            <ArrowRight className="h-4 w-4" />
+          </a>
         </div>
 
-        <div className="mt-12 bg-gray-50 py-4 px-6 rounded-lg inline-flex items-center">
-          <span className="font-medium mr-3 text-gray-700">{t('callToAction.availableOn')}</span>
+        <div
+          className="mt-12 inline-flex items-center rounded-xl px-5 py-3"
+          style={{ background: 'var(--mk-paper)', border: '1px solid var(--mk-line)' }}
+        >
+          <span className="mr-3 text-sm font-semibold" style={{ color: 'var(--mk-ink-2)' }}>
+            {t('callToAction.availableOn')}
+          </span>
           <div className="flex space-x-3">
             <div className="w-8 h-8 bg-amber-50 rounded-full">
               <FcAndroidOs className="w-8 h-8" />
