@@ -34,9 +34,10 @@ interface FieldState {
   fieldDetail: Field | null;
   fieldProductionType: string | null;
   fieldLoading: boolean;
-  createField: (field: Omit<FiledWithUserId, 'id'>) => void;
-  onDelete: (id: string) => void;
-  onUpdate: (id: string, field: Partial<Field>) => void;
+  fieldError: string | null;
+  createField: (field: Omit<FiledWithUserId, 'id'>) => Promise<Field | undefined>;
+  updateField: (id: string, field: Partial<Field>) => Promise<Field | undefined>;
+  deleteField: (id: string) => Promise<boolean>;
   getAllFields: () => void;
   getFieldsByUser: (id?: string | null) => void;
   getFieldById: (id: string) => void;
@@ -49,6 +50,10 @@ interface FieldState {
   getNumericalMeasurementsByFieldId: (fieldId: string) => Promise<any>;
 }
 
+const authHeaders = () => ({
+  headers: { Authorization: `Bearer ${useAuthStore.getState().token}` },
+});
+
 const useFieldStore = create<FieldState>((set: any) => ({
   fields: null,
   fieldsByUserId: null,
@@ -56,33 +61,58 @@ const useFieldStore = create<FieldState>((set: any) => ({
   fieldProductionType: null,
   fieldDetail: null,
   fieldLoading: false,
+  fieldError: null,
   categoricalMeasurementsByFieldId: null,
   numericalMeasurementsByFieldId: null,
-  createField: async (field: Omit<Field, 'id'>): Promise<void> => {
-    set({ fieldLoading: true });
+  createField: async (field: Omit<FiledWithUserId, 'id'>) => {
+    set({ fieldLoading: true, fieldError: null });
     try {
-      await axiosInstance.post('/fields', field);
-      const userId = useAuthStore.getState().userId;
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/fields`,
+        field,
+        authHeaders(),
+      );
+      const userId = useAuthStore.getState()?.user?.id || useAuthStore.getState()?.user?.userId;
       set({ fieldLoading: false });
-      useFieldStore.getState().getFieldsByUser(userId);
+      await useFieldStore.getState().getFieldsByUser(userId);
+      return response.data;
     } catch (error: any) {
-      set({ fieldLoading: false });
-      if (
-        error.response &&
-        error.response.data &&
-        error.response.data.message
-      ) {
-        throw new Error(error.response.data.message);
-      } else {
-        throw new Error('Error creating field');
-      }
+      const message = error?.response?.data?.message || error?.message || 'Error al crear el campo';
+      set({ fieldLoading: false, fieldError: message });
+      throw new Error(message);
     }
   },
-  onDelete: async (id: string) => {
-    console.log(id);
+  updateField: async (id: string, field: Partial<Field>) => {
+    set({ fieldLoading: true, fieldError: null });
+    try {
+      const response = await axios.patch(
+        `${process.env.NEXT_PUBLIC_API_URL}/fields/${id}`,
+        field,
+        authHeaders(),
+      );
+      set({ fieldLoading: false });
+      const userId = useAuthStore.getState()?.user?.id || useAuthStore.getState()?.user?.userId;
+      await useFieldStore.getState().getFieldsByUser(userId);
+      return response.data;
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Error al actualizar el campo';
+      set({ fieldLoading: false, fieldError: message });
+      return undefined;
+    }
   },
-  onUpdate: async (id: string, field: Partial<Field>) => {
-    console.log(id, field);
+  deleteField: async (id: string) => {
+    set({ fieldLoading: true, fieldError: null });
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/fields/${id}`, authHeaders());
+      set({ fieldLoading: false });
+      const userId = useAuthStore.getState()?.user?.id || useAuthStore.getState()?.user?.userId;
+      await useFieldStore.getState().getFieldsByUser(userId);
+      return true;
+    } catch (error: any) {
+      const message = error?.response?.data?.message || error?.message || 'Error al eliminar el campo';
+      set({ fieldLoading: false, fieldError: message });
+      return false;
+    }
   },
   getAllFields: () => {},
   getCategoricalMeasurementsByFieldId: async (fieldId: string) => {
@@ -119,15 +149,14 @@ const useFieldStore = create<FieldState>((set: any) => ({
           },
         }
       );
-      
+
       // Ensure the response includes min and max values
       const dataWithRanges = response.data.map((item: any) => ({
         ...item,
         min: item.min_value !== undefined ? item.min_value : undefined,
         max: item.max_value !== undefined ? item.max_value : undefined,
       }));
-      
-      console.log('Numerical measurements with ranges:', dataWithRanges);
+
       set({ numericalMeasurementsByFieldId: dataWithRanges, fieldLoading: false });
       return dataWithRanges;
     } catch (error) {
@@ -140,7 +169,6 @@ const useFieldStore = create<FieldState>((set: any) => ({
     set({ fieldLoading: true });
     try {
       const userId = useAuthStore.getState()?.user?.userId
-      console.log(userId)
       if (id) {
         const response = await axios.get(
             `${process.env.NEXT_PUBLIC_API_URL}/fields/byUserId/${id ?? null}`,
@@ -177,14 +205,19 @@ const useFieldStore = create<FieldState>((set: any) => ({
   getFieldById: async (id: string) => {
     set({ fieldLoading: true });
     try {
-      const response = await axiosInstance.get(`/fields/${id}`);
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/fields/${id}`,
+        authHeaders(),
+      );
       set({
         fieldDetail: response.data,
         fieldLoading: false,
       });
+      return response.data;
     } catch (error) {
       set({ fieldLoading: false });
       console.log('error getFieldById:', error);
+      return undefined;
     }
   },
   setFieldProductionType: (type: string) => {

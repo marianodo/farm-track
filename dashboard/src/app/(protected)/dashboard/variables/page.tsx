@@ -4,61 +4,62 @@ import React, { useEffect, useState } from 'react';
 import { Edit, Trash2, Plus, RefreshCw } from 'lucide-react';
 import variableStore, { Variable } from '@/store/variableStore';
 import { useAuthStore } from '@/store/authStore';
-import AddVariableModal from './add-variable-modal';
+import VariableFormModal from './variable-form-modal';
 
 export default function VariablesPage() {
-  const { getVariablesByUser, variablesByUser, variableLoading, variableError } = variableStore();
+  const { getVariablesByUser, variablesByUser, variableLoading, variableError, deleteVariable } = variableStore();
   const { user, isAuthenticated, token } = useAuthStore();
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingVariable, setEditingVariable] = useState<Variable | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      
-      // Debug completo del estado de autenticación
-      const authState = useAuthStore.getState();
-      console.log('🔍 DEBUG - Complete auth state:', authState);
-      console.log('🔍 DEBUG - User object:', user);
-      console.log('🔍 DEBUG - Is authenticated:', isAuthenticated);
-      console.log('🔍 DEBUG - Token:', token);
-      console.log('🔍 DEBUG - User ID from user object:', user?.id);
-      console.log('🔍 DEBUG - User ID from auth state:', authState.user?.id);
-      
-      // Verificar si el usuario está autenticado
-      if (!isAuthenticated) {
-        console.log('🔍 DEBUG - User not authenticated (isAuthenticated: false)');
+
+      if (!isAuthenticated || !token || !(user?.id || user?.userId)) {
         setLoading(false);
         return;
       }
-      
-      if (!token) {
-        console.log('🔍 DEBUG - No token available');
-        setLoading(false);
-        return;
-      }
-      
-      const userId = user?.id || user?.userId;
-      if (!userId) {
-        console.log('🔍 DEBUG - No user ID available');
-        setLoading(false);
-        return;
-      }
-      
-      console.log('🔍 DEBUG - All checks passed, calling getVariablesByUser');
+
       await getVariablesByUser();
       setLoading(false);
     };
 
     fetchData();
   }, [getVariablesByUser, isAuthenticated, token, user]);
-  
-
 
   const handleRefresh = async () => {
     setLoading(true);
     await getVariablesByUser();
     setLoading(false);
+  };
+
+  const handleOpenCreate = () => {
+    setEditingVariable(null);
+    setShowFormModal(true);
+  };
+
+  const handleOpenEdit = (variable: Variable) => {
+    setEditingVariable(variable);
+    setShowFormModal(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (deleteConfirmId === id) {
+      setLoading(true);
+      try {
+        await deleteVariable(id);
+        setDeleteConfirmId(null);
+        await getVariablesByUser();
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setDeleteConfirmId(id);
+      setTimeout(() => setDeleteConfirmId(null), 3000);
+    }
   };
 
   return (
@@ -76,7 +77,7 @@ export default function VariablesPage() {
           <button
             className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
             disabled={loading}
-            onClick={() => setShowAddModal(true)}
+            onClick={handleOpenCreate}
           >
             <Plus className="h-5 w-5 mr-1" />
             Nueva Variable
@@ -171,21 +172,8 @@ export default function VariablesPage() {
                 let optimalDisplay: React.ReactNode = null;
                 
                 if (isNumeric && typeof value === 'object') {
-                  // Log the exact structure of numerical data
-                  console.log(`Numerical variable ${variable.name} value:`, value);
-                  
                   const minMax = value.value || {};
-                  console.log(`After extraction, minMax for ${variable.name}:`, minMax);
-                  
-                  // Show the fields we're checking for
-                  console.log(`Fields for ${variable.name}:`, {
-                    min: minMax.min,
-                    max: minMax.max,
-                    granularity: minMax.granularity,
-                    optimal_min: minMax.optimal_min,
-                    optimal_max: minMax.optimal_max,
-                  });
-                  
+
                   rangeDisplay = (
                     <span>
                       Min: <strong>{minMax.min !== undefined ? minMax.min : 'N/A'}</strong>, 
@@ -201,10 +189,7 @@ export default function VariablesPage() {
                     </span>
                   );
                 } else if (!isNumeric && typeof value === 'object') {
-                  // Categorical variable
-                  console.log('Categorical variable values:', value);
-                  
-                  // Handle the actual structure as seen in the logs
+                  // Categorical variable — handle the actual structure as stored
                   let categories: string[] = [];
                   let optimalValues: string[] = [];
                   
@@ -262,11 +247,20 @@ export default function VariablesPage() {
                     <td className="px-6 py-4 text-sm text-gray-500">{optimalDisplay}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex space-x-2">
-                        <button className="text-blue-600 hover:text-blue-800">
+                        <button
+                          className="text-blue-600 hover:text-blue-800"
+                          onClick={() => handleOpenEdit(variable)}
+                        >
                           <Edit className="h-5 w-5" />
                         </button>
-                        <button className="text-red-600 hover:text-red-800">
+                        <button
+                          className={deleteConfirmId === variable.id
+                            ? 'text-red-800 bg-red-100 px-2 py-1 rounded flex items-center gap-1'
+                            : 'text-red-600 hover:text-red-800'}
+                          onClick={() => handleDelete(variable.id)}
+                        >
                           <Trash2 className="h-5 w-5" />
+                          {deleteConfirmId === variable.id && <span className="text-xs">Confirmar</span>}
                         </button>
                       </div>
                     </td>
@@ -284,12 +278,11 @@ export default function VariablesPage() {
         </div>
       )}
       
-      <AddVariableModal 
-        isOpen={showAddModal} 
-        onClose={() => setShowAddModal(false)} 
-        onSuccess={() => {
-          handleRefresh();
-        }}
+      <VariableFormModal
+        isOpen={showFormModal}
+        variable={editingVariable}
+        onClose={() => setShowFormModal(false)}
+        onSuccess={handleRefresh}
       />
     </div>
   );

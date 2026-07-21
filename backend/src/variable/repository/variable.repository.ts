@@ -381,9 +381,12 @@ export class VariableRepository {
         });
 
         // Obtener los type_of_object_ids que no están en la lista actualizada
-        const typeOfObjectsToDelete = previousTypeOfObjects
-          .map((obj) => obj.type_of_object_id)
-          .filter((typeId) => !type_of_object_ids.includes(typeId));
+        // (si no se envían, se conservan las asociaciones existentes)
+        const typeOfObjectsToDelete = type_of_object_ids
+          ? previousTypeOfObjects
+              .map((obj) => obj.type_of_object_id)
+              .filter((typeId) => !type_of_object_ids.includes(typeId))
+          : [];
 
         // Borrar los registros en pen_variable_type_of_objects para los type_of_object_ids eliminados
         for (const typeOfObjectId of typeOfObjectsToDelete) {
