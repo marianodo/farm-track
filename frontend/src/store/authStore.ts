@@ -3,7 +3,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { useTranslation } from 'react-i18next';
-import * as SecureStore from 'expo-secure-store';
+import { safeSecureStore } from '../utils/secureStorageHelper';
 export enum Role {
   ADMIN = 'admin',
   USER = 'user',
@@ -55,7 +55,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
         await AsyncStorage.setItem('user', JSON.stringify(decodedToken));
         const userString = await AsyncStorage.getItem('user');
         const user = userString ? JSON.parse(userString) : null;
-        await SecureStore.setItemAsync('refreshToken', refreshToken);
+        await safeSecureStore.setItemAsync('refreshToken', refreshToken);
         set({
           verifiedToken: true,
           authenticated: true,
@@ -81,7 +81,7 @@ const useAuthStore = create<AuthState>((set: any) => ({
     try {
       await AsyncStorage.removeItem('accessToken');
       await AsyncStorage.removeItem('user');
-      await SecureStore.deleteItemAsync('refreshToken');
+      await safeSecureStore.deleteItemAsync('refreshToken');
       set({
         userId: null,
         authLoading: false,
@@ -277,7 +277,7 @@ axiosInstance.interceptors.response.use(
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = await SecureStore.getItemAsync('refreshToken');
+        const refreshToken = await safeSecureStore.getItemAsync('refreshToken');
         const response = await axios.post(
           `${process.env.EXPO_PUBLIC_API_URL}/auth/refreshToken`,
           {
@@ -286,7 +286,7 @@ axiosInstance.interceptors.response.use(
         );
         const { accessToken, refreshToken: newRefreshToken } = response.data;
         await AsyncStorage.setItem('accessToken', accessToken);
-        await SecureStore.setItemAsync('refreshToken', newRefreshToken);
+        await safeSecureStore.setItemAsync('refreshToken', newRefreshToken);
         useAuthStore.setState({
           token: accessToken,
           authenticated: true,
@@ -298,7 +298,7 @@ axiosInstance.interceptors.response.use(
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
         await AsyncStorage.removeItem('accessToken');
-        await SecureStore.deleteItemAsync('refreshToken');
+        await safeSecureStore.deleteItemAsync('refreshToken');
         useAuthStore.setState({
           token: null,
           authenticated: false,

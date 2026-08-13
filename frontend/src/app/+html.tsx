@@ -7,11 +7,27 @@ import { type PropsWithChildren } from 'react';
  */
 export default function Root({ children }: PropsWithChildren) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        {/* viewport-fit=cover para que el contenido llegue bajo el notch cuando corre como PWA */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
+        />
+
+        {/* PWA: permite instalar la app desde el navegador */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#486732" />
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* iOS ignora el manifest: necesita sus propias etiquetas para
+            "Agregar a pantalla de inicio" */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="BD Metrics" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
         {/*
           Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
@@ -23,10 +39,24 @@ export default function Root({ children }: PropsWithChildren) {
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <script dangerouslySetInnerHTML={{ __html: registerServiceWorker }} />
+      </body>
     </html>
   );
 }
+
+// Se inyecta como script crudo porque este archivo se renderiza en Node y no
+// tiene acceso a APIs del navegador.
+const registerServiceWorker = `
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function (error) {
+      console.warn('No se pudo registrar el service worker:', error);
+    });
+  });
+}`;
 
 const responsiveBackground = `
 body {

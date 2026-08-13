@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { safeAsyncStorage } from './asyncStorageHelper';
 
 // Función para guardar logs persistentes
 export const saveLog = async (message: string, data?: any, category: string = 'general') => {
@@ -11,7 +11,7 @@ export const saveLog = async (message: string, data?: any, category: string = 'g
       data: data ? JSON.stringify(data) : null
     };
     
-    const existingLogs = await AsyncStorage.getItem('app_logs');
+    const existingLogs = await safeAsyncStorage.getItem('app_logs');
     const logs = existingLogs ? JSON.parse(existingLogs) : [];
     logs.push(logEntry);
     
@@ -20,7 +20,7 @@ export const saveLog = async (message: string, data?: any, category: string = 'g
       logs.splice(0, logs.length - 100);
     }
     
-    await AsyncStorage.setItem('app_logs', JSON.stringify(logs));
+    await safeAsyncStorage.setItem('app_logs', JSON.stringify(logs));
     // Solo mostrar en consola si es un error o advertencia
     if (category === 'error' || category === 'warning') {
       console.log(`[${category.toUpperCase()}] ${message}`, data);
@@ -33,7 +33,7 @@ export const saveLog = async (message: string, data?: any, category: string = 'g
 // Función para obtener logs guardados
 export const getLogs = async (category?: string) => {
   try {
-    const logs = await AsyncStorage.getItem('app_logs');
+    const logs = await safeAsyncStorage.getItem('app_logs');
     if (logs) {
       const parsedLogs = JSON.parse(logs);
       if (category) {
@@ -51,7 +51,7 @@ export const getLogs = async (category?: string) => {
 // Función para limpiar logs
 export const clearLogs = async () => {
   try {
-    await AsyncStorage.removeItem('app_logs');
+    await safeAsyncStorage.removeItem('app_logs');
 ;
   } catch (error) {
     console.error('Error clearing logs:', error);

@@ -13,3 +13,6 @@ expo-env.d.ts
 .expo/**
 .expo/types/router.d.ts
 .DS_Store
+
+# Build de web (expo export --platform web)
+dist/
