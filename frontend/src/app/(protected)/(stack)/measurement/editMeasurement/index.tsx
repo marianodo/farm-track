@@ -648,9 +648,15 @@ const CreatePen: React.FC = () => {
                         />
 
                         <Slider
-                          style={{
-                            width: width * 0.9 - rMS(100) - rMS(12),
-                          }}
+                          style={[
+                            {
+                              width: width * 0.9 - rMS(100) - rMS(12),
+                            },
+                            // Ver nota en createMeasurement: en web el gesto se
+                            // lo lleva el navegador si no fijamos touchAction.
+                            Platform.OS === 'web' &&
+                              ({ touchAction: 'none' } as any),
+                          ]}
                           minimumValue={
                             e.pen_variable_type_of_object.custom_parameters
                               .value.min

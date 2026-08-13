@@ -913,9 +913,17 @@ const CreateMeasurement: React.FC = () => {
                       />
                       <Slider
                         key={sliderKey}
-                        style={{
-                          width: width * 0.9 - rMS(100) - rMS(12),
-                        }}
+                        style={[
+                          {
+                            width: width * 0.9 - rMS(100) - rMS(12),
+                          },
+                          // En web el slider es un <div> con el sistema de
+                          // responders de RN, no un <input range>. Sin
+                          // touchAction el navegador se queda con el gesto y
+                          // scrollea la pantalla en vez de mover el thumb.
+                          Platform.OS === 'web' &&
+                            ({ touchAction: 'none' } as any),
+                        ]}
                         minimumValue={e.custom_parameters.value.min}
                         maximumValue={e.custom_parameters.value.max ?? 0}
                         step={e.custom_parameters.value.granularity}
