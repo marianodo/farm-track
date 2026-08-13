@@ -68,7 +68,10 @@ const useAuthStore = create<AuthState>((set: any) => ({
         });
       }
     } catch (error: any) {
-      set({ authLoading: false, verifiedToken: false, authenticated: true });
+      // authenticated debe quedar en false: marcarlo true tras un login fallido
+      // hacía que el router navegara fuera del login y volviera, remontando la
+      // pantalla y borrando lo que el usuario había tipeado.
+      set({ authLoading: false, verifiedToken: false, authenticated: false });
       if (error.response) {
         return alert(`Login error: ${error.response.data.message}`);
       }
